@@ -1,0 +1,152 @@
+<?php
+
+namespace Domain\Event\Models;
+
+use Domain\Comment\Models\Comment;
+use Domain\Engagement\Models\Bookmark;
+use Domain\Engagement\Models\Like;
+use Domain\Event\Enums\EventDeliveryMode;
+use Domain\Event\Enums\EventScheduleMode;
+use Domain\Event\Enums\EventStatus;
+use Domain\Moderation\Models\ModerationDecision;
+use Domain\Report\Models\Report;
+use Domain\User\Models\User;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
+use Illuminate\Database\Eloquent\SoftDeletes;
+
+class Event extends Model
+{
+    use SoftDeletes;
+
+    protected $fillable = [
+        'user_id',
+        'event_category_id',
+        'festival_event_id',
+        'title',
+        'subtitle',
+        'slug',
+        'description',
+        'requirements',
+        'schedule_mode',
+        'delivery_mode',
+        'cover_image_path',
+        'has_cost',
+        'price',
+        'currency',
+        'promo_video_url',
+        'registration_deadline',
+        'public_invite_enabled',
+        'audience_capacity_enabled',
+        'audience_capacity',
+        'language',
+        'status',
+        'is_public',
+        'published_at',
+    ];
+
+    protected $casts = [
+        'schedule_mode' => EventScheduleMode::class,
+        'delivery_mode' => EventDeliveryMode::class,
+        'has_cost' => 'boolean',
+        'registration_deadline' => 'datetime',
+        'public_invite_enabled' => 'boolean',
+        'audience_capacity_enabled' => 'boolean',
+        'status' => EventStatus::class,
+        'is_public' => 'boolean',
+        'published_at' => 'datetime',
+    ];
+
+    public function user(): BelongsTo
+    {
+        return $this->belongsTo(User::class);
+    }
+
+    public function category(): BelongsTo
+    {
+        return $this->belongsTo(EventCategory::class, 'event_category_id');
+    }
+
+    public function festival(): BelongsTo
+    {
+        return $this->belongsTo(self::class, 'festival_event_id');
+    }
+
+    public function childFestivalEvents(): HasMany
+    {
+        return $this->hasMany(self::class, 'festival_event_id');
+    }
+
+    public function occurrences(): HasMany
+    {
+        return $this->hasMany(EventOccurrence::class);
+    }
+
+    public function recurrence(): HasOne
+    {
+        return $this->hasOne(EventRecurrence::class);
+    }
+
+    public function availabilityPoll(): HasOne
+    {
+        return $this->hasOne(EventAvailabilityPoll::class);
+    }
+
+    public function availabilityOptions(): HasMany
+    {
+        return $this->hasMany(EventAvailabilityOption::class);
+    }
+
+    public function venueDetail(): HasOne
+    {
+        return $this->hasOne(EventVenueDetail::class);
+    }
+
+    public function onlineDetail(): HasOne
+    {
+        return $this->hasOne(EventOnlineDetail::class);
+    }
+
+    public function participantInvites(): HasMany
+    {
+        return $this->hasMany(EventParticipantInvite::class);
+    }
+
+    public function audienceInvites(): HasMany
+    {
+        return $this->hasMany(EventAudienceInvite::class);
+    }
+
+    public function groupLinks(): HasMany
+    {
+        return $this->hasMany(EventGroupLink::class);
+    }
+
+    public function likes(): MorphMany
+    {
+        return $this->morphMany(Like::class, 'likeable');
+    }
+
+    public function bookmarks(): MorphMany
+    {
+        return $this->morphMany(Bookmark::class, 'bookmarkable');
+    }
+
+    public function comments(): MorphMany
+    {
+        return $this->morphMany(Comment::class, 'commentable');
+    }
+
+    public function reports(): MorphMany
+    {
+        return $this->morphMany(Report::class, 'reportable');
+    }
+
+    public function moderationDecisions(): MorphMany
+    {
+        return $this->morphMany(ModerationDecision::class, 'moderatable');
+    }
+}
