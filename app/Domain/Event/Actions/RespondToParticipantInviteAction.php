@@ -39,8 +39,11 @@ class RespondToParticipantInviteAction
         $this->createNotificationAction->execute(
             userId: $invite->event->user_id,
             type: 'event_participant_invite_response',
-            title: 'Risposta a invito partecipante',
-            message: 'Un invitato ha ' . ($status === 'accepted' ? 'accettato' : 'rifiutato') . ' l\'invito all\'evento "' . $invite->event->title . '".',
+            title: __('event.notifications.participant_response_title'),
+            message: __('event.notifications.participant_response_message', [
+                'response' => __('event.responses.' . ($status === 'accepted' ? 'accepted' : 'declined')),
+                'title' => $invite->event->title,
+            ]),
             data: [
                 'event_id' => $invite->event->id,
                 'event_slug' => $invite->event->slug,

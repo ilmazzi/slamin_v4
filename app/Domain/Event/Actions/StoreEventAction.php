@@ -83,6 +83,7 @@ class StoreEventAction
             $this->notifyEventInvitesAction->execute(
                 $event,
                 $notifyPayload['participantInvites'],
+                $notifyPayload['externalParticipantInvites'],
                 $notifyPayload['audienceInvites'],
             );
 
@@ -174,7 +175,7 @@ class StoreEventAction
             'occurrences',
             'recurrence',
             'availabilityPoll',
-            'availabilityOptions',
+            'availabilityOptions.votes',
             'venueDetail',
             'onlineDetail',
             'groupLinks',

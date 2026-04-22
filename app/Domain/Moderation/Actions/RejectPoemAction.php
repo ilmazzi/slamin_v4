@@ -19,7 +19,7 @@ class RejectPoemAction
     {
         if ($poem->status !== PoemStatus::PendingReview) {
             throw ValidationException::withMessages([
-                'poem' => ['Only poems in pending review can be rejected.'],
+                'poem' => [__('moderation.errors.poem_reject_pending_only')],
             ]);
         }
 
@@ -51,8 +51,8 @@ class RejectPoemAction
         $this->createNotificationAction->execute(
             userId: $poem->user_id,
             type: 'poem_rejected',
-            title: 'Poesia non approvata',
-            message: 'La tua poesia "' . $poem->title . '" non e stata approvata.',
+            title: __('moderation.notifications.poem_rejected_title'),
+            message: __('moderation.notifications.poem_rejected_message', ['title' => $poem->title]),
             data: [
                 'poem_id' => $poem->id,
                 'poem_slug' => $poem->slug,

@@ -25,6 +25,24 @@ use App\Http\Controllers\Api\V1\Poetry\ListPoemCategoriesController;
 use App\Http\Controllers\Api\V1\Poetry\ListPoemTypesController;
 use App\Http\Controllers\Api\V1\Poetry\RemoveBookmarkPoemController;
 use App\Http\Controllers\Api\V1\Poetry\UnlikePoemController;
+use App\Http\Controllers\Api\V1\Gig\DeletePoemTranslationGigController;
+use App\Http\Controllers\Api\V1\Gig\ListPoemTranslationGigsController;
+use App\Http\Controllers\Api\V1\Gig\StorePoemTranslationGigController;
+use App\Http\Controllers\Api\V1\Gig\UpdatePoemTranslationGigController;
+use App\Http\Controllers\Api\V1\Gig\AgreeGigNegotiationController;
+use App\Http\Controllers\Api\V1\Gig\ListGigNegotiationsController;
+use App\Http\Controllers\Api\V1\Gig\OpenGigNegotiationController;
+use App\Http\Controllers\Api\V1\Gig\ShowGigNegotiationController;
+use App\Http\Controllers\Api\V1\Gig\StoreGigNegotiationEventController;
+use App\Http\Controllers\Api\V1\Gig\ApproveTranslationJobController;
+use App\Http\Controllers\Api\V1\Gig\ListTranslationCommentsController;
+use App\Http\Controllers\Api\V1\Gig\RequestTranslationChangesController;
+use App\Http\Controllers\Api\V1\Gig\ResolveTranslationCommentController;
+use App\Http\Controllers\Api\V1\Gig\ShowTranslationJobController;
+use App\Http\Controllers\Api\V1\Gig\StoreTranslationCommentController;
+use App\Http\Controllers\Api\V1\Gig\SubmitTranslationJobController;
+use App\Http\Controllers\Api\V1\Gig\UpdateTranslationCommentController;
+use App\Http\Controllers\Api\V1\Gig\UpdateTranslationJobController;
 /* Poem routes for poet organizer */
 Route::middleware([
     'auth:sanctum',
@@ -35,6 +53,10 @@ Route::middleware([
     Route::get('/my/poems', ListMyPoemsController::class)->name('poems.my');
     Route::patch('/poems/{poem}', UpdatePoemController::class)->name('poems.update');
     Route::delete('/poems/{poem}', DeletePoemController::class)->name('poems.delete');
+    Route::get('/poems/{poem}/translation-gigs', ListPoemTranslationGigsController::class)->name('api.v1.poems.translation-gigs.index');
+    Route::post('/poems/{poem}/translation-gigs', StorePoemTranslationGigController::class)->name('api.v1.poems.translation-gigs.store');
+    Route::patch('/poems/{poem}/translation-gigs/{gig}', UpdatePoemTranslationGigController::class)->name('api.v1.poems.translation-gigs.update');
+    Route::delete('/poems/{poem}/translation-gigs/{gig}', DeletePoemTranslationGigController::class)->name('api.v1.poems.translation-gigs.delete');
 });
 
 /* Poem routes for public */
@@ -42,6 +64,20 @@ Route::middleware([
     'auth:sanctum',
     'account.verified',
 ])->group(function () {
+    Route::get('/gigs/{gig}/negotiations', ListGigNegotiationsController::class)->name('api.v1.gigs.negotiations.index');
+    Route::post('/gigs/{gig}/applications/{application}/negotiations', OpenGigNegotiationController::class)->name('api.v1.gigs.negotiations.store');
+    Route::get('/gig-negotiations/{negotiation}', ShowGigNegotiationController::class)->name('api.v1.gig-negotiations.show');
+    Route::post('/gig-negotiations/{negotiation}/events', StoreGigNegotiationEventController::class)->name('api.v1.gig-negotiations.events.store');
+    Route::post('/gig-negotiations/{negotiation}/agree', AgreeGigNegotiationController::class)->name('api.v1.gig-negotiations.agree');
+    Route::get('/translation-jobs/{job}', ShowTranslationJobController::class)->name('api.v1.translation-jobs.show');
+    Route::patch('/translation-jobs/{job}', UpdateTranslationJobController::class)->name('api.v1.translation-jobs.update');
+    Route::post('/translation-jobs/{job}/submit', SubmitTranslationJobController::class)->name('api.v1.translation-jobs.submit');
+    Route::post('/translation-jobs/{job}/request-changes', RequestTranslationChangesController::class)->name('api.v1.translation-jobs.request-changes');
+    Route::post('/translation-jobs/{job}/approve', ApproveTranslationJobController::class)->name('api.v1.translation-jobs.approve');
+    Route::get('/translation-jobs/{job}/comments', ListTranslationCommentsController::class)->name('api.v1.translation-jobs.comments.index');
+    Route::post('/translation-jobs/{job}/comments', StoreTranslationCommentController::class)->name('api.v1.translation-jobs.comments.store');
+    Route::patch('/translation-jobs/{job}/comments/{comment}', UpdateTranslationCommentController::class)->name('api.v1.translation-jobs.comments.update');
+    Route::post('/translation-jobs/{job}/comments/{comment}/resolve', ResolveTranslationCommentController::class)->name('api.v1.translation-jobs.comments.resolve');
     Route::post('/poems/{poem}/like', LikePoemController::class)->name('poems.like');
 Route::delete('/poems/{poem}/like', UnlikePoemController::class)->name('poems.unlike');
 

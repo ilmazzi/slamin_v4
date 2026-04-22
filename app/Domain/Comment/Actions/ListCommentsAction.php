@@ -5,6 +5,9 @@ namespace Domain\Comment\Actions;
 use Domain\Article\Enums\ArticleStatus;
 use Domain\Article\Models\Article;
 use Domain\Comment\Models\Comment;
+use Domain\Media\Enums\MediaStatus;
+use Domain\Media\Enums\MediaVisibility;
+use Domain\Media\Models\MediaItem;
 use Domain\Poetry\Enums\PoemStatus;
 use Domain\Poetry\Models\Poem;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
@@ -40,6 +43,12 @@ class ListCommentsAction
 
         if ($commentable instanceof Article) {
             if ($commentable->status === ArticleStatus::Published && $commentable->is_public === true) {
+                return;
+            }
+        }
+
+        if ($commentable instanceof MediaItem) {
+            if ($commentable->status === MediaStatus::Ready && $commentable->visibility === MediaVisibility::Public) {
                 return;
             }
         }

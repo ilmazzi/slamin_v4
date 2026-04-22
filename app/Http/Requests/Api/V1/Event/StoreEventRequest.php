@@ -6,11 +6,17 @@ use Domain\Event\Enums\EventDeliveryMode;
 use Domain\Event\Enums\EventRecurrenceFrequency;
 use Domain\Event\Enums\EventScheduleMode;
 use Domain\Event\Enums\EventStatus;
+use Domain\Event\Models\Event;
+use Domain\Group\Enums\GroupMemberRole;
+use Domain\Group\Enums\GroupMemberStatus;
+use Domain\Group\Models\GroupMember;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
 class StoreEventRequest extends FormRequest
 {
+    private const FESTIVAL_CATEGORY_SLUG = 'festival';
+
     public function authorize(): bool
     {
         return true;
@@ -45,7 +51,7 @@ class StoreEventRequest extends FormRequest
             'is_public' => ['nullable', 'boolean'],
             'published_at' => ['nullable', 'date'],
             'group_ids' => ['nullable', 'array'],
-            'group_ids.*' => ['integer', 'distinct'],
+            'group_ids.*' => ['integer', 'distinct', Rule::exists('groups', 'id')->where('is_active', true)],
             'participant_invites' => ['nullable', 'array'],
             'participant_invites.*.user_id' => ['nullable', 'integer', 'exists:users,id'],
             'participant_invites.*.name' => ['nullable', 'string', 'max:255'],
@@ -96,31 +102,31 @@ class StoreEventRequest extends FormRequest
 
             if (in_array($scheduleMode, [EventScheduleMode::Fixed->value, EventScheduleMode::Recurring->value], true)) {
                 if (! $this->filled('occurrence.starts_at') || ! $this->filled('occurrence.timezone')) {
-                    $validator->errors()->add('occurrence.starts_at', 'Occurrence start and timezone are required for fixed or recurring events.');
+                    $validator->errors()->add('occurrence.starts_at', __('event.validation.occurrence_required'));
                 }
             }
 
             if ($scheduleMode === EventScheduleMode::Recurring->value) {
                 if (! $this->filled('recurrence.frequency') || ! $this->filled('recurrence.interval')) {
-                    $validator->errors()->add('recurrence.frequency', 'Recurrence frequency and interval are required for recurring events.');
+                    $validator->errors()->add('recurrence.frequency', __('event.validation.recurrence_required'));
                 }
             }
 
             if ($scheduleMode === EventScheduleMode::Availability->value) {
                 if (! $this->filled('availability_poll.response_deadline')) {
-                    $validator->errors()->add('availability_poll.response_deadline', 'Availability response deadline is required.');
+                    $validator->errors()->add('availability_poll.response_deadline', __('event.validation.availability_deadline_required'));
                 }
 
                 $options = $this->input('availability_options', []);
                 if (! is_array($options) || count($options) < 1) {
-                    $validator->errors()->add('availability_options', 'At least one availability option is required.');
+                    $validator->errors()->add('availability_options', __('event.validation.availability_options_required'));
                 }
             }
 
             if ($deliveryMode === EventDeliveryMode::InPerson->value) {
                 foreach (['place_name', 'country_code', 'city'] as $field) {
                     if (! $this->filled("venue.{$field}")) {
-                        $validator->errors()->add("venue.{$field}", 'Venue details are required for in-person events.');
+                        $validator->errors()->add("venue.{$field}", __('event.validation.venue_required'));
                     }
                 }
             }
@@ -128,23 +134,112 @@ class StoreEventRequest extends FormRequest
             if ($deliveryMode === EventDeliveryMode::Online->value) {
                 foreach (['meeting_url', 'timezone'] as $field) {
                     if (! $this->filled("online.{$field}")) {
-                        $validator->errors()->add("online.{$field}", 'Online event URL and timezone are required.');
+                        $validator->errors()->add("online.{$field}", __('event.validation.online_required'));
                     }
                 }
             }
 
             if ($hasCost) {
                 if (! $this->filled('price')) {
-                    $validator->errors()->add('price', 'Price is required when the event has a cost.');
+                    $validator->errors()->add('price', __('event.validation.price_required'));
                 }
                 if (! $this->filled('currency')) {
-                    $validator->errors()->add('currency', 'Currency is required when the event has a cost.');
+                    $validator->errors()->add('currency', __('event.validation.currency_required'));
                 }
             }
 
             if ($capacityEnabled && ! $this->filled('audience_capacity')) {
-                $validator->errors()->add('audience_capacity', 'Audience capacity is required when capacity control is enabled.');
+                $validator->errors()->add('audience_capacity', __('event.validation.audience_capacity_required'));
             }
+
+            foreach ($this->input('participant_invites', []) as $index => $invite) {
+                $inviteType = $invite['invite_type'] ?? null;
+
+                if ($inviteType === 'internal' && empty($invite['user_id'])) {
+                    $validator->errors()->add(
+                        "participant_invites.{$index}.user_id",
+                        __('event.validation.internal_participant_user_required')
+                    );
+                }
+
+                if ($inviteType === 'external') {
+                    if (empty($invite['email'])) {
+                        $validator->errors()->add(
+                            "participant_invites.{$index}.email",
+                            __('event.validation.external_participant_email_required')
+                        );
+                    }
+
+                    if (empty($invite['name'])) {
+                        $validator->errors()->add(
+                            "participant_invites.{$index}.name",
+                            __('event.validation.external_participant_name_required')
+                        );
+                    }
+                }
+            }
+
+            if ($this->filled('group_ids')) {
+                $invalidGroupIds = collect($this->input('group_ids', []))
+                    ->filter(function ($groupId): bool {
+                        return ! GroupMember::query()
+                            ->where('group_id', $groupId)
+                            ->where('user_id', $this->user()->id)
+                            ->where('status', GroupMemberStatus::Active)
+                            ->whereIn('role', [
+                                GroupMemberRole::Owner,
+                                GroupMemberRole::Admin,
+                                GroupMemberRole::Moderator,
+                            ])
+                            ->exists();
+                    })
+                    ->values();
+
+                if ($invalidGroupIds->isNotEmpty()) {
+                    $validator->errors()->add('group_ids', __('event.validation.group_management_required'));
+                }
+            }
+            
+            $festivalEventId = $this->input('festival_event_id');
+            $currentEventId = $this->route('event')?->id;
+            
+            if ($festivalEventId && $currentEventId && (int) $festivalEventId === (int) $currentEventId) {
+                $validator->errors()->add(
+                    'festival_event_id',
+                    __('event.validation.festival_self_link_not_allowed')
+                );
+            
+                return;
+            }
+            
+            if ($festivalEventId !== null && $festivalEventId !== '') {
+                $festivalEvent = Event::query()
+                    ->with('category')
+                    ->find($festivalEventId);
+            
+                if (! $festivalEvent || $festivalEvent->category?->slug !== self::FESTIVAL_CATEGORY_SLUG) {
+                    $validator->errors()->add(
+                        'festival_event_id',
+                        __('event.validation.festival_parent_must_be_festival')
+                    );
+                }
+            }
+
+            $eventCategoryId = $this->input('event_category_id');
+
+if ($festivalEventId !== null && $festivalEventId !== '' && $eventCategoryId !== null && $eventCategoryId !== '') {
+    $selectedCategory = \Domain\Event\Models\EventCategory::query()->find($eventCategoryId);
+
+    if ($selectedCategory && $selectedCategory->slug === self::FESTIVAL_CATEGORY_SLUG) {
+        $validator->errors()->add(
+            'festival_event_id',
+            __('event.validation.festival_cannot_have_parent_festival')
+        );
+
+        return;
+    }
+}
+            
         });
     }
 }

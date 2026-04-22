@@ -2,6 +2,7 @@
 
 namespace Domain\Event\DTOs;
 
+use App\Http\Requests\Api\V1\Event\StoreEventRequest;
 use App\Http\Requests\Api\V1\Event\UpdateEventRequest;
 
 class UpdateEventData extends StoreEventData
@@ -75,43 +76,44 @@ class UpdateEventData extends StoreEventData
         );
     }
 
-    public static function fromRequest(UpdateEventRequest $request): self
-    {
-        $base = StoreEventData::fromRequest($request);
+    public static function fromRequest(StoreEventRequest $request): self
+{
+   
+    $base = StoreEventData::fromRequest($request);
 
-        return new self(
-            $base->userId,
-            $base->eventCategoryId,
-            $base->festivalEventId,
-            $base->title,
-            $base->subtitle,
-            $base->description,
-            $base->requirements,
-            $base->scheduleMode,
-            $base->deliveryMode,
-            $base->coverImage,
-            $base->hasCost,
-            $base->price,
-            $base->currency,
-            $base->promoVideoUrl,
-            $base->registrationDeadline,
-            $base->publicInviteEnabled,
-            $base->audienceCapacityEnabled,
-            $base->audienceCapacity,
-            $base->language,
-            $base->status,
-            $base->isPublic,
-            $base->publishedAt,
-            $base->groupIds,
-            $base->participantInvites,
-            $base->audienceInviteUserIds,
-            $base->occurrence,
-            $base->recurrence,
-            $base->availabilityPoll,
-            $base->availabilityOptions,
-            $base->venue,
-            $base->online,
-            (bool) $request->validated('remove_cover_image', false),
-        );
-    }
+    return new self(
+        $base->userId,
+        $base->eventCategoryId,
+        $base->festivalEventId,
+        $base->title,
+        $base->subtitle,
+        $base->description,
+        $base->requirements,
+        $base->scheduleMode,
+        $base->deliveryMode,
+        $base->coverImage,
+        $base->hasCost,
+        $base->price,
+        $base->currency,
+        $base->promoVideoUrl,
+        $base->registrationDeadline,
+        $base->publicInviteEnabled,
+        $base->audienceCapacityEnabled,
+        $base->audienceCapacity,
+        $base->language,
+        $base->status,
+        $base->isPublic,
+        $base->publishedAt,
+        $base->groupIds,
+        $base->participantInvites,
+        $base->audienceInviteUserIds,
+        $base->occurrence,
+        $base->recurrence,
+        $base->availabilityPoll,
+        $base->availabilityOptions,
+        $base->venue,
+        $base->online,
+        (bool) $request->validated('remove_cover_image', false),
+    );
+}
 }

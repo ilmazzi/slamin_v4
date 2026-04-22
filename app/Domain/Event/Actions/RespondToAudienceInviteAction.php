@@ -39,8 +39,11 @@ class RespondToAudienceInviteAction
         $this->createNotificationAction->execute(
             userId: $invite->event->user_id,
             type: 'event_audience_invite_response',
-            title: 'Risposta a invito pubblico',
-            message: 'Un utente ha ' . ($status === 'accepted' ? 'accettato' : 'rifiutato') . ' l\'invito pubblico all\'evento "' . $invite->event->title . '".',
+            title: __('event.notifications.audience_response_title'),
+            message: __('event.notifications.audience_response_message', [
+                'response' => __('event.responses.' . ($status === 'accepted' ? 'accepted' : 'declined')),
+                'title' => $invite->event->title,
+            ]),
             data: [
                 'event_id' => $invite->event->id,
                 'event_slug' => $invite->event->slug,

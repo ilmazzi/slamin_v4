@@ -19,7 +19,7 @@ class ApproveEventAction
     {
         if ($event->status !== EventStatus::PendingReview) {
             throw ValidationException::withMessages([
-                'event' => ['Only events in pending review can be approved.'],
+                'event' => [__('moderation.errors.event_approve_pending_only')],
             ]);
         }
 
@@ -51,8 +51,8 @@ class ApproveEventAction
         $this->createNotificationAction->execute(
             userId: $event->user_id,
             type: 'event_approved',
-            title: 'Evento approvato',
-            message: 'Il tuo evento "' . $event->title . '" e stato approvato e pubblicato.',
+            title: __('moderation.notifications.event_approved_title'),
+            message: __('moderation.notifications.event_approved_message', ['title' => $event->title]),
             data: [
                 'event_id' => $event->id,
                 'event_slug' => $event->slug,

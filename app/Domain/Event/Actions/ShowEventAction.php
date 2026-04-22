@@ -17,7 +17,7 @@ class ShowEventAction
                 'occurrences',
                 'recurrence',
                 'availabilityPoll',
-                'availabilityOptions',
+                'availabilityOptions.votes',
                 'venueDetail',
                 'onlineDetail',
                 'groupLinks',

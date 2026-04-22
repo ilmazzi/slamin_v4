@@ -133,5 +133,5 @@ it('prevents deleting an event category that is already used by an event', funct
 
     $response
         ->assertStatus(422)
-        ->assertJsonPath('errors.message', 'Cannot delete a category that is already used by one or more events.');
+        ->assertJsonPath('errors.message', __('event.errors.category_in_use'));
 });

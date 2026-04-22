@@ -6,6 +6,7 @@ use Domain\Auth\DTOs\RegisterUserData;
 use Domain\User\Models\User;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
 
 class RegisterUserAction
 {
@@ -14,7 +15,7 @@ class RegisterUserAction
         return DB::transaction(function () use ($data): array {
             $user = User::create([
                 'email' => $data->email,
-                'password' => $data->password,
+                'password' => Hash::make($data->password),
                 'account_type' => $data->accountType->value,
             ]);
 

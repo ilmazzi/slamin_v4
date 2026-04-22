@@ -28,6 +28,27 @@ class EventPolicy
         return $this->canInteract($user, $event);
     }
 
+    public function voteAvailability(User $user, Event $event): bool
+    {
+        if ($event->user_id === $user->id) {
+            return true;
+        }
+
+        return $event->participantInvites()
+            ->where('user_id', $user->id)
+            ->where('status', '!=', 'declined')
+            ->exists()
+            || $event->audienceInvites()
+                ->where('user_id', $user->id)
+                ->where('status', '!=', 'declined')
+                ->exists();
+    }
+
+    public function finalizeAvailability(User $user, Event $event): bool
+    {
+        return $event->user_id === $user->id;
+    }
+
     private function canInteract(User $user, Event $event): bool
     {
         if ($event->user_id === $user->id) {

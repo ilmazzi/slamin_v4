@@ -3,6 +3,9 @@
 namespace Domain\User\Models;
 
 use Database\Factories\UserFactory;
+use Domain\Chat\Models\ChatMessage;
+use Domain\Chat\Models\ChatThread;
+use Domain\Chat\Models\ChatThreadMember;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Factories\Factory;
@@ -11,8 +14,13 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Str;
 use Domain\Profile\Models\Profile;
+use Domain\Media\Models\MediaItem;
+use Domain\Media\Models\MediaCheckoutOrder;
+use Domain\Media\Models\UserMediaEntitlement;
 use Laravel\Sanctum\HasApiTokens;
 use Domain\User\Enums\AccountType;
+use Domain\Group\Models\GroupAnnouncement;
+use Domain\Group\Models\GroupMember;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
@@ -20,6 +28,12 @@ use Domain\Poetry\Models\Poem;
 use Domain\Engagement\Models\Like;
 use Domain\Engagement\Models\Bookmark;
 use Domain\Notification\Models\Notification;
+use Domain\Gig\Models\GigApplication;
+use Domain\Gig\Models\GigAnnouncement;
+use Domain\Gig\Models\GigNegotiation;
+use Domain\Gig\Models\GigNegotiationEvent;
+use Domain\Gig\Models\TranslationComment;
+use Domain\Gig\Models\TranslationJob;
 
 class User extends Authenticatable implements MustVerifyEmail
 {
@@ -155,5 +169,85 @@ public function bookmarks(): MorphMany
 public function notifications(): HasMany
 {
     return $this->hasMany(Notification::class);
+}
+
+public function groupMemberships(): HasMany
+{
+    return $this->hasMany(GroupMember::class);
+}
+
+public function groupAnnouncements(): HasMany
+{
+    return $this->hasMany(GroupAnnouncement::class, 'author_user_id');
+}
+
+public function gigApplications(): HasMany
+{
+    return $this->hasMany(GigApplication::class);
+}
+
+public function gigAnnouncements(): HasMany
+{
+    return $this->hasMany(GigAnnouncement::class, 'author_user_id');
+}
+
+public function ownedGigNegotiations(): HasMany
+{
+    return $this->hasMany(GigNegotiation::class, 'owner_user_id');
+}
+
+public function translatedGigNegotiations(): HasMany
+{
+    return $this->hasMany(GigNegotiation::class, 'translator_user_id');
+}
+
+public function gigNegotiationEvents(): HasMany
+{
+    return $this->hasMany(GigNegotiationEvent::class, 'author_user_id');
+}
+
+public function ownedTranslationJobs(): HasMany
+{
+    return $this->hasMany(TranslationJob::class, 'owner_user_id');
+}
+
+public function translatedJobs(): HasMany
+{
+    return $this->hasMany(TranslationJob::class, 'translator_user_id');
+}
+
+public function translationComments(): HasMany
+{
+    return $this->hasMany(TranslationComment::class, 'author_user_id');
+}
+
+public function mediaItems(): HasMany
+{
+    return $this->hasMany(MediaItem::class);
+}
+
+public function mediaEntitlements(): HasMany
+{
+    return $this->hasMany(UserMediaEntitlement::class);
+}
+
+public function mediaCheckoutOrders(): HasMany
+{
+    return $this->hasMany(MediaCheckoutOrder::class);
+}
+
+public function createdChatThreads(): HasMany
+{
+    return $this->hasMany(ChatThread::class, 'created_by_user_id');
+}
+
+public function chatMemberships(): HasMany
+{
+    return $this->hasMany(ChatThreadMember::class);
+}
+
+public function chatMessages(): HasMany
+{
+    return $this->hasMany(ChatMessage::class);
 }
 }

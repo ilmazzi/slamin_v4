@@ -19,7 +19,7 @@ class ApproveArticleAction
     {
         if ($article->status !== ArticleStatus::PendingReview) {
             throw ValidationException::withMessages([
-                'article' => ['Only articles in pending review can be approved.'],
+                'article' => [__('moderation.errors.article_approve_pending_only')],
             ]);
         }
 
@@ -51,8 +51,8 @@ class ApproveArticleAction
         $this->createNotificationAction->execute(
             userId: $article->user_id,
             type: 'article_approved',
-            title: 'Articolo approvato',
-            message: 'Il tuo articolo "' . $article->title . '" e stato approvato e pubblicato.',
+            title: __('moderation.notifications.article_approved_title'),
+            message: __('moderation.notifications.article_approved_message', ['title' => $article->title]),
             data: [
                 'article_id' => $article->id,
                 'article_slug' => $article->slug,

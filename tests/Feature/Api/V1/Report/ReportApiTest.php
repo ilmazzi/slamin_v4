@@ -98,7 +98,7 @@ it('prevents duplicate open reports by the same user on the same content', funct
 
     $response
         ->assertUnprocessable()
-        ->assertJsonPath('errors.fields.report.0', 'You already have an open report for this content.');
+        ->assertJsonPath('errors.fields.report.0', __('report.errors.duplicate_open'));
 });
 
 it('allows reporting a comment on public content', function () {

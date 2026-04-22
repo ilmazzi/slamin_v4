@@ -11,7 +11,8 @@ class EventResource extends JsonResource
 {
     public function toArray(Request $request): array
     {
-        $disk = Storage::disk('public');
+        $disk = Storage::disk('public'); /** @var \Illuminate\Filesystem\FilesystemAdapter $disk */
+
 
         return [
             'id' => $this->id,
@@ -66,6 +67,9 @@ class EventResource extends JsonResource
             'availability_poll' => $this->availabilityPoll ? [
                 'response_deadline' => $this->availabilityPoll->response_deadline?->toISOString(),
                 'instructions' => $this->availabilityPoll->instructions,
+                'is_finalized' => $this->availabilityOptions->contains(
+                    fn ($option) => $option->finalized_at !== null
+                ),
             ] : null,
             'availability_options' => $this->availabilityOptions->map(fn ($option) => [
                 'id' => $option->id,
@@ -73,6 +77,12 @@ class EventResource extends JsonResource
                 'ends_at' => $option->ends_at?->toISOString(),
                 'timezone' => $option->timezone,
                 'description' => $option->description,
+                'finalized_at' => $option->finalized_at?->toISOString(),
+                'is_final' => $option->finalized_at !== null,
+                'votes_count' => $option->votes->count(),
+                'current_user_has_voted' => $request->user() !== null
+                    ? $option->votes->contains('user_id', $request->user()->id)
+                    : false,
             ])->values(),
             'venue' => $this->venueDetail ? [
                 'place_name' => $this->venueDetail->place_name,

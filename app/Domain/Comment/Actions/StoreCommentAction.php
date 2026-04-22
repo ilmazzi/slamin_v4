@@ -5,6 +5,9 @@ namespace Domain\Comment\Actions;
 use Domain\Article\Enums\ArticleStatus;
 use Domain\Article\Models\Article;
 use Domain\Comment\Models\Comment;
+use Domain\Media\Enums\MediaStatus;
+use Domain\Media\Enums\MediaVisibility;
+use Domain\Media\Models\MediaItem;
 use Domain\Notification\Actions\CreateNotificationAction;
 use Domain\Poetry\Enums\PoemStatus;
 use Domain\Poetry\Models\Poem;
@@ -32,7 +35,7 @@ class StoreCommentAction
 
                 if ($parent->parent_id !== null) {
                     throw ValidationException::withMessages([
-                        'parent_id' => ['Only one reply level is allowed.'],
+                        'parent_id' => [__('comment.errors.single_reply_level')],
                     ]);
                 }
 
@@ -41,7 +44,7 @@ class StoreCommentAction
                     || (int) $parent->commentable_id !== (int) $commentable->getKey()
                 ) {
                     throw ValidationException::withMessages([
-                        'parent_id' => ['The parent comment does not belong to this content.'],
+                        'parent_id' => [__('comment.errors.parent_mismatch')],
                     ]);
                 }
             }
@@ -89,22 +92,38 @@ class StoreCommentAction
             }
         }
 
+        if ($commentable instanceof MediaItem) {
+            if ($commentable->status === MediaStatus::Ready && $commentable->visibility === MediaVisibility::Public) {
+                return;
+            }
+        }
+
         throw new NotFoundHttpException();
     }
 
     private function notifyInterestedUsers(Model $commentable, Comment $comment, ?Comment $parent): void
     {
-        $commentableType = $commentable instanceof Poem ? 'poem' : 'article';
+        $commentableType = match (true) {
+            $commentable instanceof Poem => 'poem',
+            $commentable instanceof Article => 'article',
+            default => 'media',
+        };
         $slug = $commentable->slug ?? null;
 
         if ($commentable->user_id !== $comment->user_id) {
             $this->createNotificationAction->execute(
                 userId: $commentable->user_id,
                 type: "{$commentableType}_commented",
-                title: $commentableType === 'poem' ? 'Nuovo commento sulla tua poesia' : 'Nuovo commento sul tuo articolo',
-                message: $commentableType === 'poem'
-                    ? 'Hai ricevuto un nuovo commento sulla poesia "' . $commentable->title . '".'
-                    : 'Hai ricevuto un nuovo commento sull\'articolo "' . $commentable->title . '".',
+                title: match ($commentableType) {
+                    'poem' => __('comment.notifications.poem_commented_title'),
+                    'article' => __('comment.notifications.article_commented_title'),
+                    default => __('comment.notifications.media_commented_title'),
+                },
+                message: match ($commentableType) {
+                    'poem' => __('comment.notifications.poem_commented_message', ['title' => $commentable->title]),
+                    'article' => __('comment.notifications.article_commented_message', ['title' => $commentable->title]),
+                    default => __('comment.notifications.media_commented_message', ['title' => $commentable->title]),
+                },
                 data: [
                     'comment_id' => $comment->id,
                     'commentable_type' => $commentableType,
@@ -119,8 +138,8 @@ class StoreCommentAction
             $this->createNotificationAction->execute(
                 userId: $parent->user_id,
                 type: 'comment_replied',
-                title: 'Nuova risposta a un tuo commento',
-                message: 'Hai ricevuto una risposta a uno dei tuoi commenti.',
+                title: __('comment.notifications.reply_title'),
+                message: __('comment.notifications.reply_message'),
                 data: [
                     'comment_id' => $comment->id,
                     'parent_comment_id' => $parent->id,

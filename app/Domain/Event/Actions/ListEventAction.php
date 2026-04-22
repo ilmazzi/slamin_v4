@@ -17,6 +17,8 @@ class ListEventAction
                 'category.translations',
                 'festival',
                 'occurrences',
+                'availabilityPoll',
+                'availabilityOptions.votes',
                 'venueDetail',
                 'onlineDetail',
             ])

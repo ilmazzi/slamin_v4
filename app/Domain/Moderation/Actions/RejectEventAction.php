@@ -19,7 +19,7 @@ class RejectEventAction
     {
         if ($event->status !== EventStatus::PendingReview) {
             throw ValidationException::withMessages([
-                'event' => ['Only events in pending review can be rejected.'],
+                'event' => [__('moderation.errors.event_reject_pending_only')],
             ]);
         }
 
@@ -51,8 +51,8 @@ class RejectEventAction
         $this->createNotificationAction->execute(
             userId: $event->user_id,
             type: 'event_rejected',
-            title: 'Evento non approvato',
-            message: 'Il tuo evento "' . $event->title . '" non e stato approvato.',
+            title: __('moderation.notifications.event_rejected_title'),
+            message: __('moderation.notifications.event_rejected_message', ['title' => $event->title]),
             data: [
                 'event_id' => $event->id,
                 'event_slug' => $event->slug,

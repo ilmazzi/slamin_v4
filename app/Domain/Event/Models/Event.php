@@ -8,12 +8,17 @@ use Domain\Engagement\Models\Like;
 use Domain\Event\Enums\EventDeliveryMode;
 use Domain\Event\Enums\EventScheduleMode;
 use Domain\Event\Enums\EventStatus;
+use Domain\Gig\Models\Gig;
+use Domain\Group\Models\Group;
 use Domain\Moderation\Models\ModerationDecision;
+use Domain\PoetrySlam\Models\PoetrySlam;
 use Domain\Report\Models\Report;
 use Domain\User\Models\User;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -100,6 +105,16 @@ class Event extends Model
         return $this->hasMany(EventAvailabilityOption::class);
     }
 
+    public function availabilityVotes(): HasManyThrough
+    {
+        return $this->hasManyThrough(
+            EventAvailabilityVote::class,
+            EventAvailabilityOption::class,
+            'event_id',
+            'event_availability_option_id'
+        );
+    }
+
     public function venueDetail(): HasOne
     {
         return $this->hasOne(EventVenueDetail::class);
@@ -123,6 +138,22 @@ class Event extends Model
     public function groupLinks(): HasMany
     {
         return $this->hasMany(EventGroupLink::class);
+    }
+
+    public function groups(): BelongsToMany
+    {
+        return $this->belongsToMany(Group::class, 'event_group')
+            ->withTimestamps();
+    }
+
+    public function poetrySlam(): HasOne
+    {
+        return $this->hasOne(PoetrySlam::class);
+    }
+
+    public function gigs(): MorphMany
+    {
+        return $this->morphMany(Gig::class, 'giggable');
     }
 
     public function likes(): MorphMany
@@ -149,4 +180,5 @@ class Event extends Model
     {
         return $this->morphMany(ModerationDecision::class, 'moderatable');
     }
+
 }

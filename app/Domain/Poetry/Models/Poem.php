@@ -15,6 +15,11 @@ use Domain\Engagement\Models\Bookmark;
 use Domain\Poetry\Models\PoemCategory;
 use Domain\Poetry\Models\PoemType;
 use Domain\Moderation\Models\ModerationDecision;
+use Domain\Gig\Models\Gig;
+use Domain\Gig\Models\TranslationJob;
+use Domain\PoetrySlam\Models\PoetrySlamEntry;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+
 class Poem extends Model
 {
     use SoftDeletes;
@@ -78,5 +83,19 @@ class Poem extends Model
     public function reports(): MorphMany
     {
         return $this->morphMany(Report::class, 'reportable');
+    }
+    public function entries(): HasMany
+    {
+        return $this->hasMany(PoetrySlamEntry::class);
+    }
+
+    public function gigs(): MorphMany
+    {
+        return $this->morphMany(Gig::class, 'giggable');
+    }
+
+    public function translationJobs(): HasMany
+    {
+        return $this->hasMany(TranslationJob::class);
     }
 }

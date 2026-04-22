@@ -54,10 +54,10 @@ class UpdateReportAction
             $this->createNotificationAction->execute(
                 userId: $report->reporter_user_id,
                 type: 'report_updated',
-                title: 'Aggiornamento sulla tua segnalazione',
+                title: __('report.notifications.updated_title'),
                 message: $resolvedStatus === ReportStatus::Resolved
-                    ? 'La tua segnalazione e stata presa in carico e risolta.'
-                    : 'La tua segnalazione e stata valutata e archiviata.',
+                    ? __('report.notifications.resolved_message')
+                    : __('report.notifications.dismissed_message'),
                 data: [
                     'report_id' => $report->id,
                     'status' => $report->status?->value,

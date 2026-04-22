@@ -19,7 +19,7 @@ class AdminDeletePoemCategoryController extends Controller
     {
         if (! $this->action->execute($poemCategory, request()->user()->id)) {
             return ApiResponse::error(
-                message: 'Cannot delete a category that is already used by one or more poems.',
+                message: __('poetry.errors.category_in_use'),
                 status: 422
             );
         }

@@ -75,8 +75,10 @@ class StoreReportAction
             $this->createNotificationAction->execute(
                 userId: $staffUser->id,
                 type: 'report_created',
-                title: 'Nuova segnalazione ricevuta',
-                message: 'E stata inviata una nuova segnalazione su un ' . $reportableType . '.',
+                title: __('report.notifications.created_title'),
+                message: __('report.notifications.created_message', [
+                    'type' => __("report.types.{$reportableType}"),
+                ]),
                 data: [
                     'report_id' => $report->id,
                     'reportable_type' => $reportableType,
@@ -99,7 +101,7 @@ class StoreReportAction
 
         if ($exists) {
             throw ValidationException::withMessages([
-                'report' => ['You already have an open report for this content.'],
+                'report' => [__('report.errors.duplicate_open')],
             ]);
         }
     }
@@ -110,7 +112,7 @@ class StoreReportAction
 
         if ($ownerId !== null && (int) $ownerId === $reporterUserId) {
             throw ValidationException::withMessages([
-                'report' => ['You cannot report your own content.'],
+                'report' => [__('report.errors.self_report')],
             ]);
         }
     }

@@ -11,6 +11,8 @@ use Domain\Shared\Enums\ContentType;
 use Domain\Shared\Enums\PublicationFlow;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
+use Domain\Event\Models\EventCategory;
+use Illuminate\Validation\ValidationException;
 
 class UpdateEventAction
 {
@@ -24,6 +26,7 @@ class UpdateEventAction
 
     public function execute(Event $event, UpdateEventData $data): Event
     {
+       
         return DB::transaction(function () use ($event, $data) {
             $previousParticipantUserIds = $event->participantInvites()
                 ->whereNotNull('user_id')
@@ -33,6 +36,12 @@ class UpdateEventAction
             $previousAudienceUserIds = $event->audienceInvites()
                 ->pluck('user_id')
                 ->map(fn ($id) => (int) $id)
+                ->all();
+            $previousExternalParticipantKeys = $event->participantInvites()
+                ->where('invite_type', 'external')
+                ->whereNotNull('email')
+                ->get()
+                ->map(fn ($invite) => strtolower((string) $invite->email) . '|' . strtolower((string) $invite->role))
                 ->all();
 
             $oldValues = [
@@ -66,6 +75,25 @@ class UpdateEventAction
                 $coverImagePath = $data->coverImage->store('events', 'public');
             }
 
+            $currentCategorySlug = $event->category?->slug;
+
+            $newCategoryId = $data->eventCategoryId ?? $event->event_category_id;
+
+            $newCategorySlug = $newCategoryId
+                ? EventCategory::query()->whereKey($newCategoryId)->value('slug')
+                : null;
+
+            $hasChildFestivalEvents = $event->childFestivalEvents()->exists();
+          
+            if (
+                $hasChildFestivalEvents &&
+                $currentCategorySlug === 'festival' &&
+                $newCategorySlug !== 'festival'
+            ) {
+                throw ValidationException::withMessages([
+                    'event_category_id' => __('event.validation.festival_with_children_cannot_change_category'),
+                ]);
+            }
             $event->update([
                 'event_category_id' => $data->eventCategoryId,
                 'festival_event_id' => $data->festivalEventId,
@@ -96,6 +124,7 @@ class UpdateEventAction
                 $data,
                 $previousParticipantUserIds,
                 $previousAudienceUserIds,
+                $previousExternalParticipantKeys,
             );
 
             audit()->log(
@@ -121,6 +150,7 @@ class UpdateEventAction
             $this->notifyEventInvitesAction->execute(
                 $event,
                 $notifyPayload['participantInvites'],
+                $notifyPayload['externalParticipantInvites'],
                 $notifyPayload['audienceInvites'],
             );
 
@@ -220,7 +250,7 @@ class UpdateEventAction
             'occurrences',
             'recurrence',
             'availabilityPoll',
-            'availabilityOptions',
+            'availabilityOptions.votes',
             'venueDetail',
             'onlineDetail',
             'groupLinks',

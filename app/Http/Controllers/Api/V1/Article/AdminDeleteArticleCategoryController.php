@@ -19,7 +19,7 @@ class AdminDeleteArticleCategoryController extends Controller
     {
         if (! $this->action->execute($articleCategory, request()->user()->id)) {
             return ApiResponse::error(
-                message: 'Cannot delete a category that is already used by one or more articles.',
+                message: __('article.errors.category_in_use'),
                 status: 422
             );
         }

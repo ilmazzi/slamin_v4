@@ -19,12 +19,17 @@ class UpdateEventController extends Controller
     }
 
     public function __invoke(UpdateEventRequest $request, Event $event): JsonResponse
-    {
-        $this->authorize('update', $event);
-        $event = $this->action->execute($event, UpdateEventData::fromRequest($request));
+{
+    $this->authorize('update', $event);
 
-        return ApiResponse::success([
-            'event' => new EventResource($event),
-        ]);
-    }
+    $data = \Domain\Event\DTOs\UpdateEventData::fromRequest($request);
+
+  
+
+    $event = $this->action->execute($event, $data);
+
+    return ApiResponse::success([
+        'event' => new EventResource($event),
+    ]);
+}
 }

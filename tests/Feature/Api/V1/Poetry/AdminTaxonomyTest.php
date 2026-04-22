@@ -176,7 +176,7 @@ it('prevents deleting a poem category that is already used by a poem', function 
 
     $response
         ->assertStatus(422)
-        ->assertJsonPath('errors.message', 'Cannot delete a category that is already used by one or more poems.');
+        ->assertJsonPath('errors.message', __('poetry.errors.category_in_use'));
 
     $this->assertDatabaseHas('poem_categories', [
         'id' => $category->id,

@@ -2,11 +2,13 @@
 
 namespace Domain\Event\Actions;
 
+use App\Mail\EventExternalParticipantInviteMail;
 use Domain\Event\Models\Event;
 use Domain\Event\Models\EventAudienceInvite;
 use Domain\Event\Models\EventParticipantInvite;
 use Domain\Notification\Actions\CreateNotificationAction;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Mail;
 
 class NotifyEventInvitesAction
 {
@@ -17,10 +19,15 @@ class NotifyEventInvitesAction
 
     /**
      * @param Collection<int, EventParticipantInvite> $participantInvites
+     * @param Collection<int, EventParticipantInvite> $externalParticipantInvites
      * @param Collection<int, EventAudienceInvite> $audienceInvites
      */
-    public function execute(Event $event, Collection $participantInvites, Collection $audienceInvites): void
-    {
+    public function execute(
+        Event $event,
+        Collection $participantInvites,
+        Collection $externalParticipantInvites,
+        Collection $audienceInvites
+    ): void {
         foreach ($participantInvites as $invite) {
             if (! $invite->user_id) {
                 continue;
@@ -29,8 +36,11 @@ class NotifyEventInvitesAction
             $this->createNotificationAction->execute(
                 userId: $invite->user_id,
                 type: 'event_participant_invited',
-                title: 'Invito a partecipare a un evento',
-                message: 'Sei stato invitato come ' . $invite->role . ' all\'evento "' . $event->title . '".',
+                title: __('event.notifications.participant_invited_title'),
+                message: __('event.notifications.participant_invited_message', [
+                    'role' => $invite->role,
+                    'title' => $event->title,
+                ]),
                 data: [
                     'event_id' => $event->id,
                     'event_slug' => $event->slug,
@@ -41,12 +51,31 @@ class NotifyEventInvitesAction
             );
         }
 
+        foreach ($externalParticipantInvites as $invite) {
+            if (! $invite->email) {
+                continue;
+            }
+
+            Mail::to($invite->email)->send(new EventExternalParticipantInviteMail(
+                event: $event->loadMissing(['occurrences', 'venueDetail', 'onlineDetail']),
+                invite: $invite,
+            ));
+
+            if ($invite->status !== 'sent') {
+                $invite->update([
+                    'status' => 'sent',
+                ]);
+            }
+        }
+
         foreach ($audienceInvites as $invite) {
             $this->createNotificationAction->execute(
                 userId: $invite->user_id,
                 type: 'event_audience_invited',
-                title: 'Invito a partecipare come pubblico',
-                message: 'Sei stato invitato a partecipare come pubblico all\'evento "' . $event->title . '".',
+                title: __('event.notifications.audience_invited_title'),
+                message: __('event.notifications.audience_invited_message', [
+                    'title' => $event->title,
+                ]),
                 data: [
                     'event_id' => $event->id,
                     'event_slug' => $event->slug,

@@ -19,7 +19,7 @@ class AdminDeletePoemTypeController extends Controller
     {
         if (! $this->action->execute($poemType, request()->user()->id)) {
             return ApiResponse::error(
-                message: 'Cannot delete a type that is already used by one or more poems.',
+                message: __('poetry.errors.type_in_use'),
                 status: 422
             );
         }

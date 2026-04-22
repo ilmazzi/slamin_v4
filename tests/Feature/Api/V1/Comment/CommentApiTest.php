@@ -133,7 +133,7 @@ it('prevents replying to a reply', function () {
 
     $response
         ->assertUnprocessable()
-        ->assertJsonPath('errors.fields.parent_id.0', 'Only one reply level is allowed.');
+        ->assertJsonPath('errors.fields.parent_id.0', __('comment.errors.single_reply_level'));
 });
 
 it('updates and deletes only own comments', function () {

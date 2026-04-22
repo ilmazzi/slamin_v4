@@ -19,7 +19,7 @@ class RejectArticleAction
     {
         if ($article->status !== ArticleStatus::PendingReview) {
             throw ValidationException::withMessages([
-                'article' => ['Only articles in pending review can be rejected.'],
+                'article' => [__('moderation.errors.article_reject_pending_only')],
             ]);
         }
 
@@ -51,8 +51,8 @@ class RejectArticleAction
         $this->createNotificationAction->execute(
             userId: $article->user_id,
             type: 'article_rejected',
-            title: 'Articolo non approvato',
-            message: 'Il tuo articolo "' . $article->title . '" non e stato approvato.',
+            title: __('moderation.notifications.article_rejected_title'),
+            message: __('moderation.notifications.article_rejected_message', ['title' => $article->title]),
             data: [
                 'article_id' => $article->id,
                 'article_slug' => $article->slug,

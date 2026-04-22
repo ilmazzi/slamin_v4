@@ -21,7 +21,7 @@ class AdminDeleteEventCategoryController extends Controller
 
         if (! $deleted) {
             return ApiResponse::error(
-                'Cannot delete a category that is already used by one or more events.',
+                __('event.errors.category_in_use'),
                 status: 422,
             );
         }
