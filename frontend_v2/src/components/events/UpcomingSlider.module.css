@@ -1,0 +1,95 @@
+.section {
+    padding: 32px 0 0;
+  }
+  
+  .titleRow {
+    padding-inline: var(--page-inline-padding);
+  }
+  .titleRow h3 {
+    margin: 0;
+    font-size: 64px;
+    line-height: 1;
+    font-weight: 300;
+    text-transform: lowercase;
+  }
+  
+  .titleRow h3 em {
+    font-style: normal;
+    font-weight: 700;
+    
+  }
+  
+  .sliderRow {
+    margin-top: 20px;
+    display: grid;
+    grid-template-columns: 52px minmax(0, 1460px) 52px;
+    gap: 12px;
+    justify-content: center;
+    align-items: stretch;
+    width: 100%;
+    margin-inline: auto;
+  }
+  .arrow {
+    border: 0;
+    background: transparent;
+    color: #000;
+    font-size: 74px;
+    line-height: 1;
+    cursor: pointer;
+  }
+  
+  .arrow:disabled {
+    opacity: 0.3;
+    cursor: default;
+  }
+  
+  .viewport {
+    overflow: hidden;
+    min-height: 240px;
+    max-width: none;
+    margin-inline: 0;
+  }
+  .track {
+    display: flex;
+    align-items: stretch;
+    transition: transform 240ms ease;
+    will-change: transform;
+  }
+  
+  .slide {
+    min-width: 33.3333%;
+    padding: 0 18px; /* aumenta da 12/14 a 18 */
+    box-sizing: border-box;
+    display: flex;
+    align-items: stretch;
+  }
+  .slide > * {
+    width: 100%;
+  }
+  
+  .stateText {
+    margin: 0;
+    padding: 32px 0;
+    text-align: center;
+    font-size: 18px;
+  }
+  
+  @media (max-width: 1023px) {
+    .titleRow h3 {
+      font-size: 42px;
+    }
+  
+    .sliderRow {
+      grid-template-columns: 32px 1fr 32px;
+      gap: 6px;
+    }
+  
+    .arrow {
+      font-size: 44px;
+    }
+  
+    .slide {
+      min-width: 100%;
+      padding: 0 4px;
+    }
+  }

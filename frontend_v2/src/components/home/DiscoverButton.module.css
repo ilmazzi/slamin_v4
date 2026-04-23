@@ -1,0 +1,70 @@
+.button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+  border: 1px solid currentColor;
+  border-radius: 40px;
+  text-decoration: none;
+  transition:
+    background-color 160ms ease,
+    color 160ms ease,
+    border-color 160ms ease,
+    transform 160ms ease;
+}
+
+.button:hover {
+  transform: translateY(-1px);
+}
+
+.desktop {
+  padding: 8px 20px 8px 30px;
+}
+
+.mobile {
+  gap: 14px;
+  padding: 4px 8px;
+  border-radius: 28px;
+}
+
+.dark {
+  color: #000;
+}
+
+.dark:hover {
+  background: rgba(0, 0, 0, 0.05);
+}
+
+.light {
+  color: #fff;
+}
+
+.light:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.label {
+  font-weight: 300;
+  line-height: 1;
+}
+
+.desktop .label {
+  font-size: 30px;
+}
+
+.mobile .label {
+  font-size: 10px;
+}
+
+.arrow {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  line-height: 1;
+  transform: translateY(-1px);
+}
+
+.mobile .arrow {
+  font-size: 10px;
+}

@@ -1,0 +1,126 @@
+.card {
+    --event-card-accent: var(--page-hero-accent, var(--color-event));
+    --event-card-fg-strong: var(--color-white);
+    --event-card-fg: var(--color-black);
+    --event-card-divider: var(--color-white);
+  
+    width: 100%;
+    aspect-ratio: 481 / 753;   /* rapporto Figma */
+    display: grid;
+    grid-template-rows: 481fr 272fr; /* picture/info in proporzione */
+    background: var(--event-card-accent);
+    color: var(--event-card-fg);
+    font-family: var(--font-family-sans);
+    overflow: hidden;
+  }
+  .picture {
+    width: 100%;
+   height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  .pictureAsset {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    
+  }
+  
+  .pictureFallback {
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--color-black) 10%, transparent),
+      color-mix(in srgb, var(--color-black) 42%, transparent)
+    );
+  }
+  
+  .info {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: clamp(20px, 5vw, 64px);
+    padding: clamp(10px, 2vw, 12px) clamp(14px, 4vw, 26px) clamp(14px, 4vw, 23px);
+    height: 100%;
+  }
+  
+  .titleWrap {
+    width: 100%;
+  }
+  
+  .title {
+    margin: 0;
+    font-size: clamp(26px, 3.2vw, 45px);
+    line-height: clamp(34px, 4.1vw, 59px);
+    font-weight: 700;
+    color: var(--event-card-fg-strong);
+  }
+  
+  .description {
+    margin: 0;
+    font-size: clamp(16px, 2vw, 30px);
+    line-height: clamp(22px, 2.7vw, 40px);
+    font-weight: 300;
+    color: var(--event-card-fg-strong);
+  }
+  
+  .bottom {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    isolation: isolate;
+    position: relative;
+  }
+  
+  .left {
+    flex: 1 1 auto;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: clamp(4px, 0.8vw, 6px);
+    padding-right: clamp(54px, 7vw, 72px); /* spazio bottone right */
+  }
+  
+  .city {
+    font-size: clamp(20px, 2.2vw, 30px);
+    line-height: clamp(28px, 2.9vw, 40px);
+    font-weight: 700;
+    color: var(--event-card-fg);
+  }
+  
+  .line {
+    display: block;
+    width: 100%;
+    border-top: 1px solid var(--event-card-divider);
+  }
+  
+  .date {
+    font-size: clamp(14px, 1.4vw, 20px);
+    line-height: clamp(20px, 1.9vw, 26px);
+    font-weight: 300;
+    color: var(--event-card-fg);
+  }
+  
+  .right {
+    position: absolute;
+    right: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    width: clamp(38px, 5vw, 55px);
+    height: clamp(38px, 5vw, 55px);
+    border-radius: var(--radius-pill-lg);
+    background: var(--color-white);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  .chevron {
+    font-size: clamp(22px, 2.2vw, 30px);
+    line-height: 1;
+    color: var(--event-card-accent);
+  }

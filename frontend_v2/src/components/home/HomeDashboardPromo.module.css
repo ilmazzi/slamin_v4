@@ -1,0 +1,150 @@
+.section {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 48px;
+  padding: 38px var(--home-section-pad-desktop, 110px) 72px;
+  background: #000;
+}
+.compactTop {
+  margin-top: -38px; /* stesso valore del padding-top */
+}
+.left {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 48px;
+}
+
+.title {
+  margin: 0;
+  color: #fff;
+  font-size: clamp(45px, 6vw, 130px);
+  font-weight: 800;
+  line-height: 0.94;
+  letter-spacing: -0.03em;
+}
+
+.userPill {
+  display: inline-flex;
+  align-items: center;
+  gap: 15px;
+  width: min(496px, 100%);
+  padding: 8px 20px 8px 15px;
+  border-radius: 40px;
+  background: #e30613;
+  box-sizing: border-box;
+}
+
+.avatar {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #f0d3c0, #6d5145 65%);
+  flex: 0 0 auto;
+}
+
+.userName {
+  flex: 1 1 auto;
+  min-width: 0;
+  color: #fff;
+  font-size: clamp(10px, 2vw, 40px);
+  font-weight: 700;
+  line-height: 1;
+}
+
+.arrow {
+  color: #fff;
+  font-size: clamp(8px, 1.6vw, 25px);
+  line-height: 1;
+}
+
+.metrics {
+  display: grid;
+  gap: 24px;
+  align-content: center;
+  padding-top: 34px;
+}
+
+.metricPill {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-height: 104px;
+  padding: 5px 36px 14px 68px;
+  border: 1px solid #e30613;
+  border-radius: 100px;
+  box-sizing: border-box;
+}
+
+.metricValue {
+  color: #fff;
+  font-size: clamp(40px, 4vw, 70px);
+  font-weight: 800;
+  line-height: 1;
+}
+
+.metricLabel {
+  color: #fff;
+  font-size: clamp(20px, 2vw, 30px);
+  font-weight: 300;
+  line-height: 1;
+}
+
+@media (max-width: 768px) {
+  .section {
+    grid-template-columns: 1fr;
+    gap: 24px;
+    padding: 27px var(--home-section-pad-mobile, 30px) 42px;
+  }
+
+
+  .left {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: start;
+    column-gap: 10px;
+    row-gap: 0;
+  }
+  .title {
+    font-size: 45px;
+  }
+
+  .userPill {
+    width: 133px !important;
+    gap: 5px;
+    padding: 5px 10px 5px 5px;
+  }
+
+  .avatar {
+    width: 15px;
+    height: 15px;
+  }
+
+  .userName {
+    font-size: 10px;
+  }
+
+  .arrow {
+    font-size: 8px;
+  }
+
+  .metrics {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+    padding-top: 0;
+  }
+
+  .metricPill {
+    min-height: 87px;
+    padding: 6px 14px 10px;
+    border-radius: 20px;
+  }
+
+  .metricValue {
+    font-size: 40px;
+  }
+
+  .metricLabel {
+    font-size: 20px;
+  }
+}

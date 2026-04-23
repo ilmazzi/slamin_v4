@@ -1,0 +1,821 @@
+.calendarRoot {
+  --calendar-bg: var(--color-black);
+  --calendar-text: var(--color-white);
+  --calendar-accent: var(--color-red);
+  --calendar-surface: var(--color-white);
+  --calendar-muted-border: color-mix(in srgb, var(--color-white) 40%, transparent);
+
+  background: var(--calendar-bg);
+  color: var(--calendar-text);
+  /* resto invariato */
+}
+
+.toneEvent {
+  --calendar-bg: var(--page-hero-accent, var(--color-event));
+  --calendar-text: var(--color-black);
+  --calendar-accent: var(--color-black); /* o il colore che vuoi */
+  --calendar-surface: var(--color-white);
+  --calendar-muted-border: color-mix(in srgb, var(--color-black) 30%, transparent);
+}
+
+.calendarRoot {
+  display: flex;
+  flex-direction: column;
+  gap: clamp(14px, 1.9vw, 28px);
+  background: var(--calendar-bg);
+color: var(--calendar-text);
+  margin-top: clamp(24px, 3.13vw, 60px);
+  padding-inline: clamp(24px, 5.73vw, 110px);
+  padding-block: clamp(28px, 3.5vw, 56px);
+}
+.calendarHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: clamp(60px, 5vw, 95px);
+}
+.monthsRow { 
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: clamp(6px, 0.52vw, 10px);
+  width: 100%;
+  overflow-x: auto;
+}
+
+.calendarPeriodRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: clamp(8px, 1.25vw, 24px);
+  width: 100%;
+}
+
+.yearSwitcher {
+  display: inline-flex;
+  align-items: center;
+  gap: clamp(6px, 0.52vw, 10px);
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  border-radius: 999px;
+  padding: clamp(4px, 0.42vw, 8px) clamp(8px, 0.73vw, 14px);
+  background: rgba(255, 255, 255, 0.08);
+  flex: none;
+}
+
+.yearNavButton {
+  width: clamp(24px, 1.77vw, 34px);
+  height: clamp(24px, 1.77vw, 34px);
+  border: 1px solid #d9d9d9;
+  border-radius: 999px;
+  background: transparent;
+  color: #fff;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Switzer';
+  font-style: normal;
+  font-weight: 500;
+  font-size: clamp(12px, 1.04vw, 20px);
+  line-height: 1;
+}
+
+.yearValue {
+  min-width: clamp(42px, 3.65vw, 70px);
+  text-align: center;
+  color: #fff;
+  font-family: 'Switzer';
+  font-style: normal;
+  font-weight: 600;
+  font-size: clamp(14px, 1.15vw, 22px);
+  line-height: 1;
+}
+
+.title {
+  margin: 0;
+  display: flex;
+  align-items: baseline;
+  gap: clamp(4px, 0.8vw, 12px);
+  text-transform: none;
+}
+
+.titleAccent {
+  font-family: 'Switzer';
+  font-style: italic;
+  font-weight: 800;
+  font-size: clamp(48px, 4.43vw, 85px);
+  line-height: clamp(56px, 4.95vw, 95px);
+  letter-spacing: -0.03em;
+  color: var(--calendar-accent);
+}
+
+.titleMiddle,
+.titleTail {
+  font-family: 'Switzer';
+  font-style: normal;
+  font-weight: 300;
+  font-size: clamp(48px, 4.43vw, 85px);
+  line-height: clamp(56px, 4.95vw, 95px);
+  letter-spacing: -0.035294118em;
+  color: #ffffff;
+}
+
+.monthSelectRow {
+  display: none;
+  position: relative;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 10px;
+  width: 100%;
+}
+
+.monthSelectAndHide {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 1px;
+  gap: 7px;
+  width: 332px;
+  max-width: 100%;
+  min-height: 21px;
+}
+
+.monthSelectAndHideHidden {
+  justify-content: flex-end;
+}
+
+.monthSelectTrigger {
+  box-sizing: border-box;
+  display: inline-flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  gap: 7px;
+  width: 68px;
+  height: 21px;
+  padding: 0 9px;
+  background: transparent;
+  border: 1px solid #d9d9d9;
+  border-radius: 70px;
+  color: #d9d9d9;
+  cursor: pointer;
+}
+
+.monthSelectText {
+  font-family: 'Switzer';
+  font-style: normal;
+  font-weight: 300;
+  font-size: 10px;
+  line-height: 13px;
+  color: #d9d9d9;
+}
+
+.monthSelectChevron {
+  font-size: 10px;
+  line-height: 1;
+  transition: transform 0.2s ease;
+  color: #d9d9d9;
+}
+
+.monthSelectChevronOpen {
+  transform: rotate(180deg);
+}
+
+.monthSelectMenu {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(120px, 1fr));
+  gap: 8px;
+  width: min(100%, 520px);
+  padding: 12px;
+  background: #141414;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 18px;
+}
+
+.hideButtonDesktop {
+  display: inline-flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(8px, 0.63vw, 12px);
+  padding: clamp(8px, 0.94vw, 18px) clamp(12px, 1.15vw, 22px) clamp(8px, 0.94vw, 18px) clamp(16px, 1.77vw, 34px);
+  width: clamp(150px, 14.74vw, 283px);
+  height: clamp(48px, 4.27vw, 82px);
+  border: none;
+  border-radius: 50px;
+  background: #fff;
+  cursor: pointer;
+}
+
+.hideButtonIcon {
+  width: clamp(20px, 2.08vw, 40px);
+  height: clamp(20px, 2.08vw, 40px);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.hideButtonIconSvg {
+  width: clamp(18px, 2.08vw, 40px);
+  height: clamp(16px, 1.77vw, 34px);
+}
+
+.hideButtonLabel {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+  text-align: center;
+  white-space: nowrap;
+  color: #000;
+}
+
+.hideButtonMobile {
+  display: inline-flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  padding: 0 5px 0 7px;
+  gap: 6px;
+  width: 83px;
+  height: 21px;
+  border: none;
+  border-radius: 50px;
+  background: #d9d9d9;
+  cursor: pointer;
+}
+
+.hideButtonIconMobile {
+  width: 18px;
+  height: 21px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.hideButtonIconSvgMobile {
+  width: 14px;
+  height: 13px;
+}
+
+.hideButtonLabelMobile {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+  text-align: center;
+  white-space: nowrap;
+  color: #000;
+}
+
+.monthSelectOption {
+  height: 42px;
+  padding: 0 12px;
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  border-radius: 40px;
+  background: transparent;
+  color: #fff;
+  font-family: 'Switzer';
+  font-weight: 300;
+  font-size: 16px;
+  line-height: 1;
+  text-align: center;
+  cursor: pointer;
+}
+
+.monthSelectOptionActive {
+  height: 42px;
+  padding: 0 12px;
+  border: 1px solid #fff;
+  border-radius: 40px;
+  background: #fff;
+  color: #000;
+  font-family: 'Switzer';
+  font-weight: 700;
+  font-size: 16px;
+  line-height: 1;
+  text-align: center;
+  cursor: pointer;
+}
+  
+  .monthButton {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    padding: 0;
+    gap: clamp(6px, 0.52vw, 10px);
+  
+    width: clamp(88px, 6.72vw, 129px);
+    height: clamp(38px, 2.6vw, 50px);
+  
+    background: rgba(255, 255, 255, 0.3);
+    border: none;
+    border-radius: clamp(38px, 3.65vw, 70px);
+    cursor: pointer;
+  }
+  
+  .monthButtonActive {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    padding: 0;
+    gap: clamp(6px, 0.52vw, 10px);
+  
+    width: clamp(88px, 6.72vw, 129px);
+    height: clamp(38px, 2.6vw, 50px);
+  
+    background: #ffffff;
+    border: none;
+    border-radius: clamp(38px, 3.65vw, 70px);
+    cursor: pointer;
+  }
+  
+  .monthLabel {
+    width: 100%;
+    min-height: clamp(16px, 1.25vw, 24px);
+  
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+  
+    font-family: 'Switzer';
+    font-style: normal;
+    font-weight: 300;
+    font-size: clamp(12px, 0.94vw, 18px);
+    line-height: clamp(16px, 1.25vw, 24px);
+  
+    color: #ffffff;
+    opacity: 0.5;
+  }
+  
+  .monthLabelActive {
+    width: 100%;
+    min-height: clamp(16px, 1.25vw, 24px);
+  
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+  
+    font-family: 'Switzer';
+    font-style: normal;
+    font-weight: 700;
+    font-size: clamp(12px, 0.94vw, 18px);
+    line-height: clamp(16px, 1.25vw, 24px);
+  
+    color: #000000;
+    opacity: 1;
+  }
+
+.daysHeader {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: clamp(8px, 1.56vw, 30px);
+  width: 100%;
+}
+
+.daysHeaderItem {
+  min-height: clamp(28px, 2.76vw, 53px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Switzer';
+  font-style: normal;
+  font-weight: 300;
+  font-size: clamp(16px, 2.08vw, 40px);
+  line-height: clamp(22px, 2.76vw, 53px);
+  color: #fff;
+  text-align: center;
+}
+
+.calendarGrid {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: clamp(8px, 1.56vw, 30px);
+  width: 100%;
+}
+
+.calendarDay {
+  box-sizing: border-box;
+  min-height: clamp(84px, 11.3vw, 217px);
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: flex-start;
+  padding: 1px clamp(10px, 1.09vw, 21px);
+  gap: clamp(4px, 0.57vw, 11px);
+  border: 2px solid #fff;
+  border-radius: clamp(16px, 1.56vw, 30px);
+  background: transparent;
+  cursor: pointer;
+}
+
+.calendarDayMuted {
+  opacity: 0.3;
+}
+
+.calendarDayToday {
+  background: #fff;
+  border-color: #fff;
+}
+
+.calendarDayHasEvents {
+  background: #fff;
+  border-color: #fff;
+}
+
+.calendarDayNumber {
+  width: 100%;
+  min-height: clamp(28px, 3.07vw, 59px);
+  display: flex;
+  align-items: center;
+  font-family: 'Switzer';
+  font-style: normal;
+  font-weight: 700;
+  font-size: clamp(22px, 2.34vw, 45px);
+  line-height: clamp(28px, 3.07vw, 59px);
+  color: #fff;
+}
+
+.calendarDayNumberMuted {
+  color: #fff;
+}
+
+.calendarDayNumberToday {
+  color: var(--calendar-accent);
+}
+
+.calendarDayNumberHasEvents {
+  color: var(--calendar-accent);
+}
+
+.calendarEventsList {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: clamp(2px, 0.21vw, 4px);
+}
+
+.calendarEventItem {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: clamp(4px, 0.31vw, 6px);
+}
+
+.calendarEventDot {
+  width: clamp(6px, 0.57vw, 11px);
+  height: clamp(6px, 0.57vw, 11px);
+  border-radius: 999px;
+  background: var(--calendar-accent);
+  flex: none;
+}
+
+.calendarEventTitle {
+  min-width: 0;
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-family: 'Switzer';
+  font-style: normal;
+  font-weight: 300;
+  font-size: clamp(12px, 1.04vw, 20px);
+  line-height: clamp(16px, 1.35vw, 26px);
+  color: #000;
+}
+
+.calendarEventMore {
+  font-family: 'Switzer';
+  font-style: normal;
+  font-weight: 500;
+  font-size: clamp(10px, 0.83vw, 16px);
+  line-height: 1;
+  color: var(--calendar-accent);
+}
+
+.calendarLoading {
+  display: inline-flex;
+  align-items: center;
+  font-family: 'Switzer';
+  font-style: normal;
+  font-weight: 300;
+  font-size: clamp(12px, 1.04vw, 20px);
+  line-height: 1;
+  color: #fff;
+  opacity: 0.8;
+}
+
+.dayDetailsPanel {
+  margin-top: clamp(12px, 1.25vw, 24px);
+  border: 2px solid #fff;
+  border-radius: clamp(14px, 1.3vw, 25px);
+  background: #0e0e0e;
+  padding: clamp(12px, 1.25vw, 24px);
+  display: flex;
+  flex-direction: column;
+  gap: clamp(10px, 0.94vw, 18px);
+}
+
+.dayDetailsPanel:focus-visible {
+  outline: 2px solid var(--calendar-accent);
+  outline-offset: 4px;
+}
+
+.dayDetailsHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.dayDetailsTitle {
+  margin: 0;
+  color: #fff;
+  font-family: 'Switzer';
+  font-style: normal;
+  font-weight: 700;
+  font-size: clamp(16px, 1.35vw, 26px);
+  line-height: 1.2;
+  text-transform: none;
+}
+
+.dayDetailsClose {
+  border: 1px solid #d9d9d9;
+  border-radius: 999px;
+  background: transparent;
+  color: #d9d9d9;
+  cursor: pointer;
+  font-family: 'Switzer';
+  font-style: normal;
+  font-weight: 400;
+  font-size: clamp(11px, 0.83vw, 16px);
+  line-height: 1;
+  padding: clamp(8px, 0.63vw, 12px) clamp(10px, 0.83vw, 16px);
+}
+
+.dayDetailsList {
+  display: flex;
+  flex-direction: column;
+  gap: clamp(8px, 0.83vw, 16px);
+}
+
+.dayDetailsItem {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  border-radius: 14px;
+  padding: 10px 12px;
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.dayDetailsMain {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.dayDetailsDot {
+  width: 9px;
+  height: 9px;
+  border-radius: 999px;
+  background: var(--calendar-accent);
+  margin-top: 6px;
+  flex: none;
+}
+
+.dayDetailsText {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.dayDetailsEventTitle {
+  color: #fff;
+  font-family: 'Switzer';
+  font-style: normal;
+  font-weight: 600;
+  font-size: clamp(13px, 1.04vw, 20px);
+  line-height: 1.2;
+}
+
+.dayDetailsSubtitle {
+  color: #d9d9d9;
+  font-family: 'Switzer';
+  font-style: normal;
+  font-weight: 300;
+  font-size: clamp(12px, 0.94vw, 18px);
+  line-height: 1.2;
+}
+
+.dayDetailsMeta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.dayDetailsMetaItem {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  color: #fff;
+  font-family: 'Switzer';
+  font-style: normal;
+  font-weight: 300;
+  font-size: clamp(11px, 0.78vw, 15px);
+  line-height: 1;
+  padding: 6px 10px;
+}
+
+@media (max-width: 899px) {
+  .calendarRoot {
+    padding-inline: 16px;
+    padding-block: 20px;
+  }
+
+  .title {
+    flex-wrap: wrap;
+    row-gap: 0;
+  }
+
+  .titleTail {
+    flex-basis: 100%;
+  }
+
+  .monthsRow {
+    display: none;
+  }
+
+  .calendarPeriodRow {
+    justify-content: flex-end;
+  }
+
+  .yearSwitcher {
+    padding: 4px 8px;
+    gap: 6px;
+  }
+
+  .yearNavButton {
+    width: 24px;
+    height: 24px;
+    font-size: 12px;
+  }
+
+  .yearValue {
+    min-width: 52px;
+    font-size: 13px;
+  }
+
+  .monthSelectRow {
+    display: flex;
+    margin-top: 8px;
+    width: 100%;
+  }
+
+  .monthSelectAndHide {
+    width: 100%;
+    padding: 0;
+    gap: 10px;
+    min-height: 32px;
+  }
+
+  .monthSelectTrigger {
+    width: auto;
+    min-width: 94px;
+    height: 32px;
+    padding: 0 12px;
+    gap: 8px;
+  }
+
+  .monthSelectText {
+    font-size: 13px;
+    line-height: 1;
+  }
+
+  .monthSelectChevron {
+    font-size: 12px;
+  }
+
+  .hideButtonMobile {
+    width: auto;
+    min-width: 122px;
+    height: 32px;
+    padding: 0 12px;
+    gap: 8px;
+    margin-left: auto;
+  }
+
+  .hideButtonIconMobile {
+    width: 16px;
+    height: 16px;
+  }
+
+  .hideButtonIconSvgMobile {
+    width: 16px;
+    height: 16px;
+  }
+
+  .hideButtonLabelMobile {
+    font-size: 13px;
+  }
+
+  .monthSelectMenu {
+    width: 100%;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .daysHeader {
+    gap: 6px;
+  }
+
+  .daysHeaderItem {
+    min-height: 22px;
+    font-size: 12px;
+    line-height: 1;
+  }
+
+  .calendarGrid {
+    gap: 6px;
+  }
+
+  .calendarDay {
+    min-height: 52px;
+    border-width: 1px;
+    border-radius: 12px;
+    padding: 2px 8px;
+  }
+
+  .calendarDayNumber {
+    min-height: 18px;
+    font-size: 14px;
+    line-height: 1;
+  }
+
+  .calendarEventsList {
+    gap: 2px;
+  }
+
+  .calendarEventItem {
+    gap: 4px;
+  }
+
+  .calendarEventDot {
+    width: 6px;
+    height: 6px;
+  }
+
+  .calendarEventTitle {
+    font-size: 10px;
+    line-height: 1.2;
+  }
+
+  .calendarEventMore {
+    font-size: 10px;
+  }
+
+  .dayDetailsPanel {
+    margin-top: 10px;
+    border-width: 1px;
+    border-radius: 12px;
+    padding: 10px;
+  }
+
+  .dayDetailsHeader {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .dayDetailsTitle {
+    font-size: 14px;
+  }
+
+  .dayDetailsClose {
+    font-size: 11px;
+    padding: 8px 10px;
+  }
+
+  .dayDetailsEventTitle {
+    font-size: 12px;
+  }
+
+  .dayDetailsSubtitle {
+    font-size: 11px;
+  }
+
+  .dayDetailsMetaItem {
+    font-size: 10px;
+    padding: 4px 8px;
+  }
+
+  .hideButtonDesktop {
+    display: none;
+  }
+}

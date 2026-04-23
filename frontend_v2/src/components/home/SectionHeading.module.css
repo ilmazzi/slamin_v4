@@ -1,0 +1,65 @@
+.heading {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.left {
+  align-items: flex-start;
+  text-align: left;
+}
+
+.center {
+  align-items: center;
+  text-align: center;
+}
+
+.accent,
+.title,
+.subtitle {
+  margin: 0;
+  letter-spacing: -0.03em;
+}
+
+.accent {
+  font-size: clamp(45px, 6vw, 130px);
+  font-weight: 800;
+  line-height: 0.9;
+  color: var(--accent-color, #e30613);
+}
+
+.title {
+  font-size: clamp(30px, 4vw, 85px);
+  font-weight: 300;
+  line-height: 1.04;
+}
+
+.subtitle {
+  font-size: clamp(20px, 3.5vw, 70px);
+  font-weight: 300;
+  line-height: 1.1;
+}
+
+.dark {
+  color: #000;
+}
+
+.light {
+  color: #fff;
+}
+
+@media (max-width: 768px) {
+  .heading {
+    gap: 4px;
+  }
+
+  .accent {
+    font-size: 45px;
+  }
+
+  .title,
+  .subtitle {
+    font-size: 30px;
+    line-height: 1.17;
+  }
+}

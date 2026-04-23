@@ -1,0 +1,432 @@
+.card {
+  display: flex;
+  flex-direction: column;
+  width: 473px;
+  flex: 0 0 473px;
+  border-bottom-left-radius: 40px;
+  background: #000;
+  overflow: hidden;
+  position: relative;
+  scroll-snap-align: start;
+}
+
+.preview {
+  display: flex;
+  flex-direction: column;
+}
+
+.mobileHeader {
+  display: none;
+}
+
+.playButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 78px;
+  height: 78px;
+  border: 0;
+  border-radius: 50%;
+  background: #e30613;
+  cursor: pointer;
+  flex: 0 0 auto;
+}
+
+.desktopPlayButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 105px;
+  height: 105px;
+  border: 0;
+  border-radius: 50%;
+  background: #e30613;
+  cursor: pointer;
+  position: absolute;
+  inset: 50% auto auto 50%;
+  transform: translate(-50%, -50%);
+}
+
+.playIcon {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.copy {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.desktopCopy {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  min-height: 108px;
+  height: 108px;
+  padding: 14px 26px 23px;
+  background: #000;
+  box-sizing: border-box;
+  overflow: hidden;
+}
+
+.title,
+.subtitle {
+  margin: 0;
+}
+
+.title {
+  color: #e30613;
+  font-size: 30px;
+  font-weight: 700;
+  line-height: 40px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.subtitle {
+  color: #fff;
+  font-size: 22px;
+  font-weight: 300;
+  line-height: 32px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.previewImage {
+  position: relative;
+  height: 512px;
+  background: #1a1a1a;
+  overflow: hidden;
+}
+
+.desktopPreviewAsset,
+.mobilePreviewAsset,
+.desktopPlayAsset,
+.desktopStatIcon,
+.mobileStatIcon,
+.desktopActionIcon,
+.mobileActionIcon,
+.desktopCorner {
+  display: block;
+}
+
+.desktopPreviewAsset,
+.mobilePreviewAsset {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.mobilePreviewAsset,
+.mobileStatIcon,
+.mobileActionIcon {
+  display: none;
+}
+
+.desktopFooter {
+  display: block;
+  height: 72.873px;
+  background: #fff;
+  position: relative;
+  border: 1px solid #000;
+  border-bottom-left-radius: 40px;
+  box-sizing: border-box;
+  overflow: hidden;
+}
+
+.desktopFooter::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 1px;
+  background: #000;
+  z-index: 3;
+  pointer-events: none;
+}
+
+.desktopInteractionStrip {
+  position: absolute;
+  left: 35px;
+  top: 0;
+  display: flex;
+  flex: 0 0 321.737px;
+  width: 321.737px;
+  gap: 20px;
+  align-items: center;
+  height: 72.873px;
+  padding-bottom: 3px;
+  box-sizing: border-box;
+}
+
+.desktopFooterIcons {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 0 0 150.869px;
+  width: 150.869px;
+  align-self: center;
+}
+
+.desktopFooterActions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 22px;
+  flex: 0 0 150.869px;
+  width: 150.869px;
+  height: 69.873px;
+  padding-top: 1px;
+  box-sizing: border-box;
+}
+
+.desktopFooterIcons .statPill:first-child {
+  gap: 8px;
+}
+
+.desktopFooterIcons .statPill:not(:first-child) {
+  gap: 6px;
+}
+
+.desktopFooterIcons .statPill:first-child .desktopStatIcon {
+  height: 19px;
+}
+
+.desktopFooterIcons .statPill:nth-child(2) .desktopStatIcon,
+.desktopFooterIcons .statPill:nth-child(3) .desktopStatIcon {
+  height: 21px;
+}
+
+.desktopFooterIcons .statPill:nth-child(2) .desktopStatIcon {
+  width: 22px;
+}
+
+.desktopFooterIcons .statPill:nth-child(3) .desktopStatIcon {
+  width: 21px;
+}
+
+.desktopFooterActions .iconButton:first-child .desktopActionIcon {
+  width: 25px;
+}
+
+.desktopFooterActions .iconButton:last-child .desktopActionIcon {
+  width: 24px;
+}
+
+.desktopFooterActions .iconButton {
+  align-self: center;
+}
+
+.desktopFooterIcons .statValue {
+  line-height: normal;
+}
+
+.desktopFooterActions .desktopActionIcon {
+  display: block;
+  width: auto;
+  height: 27px;
+}
+
+.desktopFooterIcons .statPill {
+  justify-content: flex-start;
+}
+
+.statPill {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 8px;
+  width: 33px;
+  font-size: 15px;
+  font-weight: 300;
+}
+
+.statValue {
+  line-height: 20px;
+}
+
+.desktopStatIcon {
+  width: auto;
+  height: 19px;
+}
+
+.iconButton {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: inherit;
+  text-decoration: none;
+}
+
+.iconButton:disabled {
+  cursor: default;
+}
+
+.desktopActionIcon {
+  width: auto;
+  height: 27px;
+}
+
+.desktopCorner {
+  position: absolute;
+  left: 362.737px;
+  top: 0;
+  width: 110.263px;
+  height: 72.873px;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.mobileFooter {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  .card {
+    width: 188px;
+    flex: 0 0 188px;
+    border-bottom-left-radius: 20px;
+    border-bottom-right-radius: 20px;
+    background: #fff;
+    border: 1px solid #000;
+    box-sizing: border-box;
+  }
+
+  .preview {
+    background: #000;
+  }
+
+  .mobileHeader {
+    display: flex;
+    gap: 12px;
+    padding: 16px 9px;
+    align-items: center;
+    min-height: 79px;
+    box-sizing: border-box;
+  }
+
+  .desktopCopy {
+    display: none;
+  }
+
+  .desktopPlayButton {
+    display: none;
+  }
+
+  .playButton {
+    width: 47px;
+    height: 47px;
+  }
+
+  .playTriangle {
+    margin-left: 3px;
+    border-top-width: 7px;
+    border-bottom-width: 7px;
+    border-left-width: 11px;
+  }
+
+  .title {
+    font-size: 15px;
+    line-height: 24px;
+    white-space: nowrap;
+  }
+
+  .subtitle {
+    font-size: 10px;
+    line-height: 17px;
+    white-space: nowrap;
+  }
+
+  .previewImage {
+    height: 121px;
+  }
+
+  .desktopPreviewAsset {
+    display: none;
+  }
+
+  .mobilePreviewAsset {
+    display: block;
+  }
+
+  .desktopFooter {
+    display: none;
+  }
+
+  .mobileFooter {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 45.663px;
+    padding: 7px 13px 11px;
+    background: #fff;
+    box-sizing: border-box;
+    position: relative;
+  }
+
+  .mobileFooter::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 1px;
+    background: #000;
+    pointer-events: none;
+  }
+
+  .mobileFooterIcons {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    width: 85.5px;
+  }
+
+  .mobileFooterActions {
+    display: flex;
+    align-items: flex-end;
+    gap: 14px;
+    width: 76.5px;
+    height: 27.663px;
+    justify-content: flex-end;
+  }
+
+  .statPill {
+    gap: 4px;
+    font-size: 10px;
+    width: 16.756px;
+  }
+
+  .statValue {
+    line-height: 13px;
+  }
+
+  .desktopStatIcon,
+  .desktopActionIcon,
+  .desktopCorner {
+    display: none;
+  }
+
+  .mobileStatIcon {
+    display: block;
+    width: auto;
+    height: 10.663px;
+  }
+
+  .mobileActionIcon {
+    display: block;
+    width: auto;
+    height: 21px;
+  }
+}

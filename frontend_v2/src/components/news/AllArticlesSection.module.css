@@ -1,0 +1,67 @@
+.section {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 118px var(--page-inline-padding) 70px;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+}
+
+.title {
+  margin: 0;
+  font-family: 'Switzer', sans-serif;
+  font-size: 85px;
+  line-height: 95px;
+  letter-spacing: -0.03em;
+}
+
+.titlePrefix {
+  font-weight: 300;
+  font-style: normal;
+}
+
+.titleEmphasis {
+  font-weight: 800;
+  font-style: italic;
+}
+
+.grid {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.empty {
+  margin: 0;
+  font-family: 'Switzer', sans-serif;
+  font-size: 16px;
+  font-weight: 300;
+}
+
+@media (max-width: 1200px) {
+  .section {
+    gap: 24px;
+  }
+}
+
+@media (max-width: 768px) {
+  .section {
+    padding: 56px 30px 48px;
+    gap: 18px;
+  }
+
+  .title {
+    font-size: 30px;
+    line-height: 35px;
+  }
+
+  .grid {
+    gap: 0;
+  }
+}

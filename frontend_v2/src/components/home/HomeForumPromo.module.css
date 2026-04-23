@@ -1,0 +1,180 @@
+.section {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  padding-top: 7.865vw;
+  background: #fff;
+}
+
+.image {
+  position: relative;
+  min-height: 38.333vw;
+  overflow: hidden;
+}
+
+.desktopImageAsset,
+.mobileImageAsset {
+  position: absolute;
+  display: block;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.mobileImageAsset {
+  display: none;
+}
+
+.desktopImageAsset {
+  top: 0;
+  left: 0;
+}
+
+.copy {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 12.656vw;
+  min-height: 38.333vw;
+  padding: 3.177vw 2.865vw 2.5vw;
+  background: #f5e6be;
+  box-sizing: border-box;
+}
+
+.textWrap {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.title,
+.description {
+  margin: 0;
+  color: #000;
+  letter-spacing: -0.03em;
+}
+
+.title {
+  font-size: 6.771vw;
+  font-weight: 800;
+  line-height: 4.792vw;
+}
+
+.description {
+  font-size: 3.646vw;
+  font-weight: 300;
+  line-height: 4.792vw;
+}
+
+.button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 2.448vw;
+  width: 15.471vw;
+  min-height: 2.917vw;
+  padding: 0.417vw 1.042vw 0.417vw 1.563vw;
+  border: 1px solid #000;
+  border-radius: 2.083vw;
+  box-sizing: border-box;
+  color: #000;
+  text-decoration: none;
+}
+
+.buttonLabel {
+  width: 9.622vw;
+  font-size: 1.563vw;
+  font-weight: 300;
+  line-height: normal;
+}
+
+.buttonIconWrap {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 0.797vw;
+  height: 1.146vw;
+}
+
+.buttonIconDesktop,
+.buttonIconMobile {
+  display: block;
+}
+
+.buttonIconDesktop {
+  width: 1.146vw;
+  height: 0.797vw;
+  transform: rotate(90deg);
+}
+
+.buttonIconMobile {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  .section {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    padding-top: 28px;
+  }
+
+  .image,
+  .copy {
+    min-height: 225px;
+  }
+
+  .desktopImageAsset {
+    display: none;
+  }
+
+  .mobileImageAsset {
+    display: block;
+    top: 0;
+    left: 0;
+  }
+
+  .copy {
+    justify-content: space-between;
+    gap: 0;
+    padding: 24px 18px 18px;
+  }
+
+  .title {
+    font-size: 45px;
+    line-height: 29px;
+  }
+
+  .description {
+    font-size: 20px;
+    line-height: 25px;
+  }
+
+  .button {
+    gap: 18px;
+    width: 102px;
+    min-height: 21px;
+    padding: 4px 8px;
+  }
+
+  .buttonLabel {
+    width: auto;
+    flex: 1 1 auto;
+    min-width: 0;
+    font-size: 10px;
+  }
+
+  .buttonIconWrap {
+    width: 5px;
+    height: 8px;
+  }
+
+  .buttonIconDesktop {
+    display: none;
+  }
+
+  .buttonIconMobile {
+    display: block;
+    width: 8px;
+    height: 5px;
+    transform: rotate(90deg);
+  }
+}

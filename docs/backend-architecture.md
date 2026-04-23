@@ -65,6 +65,11 @@ Audit/
 - lingua via header `X-Locale`
 - tutte le validation e response localizzate
 
+### Frontend (bundle UI)
+
+- `GET /api/v1/i18n/{locale}.json` — serve il catalogo unione di `lang/{locale}/*.php` in `data.translations` (envelope `ApiResponse`), logica in `Domain\I18n\Actions\GetUiTranslationBundleAction`, controller sottile `ShowI18nController`
+- i file `lang/*/*_ui.php` sono partial (es. `auth_ui.php`) e non compaiono nel bundle: servono solo a comporre file pubblici
+
 ---
 
 # 🎪 DOMAIN: EVENT

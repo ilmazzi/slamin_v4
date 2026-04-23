@@ -1,0 +1,20 @@
+.page {
+  --home-section-pad-desktop: 110px;
+  --home-section-pad-mobile: 30px;
+  --home-hero-pad-x: 250px;
+
+  min-height: 100svh;
+  background: #fff;
+}
+
+.main {
+  display: flex;
+  flex-direction: column;
+  background: #000;
+}
+
+@media (max-width: 768px) {
+  .page {
+    --home-hero-pad-x: 30px;
+  }
+}

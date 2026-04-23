@@ -1,0 +1,331 @@
+.pill {
+  box-sizing: border-box;
+  display: inline-flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  border: 0;
+  border-radius: var(--pill-radius);
+  text-decoration: none;
+  cursor: pointer;
+}
+
+/* Variants */
+.dark {
+  background: var(--pill-bg-dark);
+  color: var(--pill-text-dark);
+}
+
+.accent {
+  background: #6574de;
+  color: #fff;
+}
+
+/* Sizes */
+.createDesktop {
+  width: var(--pill-create-width-desktop);
+  height: var(--pill-create-height-desktop);
+  padding:
+    var(--pill-create-padding-top-desktop)
+    var(--pill-create-padding-right-desktop)
+    var(--pill-create-padding-bottom-desktop)
+    var(--pill-create-padding-left-desktop);
+  gap: var(--pill-create-gap-desktop);
+}
+
+.compact {
+  width: auto;
+  min-width: 120px;
+  height: 24px;
+  padding: 0 12px;
+  gap: 8px;
+  border-radius: 999px;
+}
+
+/* List teaser CTA: scales with viewport until mobile hard override (max-width: 768px). */
+.articleTeaser {
+  width: clamp(102px, 10.15625vw, 195px);
+  height: clamp(22px, 2.083vw, 40px);
+  padding:
+    clamp(3px, 0.365vw, 7px)
+    clamp(6px, 0.573vw, 11px)
+    clamp(3px, 0.365vw, 7px)
+    clamp(8px, 0.781vw, 15px);
+  gap: clamp(10px, 2.448vw, 47px);
+  border-radius: clamp(22px, 2.083vw, 40px);
+}
+
+.articleTeaserMobile {
+  width: 102px;
+  height: 21px;
+  padding: 0 8px;
+  gap: 8px;
+  border-radius: 40px;
+}
+
+.featuredCta {
+  width: clamp(220px, 15.89vw, 305px);
+  height: clamp(40px, 2.92vw, 56px);
+  padding: clamp(6px, 0.42vw, 8px) clamp(14px, 1.15vw, 22px);
+  gap: clamp(20px, 2.45vw, 47px);
+  border-radius: 40px;
+  background: #fff;
+  color: #000;
+}
+
+.label {
+  margin: 0;
+  flex: 1 1 auto;
+  min-width: 0;
+  font-family: 'Switzer', sans-serif;
+  font-style: normal;
+  font-weight: var(--pill-create-label-font-weight);
+  font-size: var(--pill-create-label-font-size-desktop);
+  line-height: var(--pill-create-label-line-height-desktop);
+  color: inherit;
+  white-space: nowrap;
+}
+
+.compact .label {
+  font-size: 11px;
+  line-height: 14px;
+  font-weight: 300;
+}
+
+.articleTeaser .label {
+  font-size: clamp(11px, 1.042vw, 20px);
+  line-height: clamp(14px, 1.354vw, 26px);
+  font-weight: 300;
+}
+
+.articleTeaserMobile .label {
+  font-size: 10px;
+  line-height: 13px;
+  font-weight: 300;
+}
+
+.featuredCta .label {
+  font-size: clamp(18px, 1.56vw, 30px);
+  line-height: clamp(22px, 2.03vw, 39px);
+  font-weight: 300;
+}
+
+.iconWrap {
+  width: var(--pill-create-icon-size-desktop);
+  height: var(--pill-create-icon-size-desktop);
+  position: relative;
+  flex: 0 0 auto;
+}
+
+.iconImage {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: contain;
+}
+
+.compact .iconWrap {
+  width: 12px;
+  height: 12px;
+}
+
+.articleTeaser .iconWrap {
+  width: clamp(6px, 0.573vw, 11px);
+  height: clamp(10px, 0.938vw, 18px);
+  overflow: visible;
+}
+
+.articleTeaserMobile .iconWrap {
+  width: 5px;
+  height: 8px;
+  overflow: visible;
+}
+
+.articleTeaser .iconImage {
+  width: clamp(10px, 0.938vw, 18px);
+  height: clamp(6px, 0.573vw, 11px);
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%) rotate(90deg);
+  transform-origin: center;
+}
+
+.articleTeaserMobile .iconImage {
+  width: 8px;
+  height: 5px;
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%) rotate(90deg);
+  transform-origin: center;
+}
+
+.featuredCta .iconWrap {
+  width: clamp(16px, 1.19vw, 22.812px);
+  height: clamp(12px, 0.86vw, 16.452px);
+}
+
+.featuredCta .iconImage {
+  transform: rotate(90deg);
+  transform-origin: center;
+}
+
+.plusLine {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 100%;
+  border-top: var(--pill-create-icon-stroke-desktop) solid var(--pill-icon-color-dark);
+  transform: translate(-50%, -50%);
+}
+
+.compact .plusLine {
+  border-top-width: 2px;
+}
+
+.plusLineVertical {
+  transform: translate(-50%, -50%) rotate(90deg);
+}
+
+.arrowLine {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 100%;
+  border-top: var(--pill-create-icon-stroke-desktop) solid currentColor;
+  transform: translate(-50%, -50%);
+}
+
+.arrowLineTop {
+  width: 56%;
+  left: 72%;
+  top: 32%;
+  transform: translate(-50%, -50%) rotate(45deg);
+}
+
+.arrowLineBottom {
+  width: 56%;
+  left: 72%;
+  top: 68%;
+  transform: translate(-50%, -50%) rotate(-45deg);
+}
+
+.compact .arrowLine {
+  border-top-width: 2px;
+}
+
+.articleTeaser .arrowLine {
+  border-top-width: 1px;
+}
+
+.featuredCta .arrowLine {
+  border-top-width: 1.5px;
+}
+
+/* Tablet/intermediate scaling */
+@media (max-width: 1200px) and (min-width: 769px) {
+  .createDesktop {
+    width: clamp(242px, 30vw, 320px);
+    height: clamp(43px, 4.8vw, 62px);
+    padding:
+      clamp(1px, 0.35vw, 6px)
+      clamp(14px, 1.6vw, 24px)
+      clamp(0px, 0.25vw, 4px)
+      clamp(16px, 1.8vw, 28px);
+    gap: clamp(12px, 1.2vw, 20px);
+  }
+
+  .label {
+    font-size: clamp(20px, 2vw, 26px);
+    line-height: clamp(26px, 2.4vw, 34px);
+  }
+
+  .iconWrap {
+    width: clamp(22px, 2.1vw, 30px);
+    height: clamp(22px, 2.1vw, 30px);
+  }
+
+  .plusLine {
+    border-top-width: clamp(3px, 0.34vw, 5px);
+  }
+}
+
+/* Mobile override */
+@media (max-width: 768px) {
+  .createDesktop {
+    width: var(--pill-create-width-mobile);
+    height: var(--pill-create-height-mobile);
+    padding:
+      var(--pill-create-padding-top-mobile)
+      var(--pill-create-padding-right-mobile)
+      var(--pill-create-padding-bottom-mobile)
+      var(--pill-create-padding-left-mobile);
+    gap: var(--pill-create-gap-mobile);
+  }
+
+  .label {
+    font-size: var(--pill-create-label-font-size-mobile);
+    line-height: var(--pill-create-label-line-height-mobile);
+  }
+
+  .iconWrap {
+    width: var(--pill-create-icon-size-mobile);
+    height: var(--pill-create-icon-size-mobile);
+  }
+
+  .plusLine {
+    border-top-width: var(--pill-create-icon-stroke-mobile);
+  }
+
+  .articleTeaser {
+    width: 102px;
+    height: 21px;
+    padding: 0 8px;
+    gap: 8px;
+  }
+
+  .articleTeaser .label {
+    font-size: 10px;
+    line-height: 13px;
+  }
+
+  .articleTeaser .iconWrap {
+    width: 5px;
+    height: 8px;
+  }
+
+  .articleTeaser .iconImage {
+    width: 8px;
+    height: 5px;
+  }
+
+  /* Featured CTA: desktop size is 305×56; on mobile match teaser pill (Figma mobile). */
+  .featuredCta {
+    width: 102px;
+    height: 21px;
+    padding: 0 8px;
+    gap: 8px;
+  }
+
+  .featuredCta .label {
+    font-size: 10px;
+    line-height: 13px;
+  }
+
+  .featuredCta .iconWrap {
+    width: 5px;
+    height: 8px;
+    overflow: visible;
+  }
+
+  .featuredCta .iconImage {
+    width: 8px;
+    height: 5px;
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%) rotate(90deg);
+    transform-origin: center;
+  }
+}

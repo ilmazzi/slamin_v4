@@ -1,0 +1,384 @@
+.page {
+  min-height: 100svh;
+  background: #fff;
+}
+
+.main {
+  min-height: calc(100svh - var(--header-desktop-height));
+}
+
+.body {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+}
+
+.heroPanel {
+  background: #000;
+  color: #fff;
+}
+
+.heroContent {
+  display: flex;
+  flex-direction: column;
+  gap: 90px;
+  min-height: 100%;
+  padding: 65px 156px 155px;
+}
+
+.heroTitle {
+  margin: 0;
+  max-width: 520px;
+  color: #fff;
+  font-size: 64px;
+  line-height: 1.14;
+  font-weight: 700;
+  letter-spacing: 0;
+}
+
+.benefitsList {
+  display: flex;
+  flex-direction: column;
+  gap: 55px;
+}
+
+.benefitRow {
+  display: flex;
+  align-items: center;
+  gap: 31px;
+}
+
+.benefitIcon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 70px;
+  height: 70px;
+  flex: 0 0 auto;
+  border-radius: 50%;
+  background: #e30613;
+}
+.benefitIconImage {
+  display: block;
+  width: 32px;
+  height: 32px;
+  object-fit: contain;
+}
+
+
+.benefitIcon svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.benefitLabel {
+  color: #fff;
+  font-size: 40px;
+  line-height: 1.2;
+  font-weight: 300;
+}
+
+.formPanel {
+  display: flex;
+  flex-direction: column;
+  gap: 50px;
+  padding: 61px 130px 71px;
+  background: #fff;
+  color: #000;
+}
+
+.formIntro {
+  width: 100%;
+}
+
+.formTitle {
+  margin: 0;
+  color: #000;
+  text-align: center;
+  font-size: 64px;
+  line-height: 1.1;
+  font-weight: 700;
+}
+
+.formSubtitle {
+  margin: 18px auto 0;
+  max-width: 640px;
+  color: #000;
+  text-align: center;
+  font-size: 40px;
+  line-height: 1.4;
+  font-weight: 300;
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 30px;
+}
+
+.fieldGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 30px;
+}
+
+.fieldLabel {
+  color: #000;
+  font-size: 40px;
+  line-height: 1.1;
+  font-weight: 700;
+}
+
+.fieldInput {
+  width: 100%;
+  height: 75px;
+  box-sizing: border-box;
+  border: 1px solid #000;
+  border-radius: 20px;
+  padding: 21px 30px;
+  background: #fff;
+  color: #000;
+  font-size: 22px;
+  line-height: 31px;
+  font-weight: 300;
+  letter-spacing: -0.03em;
+}
+
+.fieldInput::placeholder {
+  color: rgba(0, 0, 0, 0.5);
+}
+
+.formMeta {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  padding-bottom: 25px;
+}
+
+.rememberMe {
+  display: inline-flex;
+  align-items: center;
+  gap: 15px;
+  cursor: pointer;
+}
+
+.checkboxInput {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.checkboxBox {
+  width: 25px;
+  height: 25px;
+  box-sizing: border-box;
+  border: 1px solid #000;
+  flex: 0 0 auto;
+}
+
+.checkboxInput:checked + .checkboxBox {
+  background: #000;
+  box-shadow: inset 0 0 0 4px #fff;
+}
+
+.rememberLabel {
+  color: #000;
+  font-size: 22px;
+  line-height: 31px;
+  font-weight: 300;
+  letter-spacing: -0.03em;
+}
+
+.forgotPassword {
+  color: #e30613;
+  font-size: 22px;
+  line-height: 31px;
+  font-weight: 300;
+  letter-spacing: -0.03em;
+  text-decoration: none;
+}
+
+.errorMessage {
+  margin: -8px 0 0;
+  color: #e30613;
+  font-size: 18px;
+  line-height: 1.4;
+  font-weight: 500;
+}
+
+.submitButton {
+  height: 83px;
+  width: 100%;
+  border: 0;
+  border-radius: 20px;
+  background: #000;
+  color: #fff;
+  font-size: 20px;
+  line-height: 31px;
+  font-weight: 300;
+  cursor: pointer;
+}
+
+.submitButton:disabled {
+  opacity: 0.7;
+  cursor: progress;
+}
+
+.registerPrompt {
+  margin: 0;
+  color: #e30613;
+  text-align: center;
+  font-size: 40px;
+  line-height: 1.2;
+  font-weight: 700;
+}
+
+.registerPromptBase {
+  color: #000;
+  font-weight: 300;
+}
+
+.registerLink {
+  color: #e30613;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+@media (max-width: 1199px) {
+  .main {
+    min-height: calc(100svh - var(--header-mobile-height));
+  }
+
+  .body {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .heroContent {
+    gap: 65px;
+    padding: 30px 30px 43px;
+  }
+
+  .heroTitle {
+    max-width: none;
+    font-size: 30px;
+    line-height: 1.23;
+    text-align: center;
+  }
+
+  .benefitsList {
+    gap: 26px;
+  }
+
+  .benefitRow {
+    gap: 19px;
+  }
+
+  .benefitIcon {
+    width: 57px;
+    height: 57px;
+  }
+
+  .benefitIconImage {
+    width: 26px;
+    height: 26px;
+  }
+
+  .benefitLabel {
+    font-size: 20px;
+  }
+
+  .formPanel {
+    gap: 0;
+    padding: 37px 30px 30px;
+  }
+
+  .formTitle {
+    text-align: left;
+    font-size: 20px;
+    line-height: 1.2;
+  }
+
+  .formSubtitle {
+    margin: 8px 0 0;
+    max-width: none;
+    text-align: left;
+    font-size: 15px;
+    line-height: 1.4;
+  }
+
+  .form {
+    gap: 0;
+    margin-top: 14px;
+  }
+
+  .fieldGroup {
+    gap: 4px;
+    padding: 7px 0 6px;
+  }
+
+  .fieldLabel {
+    padding: 0 7px;
+    font-size: 10px;
+    line-height: 1.2;
+  }
+
+  .fieldInput {
+    height: 24px;
+    border-radius: 7px;
+    padding: 4px 7px;
+    font-size: 10px;
+    line-height: 1.2;
+    letter-spacing: 0;
+  }
+
+  .formMeta {
+    align-items: center;
+    padding: 19px 0 7px;
+  }
+
+  .rememberMe {
+    gap: 7px;
+  }
+
+  .checkboxBox {
+    width: 21px;
+    height: 21px;
+    border-radius: 5px;
+  }
+
+  .rememberLabel {
+    font-size: 10px;
+    line-height: 1.2;
+    letter-spacing: -0.03em;
+  }
+
+  .forgotPassword {
+    font-size: 10px;
+    line-height: 1;
+    font-weight: 700;
+    letter-spacing: 0;
+  }
+
+  .errorMessage {
+    margin: 8px 0 0;
+    font-size: 10px;
+    line-height: 1.2;
+  }
+
+  .submitButton {
+    margin-top: 9px;
+    height: 31px;
+    border-radius: 7px;
+    font-size: 15px;
+    line-height: 1;
+    font-weight: 700;
+  }
+
+  .registerPrompt {
+    padding: 15px 0 30px;
+    font-size: 10px;
+    line-height: 1;
+  }
+}
+  

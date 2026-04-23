@@ -13,8 +13,11 @@ class DatabaseSeeder extends Seeder
             ContentPublicationSettingSeeder::class,
             PoemCategorySeeder::class,
             PoemTypeSeeder::class,
+            PoemSeeder::class,
             ArticleCategorySeeder::class,
+            ArticleSeeder::class,
             EventCategorySeeder::class,
+            EventSeeder::class,
         ]);
     }
 }

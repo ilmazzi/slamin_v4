@@ -1,0 +1,26 @@
+<?php
+
+return [
+    'tagline' => 'Share, discover and live experiences through poetry.',
+    'discover_title' => 'Discover',
+    'discover_events' => 'Events',
+    'discover_poems' => 'Poems',
+    'discover_news' => 'News',
+    'discover_jobs' => 'Opportunities',
+    'discover_media' => 'Media',
+    'community_title' => 'Community',
+    'community_faq' => 'FAQ',
+    'community_help' => 'Help',
+    'community_support' => 'Support',
+    'community_contact' => 'Contact',
+    'community_tutorial' => 'Tutorials',
+    'info_title' => 'Info',
+    'info_about' => 'About us',
+    'info_terms' => 'Terms of service',
+    'info_privacy' => 'Privacy policy',
+    'newsletter_title' => 'Newsletter',
+    'newsletter_description' => 'Receive important communications from the platform, we assure you that we will not send more than one email per week!',
+    'newsletter_cta' => 'Subscribe to the Newsletter',
+    'license_text' => 'All content on this site is released under the',
+    'license_name' => 'CC BY-NC-SA 4.0',
+];
