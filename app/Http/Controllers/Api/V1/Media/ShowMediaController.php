@@ -23,6 +23,10 @@ class ShowMediaController extends Controller
 
         $media = $this->action->execute($media, $request->user()?->id);
 
+        if ($media->isPubliclyVisible() && $media->user_id !== $request->user()?->id) {
+            $media->increment('views_count');
+        }
+
         return ApiResponse::success([
             'media' => new MediaItemResource($media),
         ]);

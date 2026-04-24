@@ -16,6 +16,7 @@ use App\Http\Controllers\Api\V1\Article\ShowArticleController;
 use App\Http\Controllers\Api\V1\Article\StoreArticleController;
 use App\Http\Controllers\Api\V1\Article\UnlikeArticleController;
 use App\Http\Controllers\Api\V1\Article\UpdateArticleController;
+use App\Http\Controllers\Api\V1\Article\ListFeaturedArticlesController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware([
@@ -54,3 +55,4 @@ Route::middleware([
 Route::get('/articles', ListArticleController::class)->name('articles.index');
 Route::get('/articles/{slug}', ShowArticleController::class)->name('articles.show');
 Route::get('/article-categories', ListArticleCategoriesController::class)->name('article-categories.index');
+Route::get('/featured-articles', ListFeaturedArticlesController::class)->name('featured-articles.index');

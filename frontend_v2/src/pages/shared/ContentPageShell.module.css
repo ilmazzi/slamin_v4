@@ -1,0 +1,47 @@
+.eventPage,
+.gigsPage,
+.articlesPage,
+.poemsPage {
+  --color-header-fg: var(--color-black);
+  --color-header-border: var(--color-black);
+  --page-inline-padding: 110px;
+}
+
+.eventPage {
+  --page-hero-accent: var(--color-event);
+  --color-header-bg: var(--page-hero-accent);
+}
+
+.gigsPage {
+  --page-hero-accent: var(--color-gigs);
+  --color-header-bg: var(--page-hero-accent);
+}
+
+.articlesPage {
+  --page-hero-accent: var(--color-articles);
+  --color-header-bg: var(--page-hero-accent);
+}
+
+.poemsPage {
+  --page-hero-accent: var(--color-poems);
+  --color-header-bg: var(--page-hero-accent);
+}
+
+@media (max-width: 1200px) {
+  .eventPage,
+  .gigsPage,
+  .articlesPage,
+  .poemsPage {
+    --page-inline-padding: 48px;
+  }
+}
+
+@media (max-width: 768px) {
+  .eventPage,
+  .gigsPage,
+  .articlesPage,
+  .poemsPage {
+    --page-inline-padding: 24px;
+  }
+}
+

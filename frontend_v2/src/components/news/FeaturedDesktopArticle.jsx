@@ -1,29 +1,10 @@
-import ArticleSocialActions from '../shared/ArticleSocialActions.jsx'
+import SocialActions from '../shared/SocialActions.jsx'
 import PillButton from '../shared/PillButton.jsx'
+import { formatShortPublishedDate } from '../../app/formatters/date.js'
 import {
   mediaArrowFeaturedFigmaIcon,
-  mediaCommentsDesktopIcon,
-  mediaLikeDesktopIcon,
-  mediaViewsDesktopIcon,
 } from '../../assets/home/media/index.js'
 import styles from './FeaturedDesktopArticle.module.css'
-
-function formatPublishedDate(value, locale) {
-  if (!value) {
-    return '—'
-  }
-
-  const parsed = new Date(value)
-  if (Number.isNaN(parsed.getTime())) {
-    return '—'
-  }
-
-  return parsed.toLocaleDateString(locale, {
-    day: '2-digit',
-    month: 'short',
-    year: 'numeric',
-  })
-}
 
 function estimateReadingMinutes(article) {
   const sourceText = `${article?.title ?? ''} ${article?.excerpt ?? ''}`.trim()
@@ -57,7 +38,7 @@ export default function FeaturedDesktopArticle({ article, locale, t }) {
 
   const authorName = t('articles.featured.author_name')
   const readingMinutes = estimateReadingMinutes(article)
-  const publishedDate = formatPublishedDate(article.published_at, locale)
+  const publishedDate = formatShortPublishedDate(article.published_at, locale, '—')
 
   return (
     <section className={styles.featuredSection}>
@@ -117,27 +98,21 @@ export default function FeaturedDesktopArticle({ article, locale, t }) {
 
         <div className={styles.bottom}>
           <div className={styles.interactions}>
-            <div className={styles.metrics}>
-              <span className={`${styles.metric} ${styles.metricView}`}>
-                <span>{article.metrics?.views ?? 0}</span>
-                <img src={mediaViewsDesktopIcon} alt="" className={styles.metricIconView} />
-              </span>
-              <span className={`${styles.metric} ${styles.metricLike}`}>
-                <span>{article.metrics?.likes ?? 0}</span>
-                <img src={mediaLikeDesktopIcon} alt="" className={styles.metricIconLike} />
-              </span>
-              <span className={`${styles.metric} ${styles.metricComment}`}>
-                <span>{article.metrics?.comments ?? 0}</span>
-                <img src={mediaCommentsDesktopIcon} alt="" className={styles.metricIconComment} />
-              </span>
-            </div>
-
-            <ArticleSocialActions
+            <SocialActions
               article={article}
+              metrics={article.metrics}
               shareLabel={t('articles.featured.share')}
               reportLabel={t('articles.featured.save')}
               variant="featured"
-              className={styles.actions}
+              metricsClassName={styles.metrics}
+              metricClassName={styles.metric}
+              viewMetricClassName={styles.metricView}
+              likeMetricClassName={styles.metricLike}
+              commentMetricClassName={styles.metricComment}
+              viewIconClassName={styles.metricIconView}
+              likeIconClassName={styles.metricIconLike}
+              commentIconClassName={styles.metricIconComment}
+              buttonsClassName={styles.actions}
               shareIconClassName={styles.actionIconShare}
               reportIconClassName={styles.actionIconReport}
             />
@@ -149,3 +124,4 @@ export default function FeaturedDesktopArticle({ article, locale, t }) {
     </section>
   )
 }
+

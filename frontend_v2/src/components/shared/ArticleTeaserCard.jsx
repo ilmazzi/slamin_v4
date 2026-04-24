@@ -1,29 +1,10 @@
 import styles from './ArticleTeaserCard.module.css'
 import PillButton from './PillButton.jsx'
-import ArticleSocialActions from './ArticleSocialActions.jsx'
+import SocialActions from './SocialActions.jsx'
+import { formatShortPublishedDate } from '../../app/formatters/date.js'
 import {
   mediaArrowListFigmaIcon,
-  mediaCommentsDesktopIcon,
-  mediaLikeDesktopIcon,
-  mediaViewsDesktopIcon,
 } from '../../assets/home/media/index.js'
-
-function formatPublishedDate(value, locale) {
-  if (!value) {
-    return '—'
-  }
-
-  const parsed = new Date(value)
-  if (Number.isNaN(parsed.getTime())) {
-    return '—'
-  }
-
-  return parsed.toLocaleDateString(locale, {
-    day: '2-digit',
-    month: 'short',
-    year: 'numeric',
-  })
-}
 
 function estimateReadingMinutes(article) {
   const sourceText = `${article?.title ?? ''} ${article?.excerpt ?? ''}`.trim()
@@ -35,10 +16,10 @@ function estimateReadingMinutes(article) {
   return Math.max(1, Math.round(words / 200))
 }
 
-export default function ArticleTeaserCard({ article, locale, t, href = '/articles' }) {
+export default function ArticleTeaserCard({ article, locale, t }) {
   const readingMinutes = estimateReadingMinutes(article)
-  const publishedDate = formatPublishedDate(article?.published_at, locale)
-  const authorName = t('articles.featured.author_name')
+  const publishedDate = formatShortPublishedDate(article?.published_at, locale, '—')
+  const authorName = article?.author?.nickname ?? article?.author?.display_name ?? t('articles.all.no_author')
   const excerpt = article?.excerpt ?? t('articles.all.no_excerpt')
 
   return (
@@ -70,7 +51,7 @@ export default function ArticleTeaserCard({ article, locale, t, href = '/article
 
           <div className={styles.bottom}>
             <PillButton
-              href={href}
+              href={`/articles/${article.slug}`}
               label={t('common.discover_more')}
               variant="accent"
               size="articleTeaser"
@@ -89,27 +70,19 @@ export default function ArticleTeaserCard({ article, locale, t, href = '/article
           </div>
 
           <div className={styles.socialBlock}>
-            <div className={styles.interactions}>
-              <div className={styles.metric}>
-                <span>{article?.metrics?.views ?? 0}</span>
-                <img src={mediaViewsDesktopIcon} alt="" className={styles.metricIconView} />
-              </div>
-              <div className={styles.metric}>
-                <span>{article?.metrics?.likes ?? 0}</span>
-                <img src={mediaLikeDesktopIcon} alt="" className={styles.metricIconLike} />
-              </div>
-              <div className={styles.metric}>
-                <span>{article?.metrics?.comments ?? 0}</span>
-                <img src={mediaCommentsDesktopIcon} alt="" className={styles.metricIconComment} />
-              </div>
-            </div>
-
-            <ArticleSocialActions
+            <SocialActions
               article={article}
+              metrics={article?.metrics}
+              layout="column"
               shareLabel={t('articles.featured.share')}
               reportLabel={t('articles.featured.save')}
               variant="list"
-              className={styles.actions}
+              metricsClassName={styles.interactions}
+              metricClassName={styles.metric}
+              viewIconClassName={styles.metricIconView}
+              likeIconClassName={styles.metricIconLike}
+              commentIconClassName={styles.metricIconComment}
+              buttonsClassName={styles.actions}
               shareIconClassName={styles.socialIconShare}
               reportIconClassName={styles.socialIconReport}
             />
@@ -146,7 +119,7 @@ export default function ArticleTeaserCard({ article, locale, t, href = '/article
 
           <div className={styles.mobileBottom}>
             <PillButton
-              href={href}
+              href={`/articles/${article.slug}`}
               label={t('common.discover_more')}
               variant="accent"
               size="articleTeaserMobile"
@@ -154,35 +127,27 @@ export default function ArticleTeaserCard({ article, locale, t, href = '/article
               className={styles.mobileReadLink}
             />
 
-            <div className={styles.mobileIconsRow}>
-              <ArticleSocialActions
-                article={article}
-                shareLabel={t('articles.featured.share')}
-                reportLabel={t('articles.featured.save')}
-                variant="list"
-                className={styles.mobileActions}
-                shareIconClassName={styles.mobileSocialIcon}
-                reportIconClassName={styles.mobileSocialIcon}
-              />
-
-              <div className={styles.mobileMetrics}>
-                <div className={styles.mobileMetric}>
-                  <span>{article?.metrics?.views ?? 0}</span>
-                  <img src={mediaViewsDesktopIcon} alt="" className={styles.mobileMetricIcon} />
-                </div>
-                <div className={styles.mobileMetric}>
-                  <span>{article?.metrics?.likes ?? 0}</span>
-                  <img src={mediaLikeDesktopIcon} alt="" className={styles.mobileMetricIcon} />
-                </div>
-                <div className={styles.mobileMetric}>
-                  <span>{article?.metrics?.comments ?? 0}</span>
-                  <img src={mediaCommentsDesktopIcon} alt="" className={styles.mobileMetricIcon} />
-                </div>
-              </div>
-            </div>
+            <SocialActions
+              article={article}
+              metrics={article?.metrics}
+              metricsPlacement="end"
+              className={styles.mobileIconsRow}
+              shareLabel={t('articles.featured.share')}
+              reportLabel={t('articles.featured.save')}
+              variant="list"
+              metricsClassName={styles.mobileMetrics}
+              metricClassName={styles.mobileMetric}
+              viewIconClassName={styles.mobileMetricIcon}
+              likeIconClassName={styles.mobileMetricIcon}
+              commentIconClassName={styles.mobileMetricIcon}
+              buttonsClassName={styles.mobileActions}
+              shareIconClassName={styles.mobileSocialIcon}
+              reportIconClassName={styles.mobileSocialIcon}
+            />
           </div>
         </div>
       </article>
     </>
   )
 }
+

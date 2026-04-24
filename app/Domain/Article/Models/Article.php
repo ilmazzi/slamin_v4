@@ -30,12 +30,16 @@ class Article extends Model
         'status',
         'is_public',
         'published_at',
+        'is_featured',
+        'featured_rank',
     ];
 
     protected $casts = [
         'status' => ArticleStatus::class,
         'is_public' => 'boolean',
         'published_at' => 'datetime',
+        'is_featured' => 'boolean',
+        'featured_rank' => 'integer',
     ];
 
     public function user(): BelongsTo

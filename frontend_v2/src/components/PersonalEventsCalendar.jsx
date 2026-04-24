@@ -4,7 +4,8 @@ import { useI18n } from '../app/hooks/useI18n'
 import { VisibilityOffIcon, VisibilityOnIcon } from './icons/ActionIcons'
 import { useAuth } from '../context/AuthContext.jsx'
 import { Link } from 'react-router-dom'
-import { expandEventOccurrencesForCalendar, fetchAllMyEvents } from '../app/api/eventMappers.js'
+import { listMyEvents } from '../app/api/events.js'
+import { expandEventOccurrencesForCalendar } from '../app/normalizers/event.js'
 
 
 
@@ -62,7 +63,7 @@ export default function PersonalEventsCalendar({ tone = 'default',showVisibility
 
       async function loadCalendarEvents() {
         try {
-          const raw = await fetchAllMyEvents({ token, signal: controller.signal })
+          const raw = await listMyEvents({ token, signal: controller.signal })
           const rows = raw.flatMap((e) => expandEventOccurrencesForCalendar(e, { relations: ['owned'] }))
           setEvents(rows)
         } catch (error) {

@@ -1,4 +1,4 @@
-import styles from '../../pages/DashboardPage.module.css'
+import styles from '../../pages/Dashboard/DashboardPage.module.css'
 import { useState } from 'react'
 import { useI18n } from '../../app/hooks/useI18n.js'
 import fallbackBackground from '../../assets/dashboard/banner.png'

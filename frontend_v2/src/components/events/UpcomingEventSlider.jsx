@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
-import { getApiUrl } from '../../app/api/url.js'
-import { readJsonSafe } from '../../app/api/slaminApi.js'
-import { normalizeEventForMap } from '../../app/api/eventMappers.js'
+import { listEvents } from '../../app/api/events.js'
+import { normalizeEventsForUi } from '../../app/normalizers/event.js'
 import { useI18n } from '../../app/hooks/useI18n.js'
 import SlideCard from '../shared/SlideCard.jsx'
 import styles from './UpcomingSlider.module.css'
@@ -35,23 +34,11 @@ export default function UpcomingEventSlider() {
       setError('')
 
       try {
-        const params = new URLSearchParams()
-        params.set('per_page', String(UPCOMING_PER_PAGE))
-        params.set('page', '1')
-        const response = await fetch(getApiUrl(`/api/v1/events?${params.toString()}`), {
-          signal: controller.signal,
-          headers: { Accept: 'application/json' },
-        })
-
-        if (!response.ok) {
-          throw new Error(`Upcoming fetch failed: ${response.status}`)
-        }
-
-        const payload = await readJsonSafe(response)
-        const raw = Array.isArray(payload?.data) ? payload.data : []
-        const normalized = raw
-          .map((e) => normalizeEventForMap(e))
-          .filter((e) => e != null)
+        const { items: raw } = await listEvents(
+          { perPage: UPCOMING_PER_PAGE, page: 1 },
+          { signal: controller.signal },
+        )
+        const normalized = normalizeEventsForUi(raw)
         setEvents(normalized)
       } catch (err) {
         if (err?.name !== 'AbortError') {

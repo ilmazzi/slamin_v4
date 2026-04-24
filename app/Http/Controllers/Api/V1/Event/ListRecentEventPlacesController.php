@@ -5,14 +5,14 @@ namespace App\Http\Controllers\Api\V1\Event;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\Api\V1\Event\RecentEventPlaceResource;
 use App\Support\Responses\ApiResponse;
-use Domain\Event\Actions\ListRecentEventPlacesAction;
+use Domain\Event\Queries\ListRecentEventPlacesQuery;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 class ListRecentEventPlacesController extends Controller
 {
     public function __construct(
-        private readonly ListRecentEventPlacesAction $action,
+        private readonly ListRecentEventPlacesQuery $listRecentEventPlacesQuery,
     ) {
     }
 
@@ -20,7 +20,7 @@ class ListRecentEventPlacesController extends Controller
     {
         return ApiResponse::success([
             'places' => RecentEventPlaceResource::collection(
-                $this->action->execute($request->user()->id)
+                $this->listRecentEventPlacesQuery->execute($request->user()->id)
             ),
         ]);
     }

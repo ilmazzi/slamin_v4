@@ -1,6 +1,7 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useMemo } from 'react'
+import { formatLocaleNumber } from '../../app/formatters/number.js'
+import { useDashboardWidgets } from '../../app/hooks/useDashboardWidgets.js'
 import { useI18n } from '../../app/hooks/useI18n.js'
-import { authFetch } from '../../app/api/authFetch.js'
 import { resolvePublicUrl } from '../../app/api/url.js'
 import { useAuth } from '../../context/AuthContext.jsx'
 import HomeDashboardPromo from './HomeDashboardPromo.jsx'
@@ -8,43 +9,11 @@ import HomeDashboardPromo from './HomeDashboardPromo.jsx'
 export default function HomeDashboardPromoSection({ compactTop = false }) {
   const { t, locale } = useI18n()
   const { token, user, isAuthenticated } = useAuth()
-  const [dashboardWidgets, setDashboardWidgets] = useState([])
-
-  useEffect(() => {
-    const controller = new AbortController()
-
-    if (!isAuthenticated || !user || !token) {
-      setDashboardWidgets([])
-      return () => controller.abort()
-    }
-
-    async function loadDashboardWidgets() {
-      try {
-        const response = await authFetch(`/api/v1/me/dashboard-widgets?locale=${encodeURIComponent(locale)}`, {
-          token,
-          signal: controller.signal,
-        })
-
-        if (!response.ok) {
-          return
-        }
-
-        const payload = await response.json()
-        const nextWidgets = payload?.data?.widgets
-        if (Array.isArray(nextWidgets)) {
-          setDashboardWidgets(nextWidgets)
-        }
-      } catch (error) {
-        if (error?.name !== 'AbortError') {
-          console.error('Unable to load dashboard widgets:', error)
-        }
-      }
-    }
-
-    loadDashboardWidgets()
-
-    return () => controller.abort()
-  }, [locale, token, user, isAuthenticated])
+  const { widgets: dashboardWidgets } = useDashboardWidgets({
+    token,
+    locale,
+    enabled: isAuthenticated && Boolean(user) && Boolean(token),
+  })
 
   const dashboardMetrics = useMemo(
     () =>
@@ -54,7 +23,7 @@ export default function HomeDashboardPromoSection({ compactTop = false }) {
 
         return {
           id,
-          value: typeof value === 'number' ? new Intl.NumberFormat(locale).format(value) : String(value),
+          value: typeof value === 'number' ? formatLocaleNumber(value, locale) : String(value),
           label: t(`home.dashboard.${id}`),
         }
       }),

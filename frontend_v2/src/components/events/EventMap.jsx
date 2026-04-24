@@ -2,12 +2,14 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import L from 'leaflet'
 import { MapContainer, Marker, TileLayer, useMapEvents } from 'react-leaflet'
 import {
+  listAllPublicEvents,
+} from '../../app/api/events.js'
+import { normalizeEventsForUi } from '../../app/normalizers/event.js'
+import {
   DEFAULT_EVENT_MAP_CENTER,
   computeCenterFromEvents,
-  fetchAllPublicEvents,
   matchesClientFilters,
-  normalizeEventForMap,
-} from '../../app/api/eventMappers.js'
+} from '../../app/utils/event.js'
 import styles from './EventMap.module.css'
 import { useI18n } from '../../app/hooks/useI18n.js'
 import { EventLocationIcon } from '../icons/ActionIcons.jsx'
@@ -214,10 +216,8 @@ export default function EventMap() {
       setError('')
 
       try {
-        const raw = await fetchAllPublicEvents({ signal: controller.signal })
-        const normalized = raw
-          .map((e) => normalizeEventForMap(e))
-          .filter((e) => e != null)
+        const raw = await listAllPublicEvents({ signal: controller.signal })
+        const normalized = normalizeEventsForUi(raw)
         setAllEvents(normalized)
         setCenter(computeCenterFromEvents(normalized))
       } catch (err) {

@@ -48,6 +48,7 @@ class PoemResource extends JsonResource
 
             'likes_count' => (int) ($this->likes_count ?? 0),
             'bookmarks_count' => (int) ($this->bookmarks_count ?? 0),
+            'views_count' => (int) ($this->views_count ?? 0),
             'is_liked' => (bool) ($this->is_liked ?? false),
             'is_bookmarked' => (bool) ($this->is_bookmarked ?? false),
 

@@ -1,0 +1,121 @@
+.wrap {
+  width: 100%;
+  padding: 0 0 clamp(36px, 3.28vw, 63px);
+  display: flex;
+  justify-content: center;
+}
+
+.pagination {
+  box-sizing: border-box;
+  min-height: clamp(35px, 4.17vw, 80px);
+  border: clamp(1px, 0.1vw, 2px) solid #000;
+  border-radius: clamp(24px, 2.6vw, 50px);
+  padding: clamp(3px, 0.78vw, 15px);
+  display: flex;
+  align-items: center;
+  gap: clamp(10px, 2.45vw, 47px);
+}
+
+.pageArrow {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  padding: 0;
+  width: clamp(24px, 3.09vw, 59px);
+  height: clamp(24px, 3.06vw, 58px);
+  background: transparent;
+  color: #000;
+  cursor: pointer;
+}
+
+.pageArrow:disabled {
+  opacity: 0.3;
+  cursor: default;
+}
+
+.pageArrowIcon {
+  width: clamp(14px, 1.91vw, 37px);
+  height: clamp(9px, 1.22vw, 23px);
+}
+
+.pageButton {
+  border: 0;
+  min-width: clamp(28px, 3.13vw, 60px);
+  height: clamp(29px, 3.13vw, 60px);
+  border-radius: 999px;
+  background: transparent;
+  color: #000;
+  font-family: 'Switzer', sans-serif;
+  font-style: normal;
+  font-weight: 300;
+  font-size: clamp(20px, 2.08vw, 40px);
+  line-height: 1;
+  cursor: pointer;
+}
+
+.pageButtonActive {
+  background: #000;
+  color: #fff;
+  font-weight: 700;
+}
+
+.pageEllipsis {
+  min-width: clamp(20px, 1.8vw, 34px);
+  text-align: center;
+  font-family: 'Switzer', sans-serif;
+  font-size: clamp(18px, 1.9vw, 32px);
+  line-height: 1;
+  color: #000;
+  user-select: none;
+}
+
+.resultsText {
+  width: 100%;
+  margin: 0;
+  padding: 0 0 clamp(14px, 1.35vw, 26px);
+  text-align: center;
+  font-family: 'Switzer', sans-serif;
+  font-size: clamp(14px, 1.25vw, 24px);
+  line-height: 1.2;
+  color: #000;
+}
+
+@media (max-width: 768px) {
+  .wrap {
+    padding-bottom: 0;
+  }
+
+  .pagination {
+    min-height: 35px;
+    border-width: 1px;
+    border-radius: 23px;
+    gap: 14px;
+  }
+
+  .pageArrow {
+    width: 28px;
+    height: 24px;
+  }
+
+  .pageArrowIcon {
+    width: 14px;
+    height: 9px;
+  }
+
+  .pageButton {
+    min-width: 28px;
+    height: 29px;
+    font-size: 20px;
+  }
+
+  .pageEllipsis {
+    min-width: 14px;
+    font-size: 20px;
+  }
+
+  .resultsText {
+    padding-bottom: 12px;
+    font-size: 14px;
+  }
+}

@@ -2,14 +2,14 @@
 
 namespace App\Providers;
 
-use App\Policies\CommentPolicy;
-use App\Policies\ChatThreadPolicy;
-use App\Policies\EventPolicy;
-use App\Policies\GroupAnnouncementPolicy;
-use App\Policies\GroupPolicy;
-use App\Policies\MediaItemPolicy;
-use App\Policies\MediaSnapPolicy;
-use App\Policies\ArticlePolicy;
+use Domain\Comment\Policies\CommentPolicy;
+use Domain\Chat\Policies\ChatThreadPolicy;
+use Domain\Event\Policies\EventPolicy;
+use Domain\Group\Policies\GroupAnnouncementPolicy;
+use Domain\Group\Policies\GroupPolicy;
+use Domain\Media\Policies\MediaItemPolicy;
+use Domain\Media\Policies\MediaSnapPolicy;
+use Domain\Article\Policies\ArticlePolicy;
 use Domain\Chat\Models\ChatThread;
 use Domain\Comment\Models\Comment;
 use Domain\Event\Models\Event;
@@ -19,7 +19,7 @@ use Domain\Media\Models\MediaItem;
 use Domain\Media\Models\MediaSnap;
 use Domain\Poetry\Models\Poem;
 use Domain\Article\Models\Article;
-use App\Policies\PoemPolicy;
+use Domain\Poetry\Policies\PoemPolicy;
 use Illuminate\Foundation\Support\Providers\AuthServiceProvider as ServiceProvider;
 
 class AuthServiceProvider extends ServiceProvider

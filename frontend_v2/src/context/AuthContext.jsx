@@ -1,6 +1,6 @@
 import { createContext, useContext, useEffect, useMemo, useState } from 'react'
-import { authFetch } from '../app/api/authFetch.js'
-import { normalizeSessionUser, readJsonSafe } from '../app/api/slaminApi.js'
+import { authApiGet, authApiRequest } from '../app/api/client.js'
+import { normalizeSessionUser } from '../app/api/slaminApi.js'
 
 const AuthContext = createContext(null)
 
@@ -36,26 +36,26 @@ function normalizeAccessList(value) {
 }
 
 async function fetchAuthenticatedUser(token) {
-  const response = await authFetch('/api/v1/me', {
+  const result = await authApiGet('/api/v1/me', {
     token,
+    fallbackMessage: 'Unable to fetch authenticated user',
   })
 
-  if (!response.ok) {
+  if (!result.ok) {
     const error = new Error('Unable to fetch authenticated user')
-    error.status = response.status
+    error.status = result.status
     throw error
   }
 
-  const payload = await readJsonSafe(response)
-
-  return normalizeSessionUser(payload?.data?.user ?? null)
+  return normalizeSessionUser(result.data?.user ?? null)
 }
 
 async function sendLogoutRequest(token) {
   try {
-    await authFetch('/api/v1/logout', {
+    await authApiRequest('/api/v1/logout', {
       token,
       method: 'POST',
+      allowStatuses: [401],
     })
   } catch (error) {
     console.error('Logout request failed:', error)

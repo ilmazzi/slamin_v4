@@ -34,6 +34,7 @@ class MediaItemResource extends JsonResource
             'duration_seconds' => $this->duration_seconds,
             'processing_status' => $this->processing_status,
             'upload_error' => $this->upload_error,
+            'views_count' => (int) ($this->views_count ?? 0),
             'likes_count' => (int) ($this->likes_count ?? 0),
             'comments_count' => (int) ($this->comments_count ?? 0),
             'snaps_count' => (int) ($this->snaps_count ?? 0),

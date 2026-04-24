@@ -1,18 +1,27 @@
-import { useEffect } from 'react'
+import { lazy, Suspense, useEffect } from 'react'
 import { Navigate, Route, Routes, useParams } from 'react-router-dom'
 import ProtectedRoute from './components/ProtectedRoute.jsx'
-import OpenProjectFeedbackWidget from './components/feedback/OpenProjectFeedbackWidget.jsx'
 import Header from './components/header/Header.jsx'
 import { useAuth } from './context/AuthContext.jsx'
-import DashboardPage from './pages/DashboardPage.jsx'
-import { HomePage } from './pages/HomePage.jsx'
-import { LoginPage } from './pages/LoginPage.jsx'
-import EventPage from './pages/EventPage.jsx'
-import EventDetailPage from './pages/EventDetailPage.jsx'
-import PoemsPage from './pages/Poems.jsx'
-import ArticlePage from './pages/ArticlePage.jsx'
-import GigPage from './pages/GigPage.jsx'
-import MediaPage from './pages/MediaPage.jsx'
+
+const DashboardPage = lazy(() => import('./pages/Dashboard/DashboardPage.jsx'))
+const OpenProjectFeedbackWidget = lazy(() =>
+  import('./components/feedback/OpenProjectFeedbackWidget.jsx'),
+)
+const HomePage = lazy(() =>
+  import('./pages/Home/HomePage.jsx').then((module) => ({ default: module.HomePage })),
+)
+const LoginPage = lazy(() =>
+  import('./pages/Login/LoginPage.jsx').then((module) => ({ default: module.LoginPage })),
+)
+const EventPage = lazy(() => import('./pages/Events/EventPage.jsx'))
+const EventDetailPage = lazy(() => import('./pages/Events/EventDetailPage.jsx'))
+const PoemsPage = lazy(() => import('./pages/Poems/PoemsPage.jsx'))
+const ArticlePage = lazy(() => import('./pages/Articles/ArticlePage.jsx'))
+const ArticleDetailPage = lazy(() => import('./pages/Articles/ArticleDetailPage.jsx'))
+const GigPage = lazy(() => import('./pages/Gigs/GigPage.jsx'))
+const MediaPage = lazy(() => import('./pages/Media/MediaPage.jsx'))
+
 export default function App() {
   const { isAuthenticated, isLoading, user } = useAuth()
 
@@ -33,108 +42,120 @@ export default function App() {
 
   return (
     <>
-      <Routes>
-        <Route
-          path="/"
-          element={<HomePage variant={isAuthenticated ? 'auth' : 'guest'} user={user} />}
-        />
+      <Suspense fallback={null}>
+        <Routes>
+          <Route
+            path="/"
+            element={<HomePage variant={isAuthenticated ? 'auth' : 'guest'} user={user} />}
+          />
 
-        <Route
-          path="/login"
-          element={
-            isAuthenticated ? <Navigate to="/dashboard" replace /> : <LoginPage />
-          }
-        />
+          <Route
+            path="/login"
+            element={
+              isAuthenticated ? <Navigate to="/dashboard" replace /> : <LoginPage />
+            }
+          />
 
-        <Route
-          path="/dashboard"
-          element={
-            <ProtectedRoute>
-              <DashboardPage user={user} />
-            </ProtectedRoute>
-          }
-        />
+          <Route
+            path="/dashboard"
+            element={
+              <ProtectedRoute>
+                <DashboardPage user={user} />
+              </ProtectedRoute>
+            }
+          />
 
-        <Route
-          path="/events"
-          element={
-            <ProtectedRoute>
-              <EventPage />
-            </ProtectedRoute>
-          }
-        />
+          <Route
+            path="/events"
+            element={
+              <ProtectedRoute>
+                <EventPage />
+              </ProtectedRoute>
+            }
+          />
 
-        <Route
-          path="/eventi"
-          element={
-            <ProtectedRoute>
-              <Navigate to="/events" replace />
-            </ProtectedRoute>
-          }
-        />
+          <Route
+            path="/eventi"
+            element={
+              <ProtectedRoute>
+                <Navigate to="/events" replace />
+              </ProtectedRoute>
+            }
+          />
 
-        <Route
-          path="/events/create"
-          element={
-            <ProtectedRoute>
-              <PlaceholderPage title="Create Event" variant="auth" user={user} />
-            </ProtectedRoute>
-          }
-        />
+          <Route
+            path="/events/create"
+            element={
+              <ProtectedRoute>
+                <PlaceholderPage title="Create Event" variant="auth" user={user} />
+              </ProtectedRoute>
+            }
+          />
 
-        <Route
-          path="/events/:eventId"
-          element={
-            <ProtectedRoute>
-              <EventDetailPage />
-            </ProtectedRoute>
-          }
-        />
+          <Route
+            path="/events/:eventId"
+            element={
+              <ProtectedRoute>
+                <EventDetailPage />
+              </ProtectedRoute>
+            }
+          />
 
-        <Route
-          path="/eventi/:eventId"
-          element={
-            <ProtectedRoute>
-              <LegacyEventRedirect />
-            </ProtectedRoute>
-          }
-        />
+          <Route
+            path="/eventi/:eventId"
+            element={
+              <ProtectedRoute>
+                <LegacyEventRedirect />
+              </ProtectedRoute>
+            }
+          />
 
-        <Route
-          path="/poems"
-          element={
-            <ProtectedRoute>
-              <PoemsPage />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/articles"
-          element={
-            <ProtectedRoute>
-              <ArticlePage />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/gigs"
-          element={
-            <ProtectedRoute>
-              <GigPage />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/media"
-          element={
-            <ProtectedRoute>
-              <MediaPage />
-            </ProtectedRoute>
-          }
-        />
-        <Route path="*" element={<Navigate to="/" replace />} />
-      </Routes>
-      <OpenProjectFeedbackWidget />
+          <Route
+            path="/poems"
+            element={
+              <ProtectedRoute>
+                <PoemsPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/articles"
+            element={
+              <ProtectedRoute>
+                <ArticlePage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/articles/:slug"
+            element={
+              <ProtectedRoute>
+                <ArticleDetailPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/gigs"
+            element={
+              <ProtectedRoute>
+                <GigPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/media"
+            element={
+              <ProtectedRoute>
+                <MediaPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+      </Suspense>
+      <Suspense fallback={null}>
+        <OpenProjectFeedbackWidget />
+      </Suspense>
     </>
   )
 }

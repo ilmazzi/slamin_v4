@@ -51,6 +51,7 @@ class EventResource extends JsonResource
             'published_at' => $this->published_at?->toISOString(),
             'created_at' => $this->created_at?->toISOString(),
             'updated_at' => $this->updated_at?->toISOString(),
+            'views_count' => (int) ($this->views_count ?? 0),
             'occurrences' => $this->occurrences->map(fn ($occurrence) => [
                 'id' => $occurrence->id,
                 'starts_at' => $occurrence->starts_at?->toISOString(),

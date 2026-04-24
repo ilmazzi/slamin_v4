@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Resources\Api\V1\Poetry\PoemResource;
 use App\Support\Responses\ApiResponse;
 use Domain\Poetry\Actions\ShowPoemAction;
+use Domain\Poetry\Enums\PoemStatus;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -22,6 +23,10 @@ class ShowPoemController extends Controller
             slug: $slug,
             authUserId: $request->user()?->id,
         );
+
+        if ($poem->status === PoemStatus::Published && $poem->is_public && $poem->user_id !== $request->user()?->id) {
+            $poem->increment('views_count');
+        }
 
         return ApiResponse::success([
             'poem' => new PoemResource($poem),
