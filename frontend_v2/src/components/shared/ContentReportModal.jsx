@@ -2,7 +2,17 @@ import { useEffect } from 'react'
 import PillButton from './PillButton.jsx'
 import styles from './ArticleReportModal.module.css'
 
-export default function ArticleReportModal({ isOpen, article, t, onClose, onConfirm }) {
+export default function ContentReportModal({
+  isOpen,
+  item,
+  itemTitle,
+  title,
+  description,
+  cancelLabel,
+  confirmLabel,
+  onClose,
+  onConfirm,
+}) {
   useEffect(() => {
     if (!isOpen) {
       return undefined
@@ -22,7 +32,7 @@ export default function ArticleReportModal({ isOpen, article, t, onClose, onConf
     return null
   }
 
-  const articleTitle = article?.title ?? t('articles.all.no_title')
+  const resolvedItemTitle = itemTitle ?? item?.title ?? ''
 
   return (
     <div className={styles.overlay} role="presentation" onClick={onClose}>
@@ -30,21 +40,21 @@ export default function ArticleReportModal({ isOpen, article, t, onClose, onConf
         className={styles.modal}
         role="dialog"
         aria-modal="true"
-        aria-labelledby="article-report-modal-title"
+        aria-labelledby="content-report-modal-title"
         onClick={(event) => event.stopPropagation()}
       >
-        <h3 id="article-report-modal-title" className={styles.title}>
-          {t('articles.actions.report_title')}
+        <h3 id="content-report-modal-title" className={styles.title}>
+          {title}
         </h3>
-        <p className={styles.description}>{t('articles.actions.report_description')}</p>
-        <p className={styles.articleTitle}>{articleTitle}</p>
+        <p className={styles.description}>{description}</p>
+        <p className={styles.articleTitle}>{resolvedItemTitle}</p>
 
         <div className={styles.actions}>
           <button type="button" className={styles.cancelButton} onClick={onClose}>
-            {t('articles.actions.report_cancel')}
+            {cancelLabel}
           </button>
           <PillButton
-            label={t('articles.actions.report_confirm')}
+            label={confirmLabel}
             variant="accent"
             size="compact"
             icon="arrow"

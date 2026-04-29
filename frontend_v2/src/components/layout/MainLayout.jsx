@@ -1,6 +1,6 @@
 import Footer from '../footer/Footer.jsx'
 import Header from '../header/Header.jsx'
-import { useAuth } from '../../context/AuthContext.jsx'
+import { useAuth } from '../../app/hooks/useAuth.js'
 import { useI18n } from '../../app/hooks/useI18n.js'
 
 export default function MainLayout({

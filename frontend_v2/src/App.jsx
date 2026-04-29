@@ -2,7 +2,7 @@ import { lazy, Suspense, useEffect } from 'react'
 import { Navigate, Route, Routes, useParams } from 'react-router-dom'
 import ProtectedRoute from './components/ProtectedRoute.jsx'
 import Header from './components/header/Header.jsx'
-import { useAuth } from './context/AuthContext.jsx'
+import { useAuth } from './app/hooks/useAuth.js'
 
 const DashboardPage = lazy(() => import('./pages/Dashboard/DashboardPage.jsx'))
 const OpenProjectFeedbackWidget = lazy(() =>
@@ -15,12 +15,16 @@ const LoginPage = lazy(() =>
   import('./pages/Login/LoginPage.jsx').then((module) => ({ default: module.LoginPage })),
 )
 const EventPage = lazy(() => import('./pages/Events/EventPage.jsx'))
+const EventCreatePage = lazy(() => import('./pages/Events/EventCreatePage.jsx'))
 const EventDetailPage = lazy(() => import('./pages/Events/EventDetailPage.jsx'))
 const PoemsPage = lazy(() => import('./pages/Poems/PoemsPage.jsx'))
 const ArticlePage = lazy(() => import('./pages/Articles/ArticlePage.jsx'))
 const ArticleDetailPage = lazy(() => import('./pages/Articles/ArticleDetailPage.jsx'))
 const GigPage = lazy(() => import('./pages/Gigs/GigPage.jsx'))
 const MediaPage = lazy(() => import('./pages/Media/MediaPage.jsx'))
+const PoemDetailPage = lazy(() => import('./pages/Poems/PoemDetailPage.jsx'))
+const PoemCreate = lazy(() => import('./pages/Poems/PoemCreate.jsx'))
+
 
 export default function App() {
   const { isAuthenticated, isLoading, user } = useAuth()
@@ -87,7 +91,7 @@ export default function App() {
             path="/events/create"
             element={
               <ProtectedRoute>
-                <PlaceholderPage title="Create Event" variant="auth" user={user} />
+                <EventCreatePage />
               </ProtectedRoute>
             }
           />
@@ -115,6 +119,22 @@ export default function App() {
             element={
               <ProtectedRoute>
                 <PoemsPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/poems/:slug"
+            element={
+              <ProtectedRoute>
+                <PoemDetailPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/poems/create"
+            element={
+              <ProtectedRoute>
+                <PoemCreate />
               </ProtectedRoute>
             }
           />

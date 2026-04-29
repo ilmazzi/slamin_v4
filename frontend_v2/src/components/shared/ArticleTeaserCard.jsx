@@ -16,11 +16,20 @@ function estimateReadingMinutes(article) {
   return Math.max(1, Math.round(words / 200))
 }
 
+function buildArticleMetrics(article) {
+  return {
+    views: Number.isFinite(Number(article?.views_count)) ? Number(article.views_count) : 0,
+    likes: Number.isFinite(Number(article?.likes_count)) ? Number(article.likes_count) : 0,
+    comments: Number.isFinite(Number(article?.comments_count)) ? Number(article.comments_count) : 0,
+  }
+}
+
 export default function ArticleTeaserCard({ article, locale, t }) {
   const readingMinutes = estimateReadingMinutes(article)
-  const publishedDate = formatShortPublishedDate(article?.published_at, locale, '—')
+  const publishedDate = formatShortPublishedDate(article?.published_at, locale, '-')
   const authorName = article?.author?.nickname ?? article?.author?.display_name ?? t('articles.all.no_author')
   const excerpt = article?.excerpt ?? t('articles.all.no_excerpt')
+  const metrics = buildArticleMetrics(article)
 
   return (
     <>
@@ -28,9 +37,9 @@ export default function ArticleTeaserCard({ article, locale, t }) {
         <div
           className={styles.cover}
           style={
-            article?.featured_image
+            article?.cover_image_url
               ? {
-                  backgroundImage: `url("${article.featured_image}")`,
+                  backgroundImage: `url("${article.cover_image_url}")`,
                 }
               : undefined
           }
@@ -51,7 +60,7 @@ export default function ArticleTeaserCard({ article, locale, t }) {
 
           <div className={styles.bottom}>
             <PillButton
-              href={`/articles/${article.slug}`}
+              href={`/articles/${article?.slug}`}
               label={t('common.discover_more')}
               variant="accent"
               size="articleTeaser"
@@ -72,7 +81,7 @@ export default function ArticleTeaserCard({ article, locale, t }) {
           <div className={styles.socialBlock}>
             <SocialActions
               article={article}
-              metrics={article?.metrics}
+              metrics={metrics}
               layout="column"
               shareLabel={t('articles.featured.share')}
               reportLabel={t('articles.featured.save')}
@@ -94,9 +103,9 @@ export default function ArticleTeaserCard({ article, locale, t }) {
         <div
           className={styles.mobileCover}
           style={
-            article?.featured_image
+            article?.cover_image_url
               ? {
-                  backgroundImage: `url("${article.featured_image}")`,
+                  backgroundImage: `url("${article.cover_image_url}")`,
                 }
               : undefined
           }
@@ -119,7 +128,7 @@ export default function ArticleTeaserCard({ article, locale, t }) {
 
           <div className={styles.mobileBottom}>
             <PillButton
-              href={`/articles/${article.slug}`}
+              href={`/articles/${article?.slug}`}
               label={t('common.discover_more')}
               variant="accent"
               size="articleTeaserMobile"
@@ -129,7 +138,7 @@ export default function ArticleTeaserCard({ article, locale, t }) {
 
             <SocialActions
               article={article}
-              metrics={article?.metrics}
+              metrics={metrics}
               metricsPlacement="end"
               className={styles.mobileIconsRow}
               shareLabel={t('articles.featured.share')}
@@ -150,4 +159,3 @@ export default function ArticleTeaserCard({ article, locale, t }) {
     </>
   )
 }
-

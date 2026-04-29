@@ -43,7 +43,8 @@
 }
 
 /* List teaser CTA: scales with viewport until mobile hard override (max-width: 768px). */
-.articleTeaser {
+.articleTeaser,
+.poemTeaser {
   width: clamp(102px, 10.15625vw, 195px);
   height: clamp(22px, 2.083vw, 40px);
   padding:
@@ -55,7 +56,8 @@
   border-radius: clamp(22px, 2.083vw, 40px);
 }
 
-.articleTeaserMobile {
+.articleTeaserMobile,
+.poemTeaserMobile {
   width: 102px;
   height: 21px;
   padding: 0 8px;
@@ -92,13 +94,15 @@
   font-weight: 300;
 }
 
-.articleTeaser .label {
+.articleTeaser .label,
+.poemTeaser .label {
   font-size: clamp(11px, 1.042vw, 20px);
   line-height: clamp(14px, 1.354vw, 26px);
   font-weight: 300;
 }
 
-.articleTeaserMobile .label {
+.articleTeaserMobile .label,
+.poemTeaserMobile .label {
   font-size: 10px;
   line-height: 13px;
   font-weight: 300;
@@ -129,19 +133,22 @@
   height: 12px;
 }
 
-.articleTeaser .iconWrap {
+.articleTeaser .iconWrap,
+.poemTeaser .iconWrap {
   width: clamp(6px, 0.573vw, 11px);
   height: clamp(10px, 0.938vw, 18px);
   overflow: visible;
 }
 
-.articleTeaserMobile .iconWrap {
+.articleTeaserMobile .iconWrap,
+.poemTeaserMobile .iconWrap {
   width: 5px;
   height: 8px;
   overflow: visible;
 }
 
-.articleTeaser .iconImage {
+.articleTeaser .iconImage,
+.poemTeaser .iconImage {
   width: clamp(10px, 0.938vw, 18px);
   height: clamp(6px, 0.573vw, 11px);
   position: absolute;
@@ -151,7 +158,8 @@
   transform-origin: center;
 }
 
-.articleTeaserMobile .iconImage {
+.articleTeaserMobile .iconImage,
+.poemTeaserMobile .iconImage {
   width: 8px;
   height: 5px;
   position: absolute;
@@ -215,7 +223,8 @@
   border-top-width: 2px;
 }
 
-.articleTeaser .arrowLine {
+.articleTeaser .arrowLine,
+.poemTeaser .arrowLine {
   border-top-width: 1px;
 }
 
@@ -278,24 +287,28 @@
     border-top-width: var(--pill-create-icon-stroke-mobile);
   }
 
-  .articleTeaser {
+  .articleTeaser,
+  .poemTeaser {
     width: 102px;
     height: 21px;
     padding: 0 8px;
     gap: 8px;
   }
 
-  .articleTeaser .label {
+  .articleTeaser .label,
+  .poemTeaser .label {
     font-size: 10px;
     line-height: 13px;
   }
 
-  .articleTeaser .iconWrap {
+  .articleTeaser .iconWrap,
+  .poemTeaser .iconWrap {
     width: 5px;
     height: 8px;
   }
 
-  .articleTeaser .iconImage {
+  .articleTeaser .iconImage,
+  .poemTeaser .iconImage {
     width: 8px;
     height: 5px;
   }

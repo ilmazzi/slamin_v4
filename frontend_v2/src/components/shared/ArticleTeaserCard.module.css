@@ -216,6 +216,11 @@
   padding-top: clamp(10px, 1.097vw, 21.0678px);
 }
 
+.actions button {
+  width: clamp(22px, 2vw, 36px);
+  height: clamp(22px, 2vw, 36px);
+}
+
 .socialIconShare {
   width: clamp(17px, 1.663vw, 31.92px);
   height: clamp(18px, 1.795vw, 34.47px);
@@ -354,6 +359,11 @@
     width: 64.239px;
     gap: 14px;
     justify-content: flex-start;
+  }
+
+  .mobileActions button {
+    width: 22px;
+    height: 24px;
   }
 
   .mobileSocialIcon {

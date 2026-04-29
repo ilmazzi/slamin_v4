@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react'
 import { getApiUrl } from '../../app/api/url.js'
-import { useAuth } from '../../context/AuthContext.jsx'
+import { useAuth } from '../../app/hooks/useAuth.js'
 import styles from './OpenProjectFeedbackWidget.module.css'
 
 const isEnabled = String(import.meta.env.VITE_OPENPROJECT_FEEDBACK_ENABLED ?? 'true') !== 'false'

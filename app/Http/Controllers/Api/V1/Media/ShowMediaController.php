@@ -21,9 +21,11 @@ class ShowMediaController extends Controller
     {
         $this->authorize('view', $media);
 
-        $media = $this->action->execute($media, $request->user()?->id);
+        $authUserId = auth('sanctum')->id();
 
-        if ($media->isPubliclyVisible() && $media->user_id !== $request->user()?->id) {
+        $media = $this->action->execute($media, $authUserId);
+
+        if ($media->isPubliclyVisible() && $media->user_id !== $authUserId) {
             $media->increment('views_count');
         }
 

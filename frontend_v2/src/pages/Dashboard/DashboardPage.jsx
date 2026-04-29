@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react'
 import { formatLocaleNumber } from '../../app/formatters/number.js'
 import { useDashboardWidgets } from '../../app/hooks/useDashboardWidgets.js'
 import { useI18n } from '../../app/hooks/useI18n.js'
-import { useAuth } from '../../context/AuthContext.jsx'
+import { useAuth } from '../../app/hooks/useAuth.js'
 import { resolvePublicUrl } from '../../app/api/url.js'
 import MainLayout from '../../components/layout/MainLayout.jsx'
 import styles from './DashboardPage.module.css'
@@ -325,7 +325,6 @@ export default function DashboardPage({ user }) {
     </MainLayout>
   )
 }
-
 
 
 

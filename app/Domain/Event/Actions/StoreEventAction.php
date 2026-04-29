@@ -164,6 +164,35 @@ class StoreEventAction
                     ->all()
             );
         }
+
+        if ($data->gigs !== []) {
+            $now = now();
+
+            $event->gigs()->createMany(
+                collect($data->gigs)->map(fn ($gig) => [
+                    'type' => $gig['type'],
+                    'quantity' => $gig['quantity'],
+                    'filled_quantity' => 0,
+                    'language' => $gig['language'] ?? null,
+                    'hospitality_required' => (bool) ($gig['hospitality_required'] ?? false),
+                    'description' => $gig['description'] ?? null,
+                    'proposed_price' => !empty($gig['cachet_enabled']) ? ($gig['proposed_price'] ?? null) : null,
+                    'currency' => (!empty($gig['cachet_enabled']) || !empty($gig['travel_expenses_enabled'])) ? ($gig['currency'] ?? null) : null,
+                    'deadline' => $gig['deadline'] ?? null,
+                    'special_requirements' => $gig['special_requirements'] ?? null,
+                    'cachet_enabled' => (bool) ($gig['cachet_enabled'] ?? false),
+                    'travel_expenses_enabled' => (bool) ($gig['travel_expenses_enabled'] ?? false),
+                    'travel_expenses_max' => !empty($gig['travel_expenses_enabled']) ? ($gig['travel_expenses_max'] ?? null) : null,
+                    'accommodation_enabled' => (bool) ($gig['accommodation_enabled'] ?? false),
+                    'accommodation_details' => !empty($gig['accommodation_enabled']) ? ($gig['accommodation_details'] ?? null) : null,
+                    'status' => $gig['status'] ?? 'draft',
+                    'opened_at' => ($gig['status'] ?? 'draft') === 'open' ? $now : null,
+                    'closed_at' => in_array(($gig['status'] ?? 'draft'), ['closed', 'cancelled'], true) ? $now : null,
+                    'created_by_user_id' => $data->userId,
+                    'updated_by_user_id' => $data->userId,
+                ])->all()
+            );
+        }
     }
 
     private function loadFullEvent(Event $event): Event

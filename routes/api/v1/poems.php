@@ -21,6 +21,7 @@ use App\Http\Controllers\Api\V1\Poetry\UpdatePoemController;
 use App\Http\Controllers\Api\V1\Poetry\DeletePoemController;
 use App\Http\Controllers\Api\V1\Poetry\BookmarkPoemController;
 use App\Http\Controllers\Api\V1\Poetry\LikePoemController;
+use App\Http\Controllers\Api\V1\Poetry\ListFeaturedPoemsController;
 use App\Http\Controllers\Api\V1\Poetry\ListPoemCategoriesController;
 use App\Http\Controllers\Api\V1\Poetry\ListPoemTypesController;
 use App\Http\Controllers\Api\V1\Poetry\RemoveBookmarkPoemController;
@@ -109,6 +110,7 @@ Route::middleware([
 
 /* Poem routes for public */
 Route::get('/poems', ListPoemController::class)->name('poems.index');
+Route::get('/featured-poems', ListFeaturedPoemsController::class)->name('featured-poems.index');
 Route::get('/poems/{slug}', ShowPoemController::class)->name('poems.show');
 Route::get('/poem-categories', ListPoemCategoriesController::class)->name('poem-categories.index');
 Route::get('/poem-types', ListPoemTypesController::class)->name('poem-types.index');

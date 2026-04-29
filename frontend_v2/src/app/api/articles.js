@@ -1,4 +1,4 @@
-import { apiGet } from './client.js'
+import { apiGet, authApiGet } from './client.js'
 
 export async function listArticleCategories({ signal } = {}) {
   const { data } = await apiGet('/api/v1/article-categories', { signal })
@@ -32,16 +32,23 @@ export async function listFeaturedArticles({ page = 1, perPage = 3 } = {}, { sig
   return { items, meta }
 }
 
-export async function getArticleBySlug(slug, { signal } = {}) {
+export async function getArticleBySlug(slug, { token, signal } = {}) {
   const safeSlug = String(slug ?? '').trim()
   if (!safeSlug) {
     return null
   }
 
-  const { data } = await apiGet(`/api/v1/articles/${encodeURIComponent(safeSlug)}`, {
-    signal,
-    fallbackMessage: 'Unable to load article',
-  })
+  const fetcher = token ? authApiGet : apiGet
+  const { data } = await fetcher(`/api/v1/articles/${encodeURIComponent(safeSlug)}`, token
+    ? {
+        token,
+        signal,
+        fallbackMessage: 'Unable to load article',
+      }
+    : {
+        signal,
+        fallbackMessage: 'Unable to load article',
+      })
 
   return data?.article ?? null
 }

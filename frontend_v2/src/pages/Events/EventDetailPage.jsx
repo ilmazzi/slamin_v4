@@ -249,6 +249,7 @@ function EventDetailContent({ t, locale, token, user, isAuthenticated }) {
 
   const event = viewState.data?.event ?? null
   const computed = viewState.data?.computed ?? null
+  const coverImageUrl = resolvePublicUrl(event?.cover_image_url || event?.cover_image_path || event?.image_url || '')
 
   const locationLines = useMemo(() => {
     return buildEventLocationLines(event)
@@ -260,9 +261,11 @@ function EventDetailContent({ t, locale, token, user, isAuthenticated }) {
 
   const mapCenter = useMemo(() => {
     if (hasMapCoordinates) {
+      const latValue = event?.latitude ?? event?.venue?.latitude
+      const lngValue = event?.longitude ?? event?.venue?.longitude
       return {
-        lat: Number(event.latitude),
-        lng: Number(event.longitude),
+        lat: Number(latValue),
+        lng: Number(lngValue),
       }
     }
 
@@ -299,8 +302,8 @@ function EventDetailContent({ t, locale, token, user, isAuthenticated }) {
           <section className={styles.frame}>
             <div className={styles.top}>
               <div className={styles.posterWrap}>
-                {event.image_url ? (
-                  <img src={event.image_url} alt={event.title || tr('events.poster_alt', 'Event poster')} className={styles.poster} />
+                {coverImageUrl ? (
+                  <img src={coverImageUrl} alt={event.title || tr('events.poster_alt', 'Event poster')} className={styles.poster} />
                 ) : (
                   <div className={styles.posterFallback}>{tr('events.detail_page.messages.no_poster', 'No poster')}</div>
                 )}

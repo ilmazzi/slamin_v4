@@ -24,7 +24,7 @@ class StorePoemAction
         $status = $this->resolveTargetStatus($data->status);
 
         if ($status === PoemStatus::Published) {
-            $publishedAt = $data->publishedAt ? now()->parse($data->publishedAt) : now();
+            $publishedAt = now();
         } else {
             $publishedAt = null;
         }

@@ -1,0 +1,435 @@
+/*
+  Poem detail — layout da Figma (desktop + mobile), non copiato da ArticleCard.
+  Riferimenti frame: padding 99px 110px 0, gap 139, titolo 85/112 italic #A553DD,
+  pill categoria 50px radius, corpo 48/63 light.
+*/
+
+.poem {
+  font-family: 'Switzer', sans-serif;
+  color: #000;
+  padding: var(--page-inline-padding, 24px);
+}
+
+.poemCard {
+  width: 100%;
+  box-sizing: border-box;
+  padding: clamp(48px, 10vh, 99px) clamp(20px, 5.7vw, 110px) 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.card {
+  --poem-accent: var(--page-hero-accent, var(--color-poems, #a553dd));
+  width: 100%;
+  max-width: 1700px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: clamp(48px, 7vw, 139px);
+  background: #fff;
+  box-sizing: border-box;
+}
+
+/* Blocco alto: titolo (Frame 106) + colonna categoria (Frame 107, padding-top 20px) */
+.top {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: clamp(24px, 3vw, 40px);
+  width: 100%;
+}
+
+.titleRow {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: clamp(16px, 2vw, 32px);
+  width: 100%;
+  min-height: 0;
+}
+
+.title {
+  flex: 1 1 auto;
+  min-width: 0;
+  margin: 0;
+  font-family: 'Switzer', sans-serif;
+  font-style: italic;
+  font-weight: 700;
+  font-size: clamp(40px, 4.4vw, 85px);
+  line-height: 1.12;
+  display: flex;
+  align-items: center;
+  color: var(--poem-accent);
+}
+
+.categoryColumn {
+  flex: 0 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  padding-top: clamp(12px, 1.2vw, 20px);
+}
+
+.categoryPill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 5px 20px;
+  gap: 10px;
+  min-height: 52px;
+  box-sizing: border-box;
+  background: var(--poem-accent);
+  border-radius: 50px;
+  font-family: 'Switzer', sans-serif;
+  font-style: normal;
+  font-weight: 400;
+  font-size: clamp(18px, 1.7vw, 32px);
+  line-height: 1.2;
+  color: #fff;
+  white-space: nowrap;
+  max-width: 100%;
+}
+
+/* Immagine (non nel primo frame testo Figma; sezione dedicata full width) */
+.coverSection {
+  width: 100%;
+  max-height: min(70vh, 560px);
+  overflow: hidden;
+  background: #161616;
+}
+
+.cover {
+  display: block;
+  width: 100%;
+  height: 100%;
+  max-height: min(70vh, 560px);
+  object-fit: cover;
+}
+
+/* Corpo testo — Figma: 48px / 63px, weight 300 */
+.corpo {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  width: 100%;
+  gap: 0;
+}
+
+.lead {
+  margin: 0 0 clamp(20px, 2vw, 28px);
+  font-family: 'Switzer', sans-serif;
+  font-weight: 300;
+  font-size: clamp(22px, 2.8vw, 36px);
+  line-height: 1.35;
+  color: #000;
+}
+
+.rule {
+  height: 2px;
+  width: min(100%, 520px);
+  background: var(--poem-accent);
+  margin: 0 0 clamp(20px, 2vw, 28px);
+  border: 0;
+}
+
+.bodyText {
+  margin: 0;
+  width: 100%;
+  font-family: 'Switzer', sans-serif;
+  font-style: normal;
+  font-weight: 300;
+  font-size: clamp(22px, 3.2vw, 48px);
+  line-height: 1.31;
+  color: #000;
+  white-space: pre-wrap;
+}
+
+/* Autore sotto il testo (sfondo bianco) — cerchio nero + nome grassetto */
+.authorRow {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 10px;
+  margin-top: clamp(20px, 2.5vw, 32px);
+  width: 100%;
+}
+
+.authorAvatar {
+  width: 20px;
+  height: 20px;
+  border-radius: 999px;
+  background: #000;
+  flex: 0 0 auto;
+}
+
+.authorNameLight {
+  font-family: 'Switzer', sans-serif;
+  font-size: clamp(14px, 1vw, 16px);
+  font-weight: 700;
+  color: #000;
+  line-height: 1.2;
+}
+
+/*
+  Barra nera: solo data a sinistra; a destra like, comment, views, share, flag.
+  Ogni metrica: numero prima, icona dopo (fila orizzontale).
+*/
+.metaStrip {
+  width: 100%;
+  margin-top: clamp(20px, 2.5vw, 32px);
+  background: #000;
+  color: #fff;
+  box-sizing: border-box;
+}
+
+.metaStripInner {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 16px;
+  padding: clamp(14px, 1.4vw, 18px) clamp(16px, 1.8vw, 24px);
+  max-width: 1700px;
+  margin: 0 auto;
+  box-sizing: border-box;
+}
+
+.stripDate {
+  font-family: 'Switzer', sans-serif;
+  font-size: 12px;
+  line-height: 1.2;
+  font-weight: 400;
+  color: #fff;
+  white-space: nowrap;
+  flex: 0 0 auto;
+  margin: 0;
+  min-width: 0;
+}
+
+/* Root SocialActions: occupa il resto della riga, contenuto allineato a destra */
+.stripSocial {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: clamp(16px, 1.6vw, 28px);
+  flex: 1 1 auto;
+  min-width: 0;
+  color: #fff;
+}
+
+/* Riga metriche: gruppi in fila con spaziatura uniforme */
+.stripMetrics {
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: center !important;
+  justify-content: flex-end !important;
+  gap: clamp(12px, 1.4vw, 24px) !important;
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+/* Numero a sinistra, icona a destra (come mockup) */
+.stripMetric {
+  display: inline-flex !important;
+  flex-direction: row !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 8px !important;
+  min-width: 0;
+  color: #fff;
+}
+
+.stripMetricValue {
+  font-family: 'Switzer', sans-serif;
+  font-size: clamp(12px, 1vw, 14px);
+  line-height: 1.2;
+  font-weight: 400;
+  color: #fff;
+  text-align: right;
+  display: inline-block;
+}
+
+.stripMetricIcon {
+  width: clamp(20px, 1.6vw, 26px);
+  height: clamp(18px, 1.4vw, 22px);
+  object-fit: contain;
+  display: block;
+  flex-shrink: 0;
+  filter: brightness(0) invert(1);
+  opacity: 1;
+}
+
+/* Share / segnala — icone più grandi, area tap comoda */
+.stripActionButtons {
+  display: inline-flex !important;
+  flex-direction: row !important;
+  align-items: center !important;
+  justify-content: flex-start !important;
+  gap: clamp(16px, 1.5vw, 22px) !important;
+  flex: 0 0 auto;
+}
+
+.stripActionButtons button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: clamp(28px, 2.2vw, 36px);
+  height: clamp(28px, 2.2vw, 36px);
+  padding: 0;
+  margin: 0;
+  flex: 0 0 auto;
+}
+
+.stripActionIcon {
+  width: clamp(22px, 1.85vw, 28px) !important;
+  height: clamp(22px, 1.85vw, 28px) !important;
+  min-width: 22px;
+  min-height: 22px;
+  max-width: 28px;
+  max-height: 28px;
+  object-fit: contain;
+  display: block;
+  flex-shrink: 0;
+  /* override SocialActions .icon { width/height: 100% } */
+  filter: brightness(0) invert(1);
+}
+
+/* --- Mobile (layout Figma mobile: stack, corpo più piccolo) --- */
+@media (max-width: 768px) {
+  .poemCard {
+    padding: 40px 18px 0;
+  }
+
+  .card {
+    gap: clamp(32px, 8vw, 48px);
+  }
+
+  .titleRow {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .categoryColumn {
+    align-items: flex-start;
+    padding-top: 0;
+  }
+
+  .title {
+    font-size: clamp(32px, 8vw, 44px);
+    line-height: 1.15;
+  }
+
+  .categoryPill {
+    min-height: 44px;
+    font-size: 16px;
+    padding: 4px 16px;
+  }
+
+  .bodyText {
+    font-size: clamp(18px, 4.2vw, 22px);
+    line-height: 1.45;
+  }
+
+  .lead {
+    font-size: 18px;
+    line-height: 1.45;
+  }
+
+  /*
+    Barra nera mobile (Figma): [share][flag] | [views][likes][comments] in colonna num+icona | … | data a destra
+    metricsPlacement=end → prima i bottoni, poi le metriche; metricsOrder views, likes, comments
+  */
+  .metaStripInner {
+    flex-direction: row;
+    flex-wrap: nowrap;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 10px;
+    padding: 12px 14px;
+  }
+
+  .stripDate {
+    order: 2;
+    margin-left: auto;
+    align-self: center;
+    font-size: 10px;
+    line-height: 13px;
+    font-weight: 300;
+    flex-shrink: 0;
+  }
+
+  .stripSocial {
+    order: 1;
+    flex: 1 1 auto;
+    min-width: 0;
+    justify-content: flex-start;
+    align-items: center;
+    flex-wrap: nowrap;
+    gap: 12px;
+    width: auto;
+  }
+
+  /* Metriche: numero sopra, icona sotto (tre colonnine compatte) */
+  .stripMetrics {
+    flex: 0 1 auto !important;
+    justify-content: flex-start !important;
+    gap: 10px !important;
+    width: auto !important;
+    min-width: 0;
+  }
+
+  .stripMetric {
+    flex-direction: column !important;
+    gap: 4px !important;
+    align-items: center !important;
+    justify-content: flex-start !important;
+  }
+
+  .stripMetricValue {
+    font-size: 10px;
+    line-height: 13px;
+    font-weight: 300;
+    text-align: center;
+  }
+
+  .stripMetricIcon {
+    width: 13px;
+    height: 10px;
+    min-width: 10px;
+    min-height: 8px;
+  }
+
+  /* Share e segnala più grandi delle icone metriche */
+  .stripActionButtons {
+    gap: 10px !important;
+    flex-shrink: 0;
+  }
+
+  .stripActionButtons button {
+    width: 32px;
+    height: 32px;
+    min-width: 32px;
+    min-height: 32px;
+  }
+
+  .stripActionIcon {
+    width: 26px !important;
+    height: 26px !important;
+    min-width: 24px;
+    min-height: 24px;
+    max-width: 30px;
+    max-height: 30px;
+  }
+}
+
+@media (min-width: 769px) and (max-width: 1024px) {
+  .title {
+    font-size: clamp(48px, 5vw, 68px);
+  }
+}

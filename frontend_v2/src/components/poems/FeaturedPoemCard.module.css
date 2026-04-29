@@ -1,0 +1,241 @@
+.card {
+  --poem-accent: var(--page-hero-accent, var(--color-poems));
+  --poem-accent-soft: color-mix(in srgb, var(--poem-accent) 14%, white);
+  --poem-border: color-mix(in srgb, var(--poem-accent) 18%, rgb(0 0 0 / 0.06));
+
+  position: relative;
+  width: 100%;
+  min-height: clamp(420px, 48vw, 760px);
+  background:
+    linear-gradient(180deg, rgb(255 255 255 / 0.98), rgb(255 255 255 / 1)),
+    #fff;
+  border: 1px solid var(--poem-border);
+  border-left: clamp(6px, 0.65vw, 12px) solid var(--poem-accent);
+  box-sizing: border-box;
+  padding: clamp(24px, 2.7vw, 40px);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: clamp(22px, 2.4vw, 36px);
+  overflow: hidden;
+}
+
+.top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  position: relative;
+  z-index: 1;
+}
+
+.authorRow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.authorDot {
+  width: 14px;
+  height: 14px;
+  border-radius: 999px;
+  background: var(--poem-accent);
+  flex: 0 0 auto;
+}
+
+.authorName {
+  margin: 0;
+  font-family: 'Switzer', sans-serif;
+  font-size: clamp(15px, 1vw, 18px);
+  line-height: 1.2;
+  font-weight: 700;
+  color: #000;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.meta {
+  margin: 0;
+  font-family: 'Switzer', sans-serif;
+  font-size: clamp(12px, 0.82vw, 14px);
+  line-height: 1.2;
+  font-weight: 300;
+  color: rgb(0 0 0 / 0.56);
+  white-space: nowrap;
+  flex: 0 0 auto;
+}
+
+.media {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  background: color-mix(in srgb, var(--poem-accent) 12%, #121212);
+  overflow: hidden;
+  position: relative;
+  z-index: 1;
+}
+
+.mediaImage {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.mediaFallback {
+  width: 100%;
+  height: 100%;
+  background:
+    linear-gradient(
+      135deg,
+      color-mix(in srgb, var(--poem-accent) 30%, #0f0f0f),
+      color-mix(in srgb, var(--poem-accent) 55%, #ffffff)
+    );
+}
+
+.body {
+  display: flex;
+  flex-direction: column;
+  gap: clamp(18px, 2vw, 28px);
+  position: relative;
+  z-index: 1;
+  max-width: min(92%, 760px);
+}
+
+.title {
+  margin: 0;
+  font-family: 'Switzer', sans-serif;
+  font-style: italic;
+  font-weight: 800;
+  font-size: clamp(34px, 3.25vw, 58px);
+  line-height: 0.98;
+  letter-spacing: -0.035em;
+  color: #000;
+}
+
+.excerpt {
+  margin: 0;
+  font-family: 'Switzer', sans-serif;
+  font-weight: 300;
+  font-size: clamp(16px, 1.08vw, 20px);
+  line-height: 1.65;
+  color: #000;
+  display: -webkit-box;
+  -webkit-line-clamp: 6;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.footer {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 18px;
+  position: relative;
+  z-index: 1;
+}
+
+.badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  max-width: 70%;
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  min-height: 30px;
+  padding: 0 14px;
+  border-radius: 999px;
+  background: var(--poem-accent-soft);
+  color: var(--poem-accent);
+  font-family: 'Switzer', sans-serif;
+  font-size: 12px;
+  line-height: 1;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+}
+
+.actions {
+  flex: 0 0 auto;
+}
+
+.socialActions {
+  gap: 12px;
+}
+
+.actions button {
+  width: 18px;
+  height: 18px;
+}
+
+.socialIcon {
+  width: 18px;
+  height: 18px;
+}
+
+.metricIcon {
+  width: 18px;
+  height: 18px;
+}
+
+@media (max-width: 1024px) {
+  .card {
+    min-height: 520px;
+    padding: 24px;
+  }
+
+  .body {
+    max-width: 100%;
+  }
+
+  .title {
+    font-size: clamp(30px, 5vw, 44px);
+  }
+
+  .excerpt {
+    -webkit-line-clamp: 5;
+  }
+}
+
+@media (max-width: 768px) {
+  .card {
+    min-height: 0;
+    padding: 20px 18px 18px;
+    border-left-width: 5px;
+    gap: 18px;
+  }
+
+  .top {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+
+  .title {
+    font-size: 28px;
+    line-height: 1.02;
+  }
+
+  .excerpt {
+    font-size: 14px;
+    line-height: 1.6;
+    -webkit-line-clamp: 7;
+  }
+
+  .footer {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 14px;
+  }
+
+  .badges {
+    max-width: 100%;
+  }
+
+  .actions {
+    margin-right: 0;
+  }
+}

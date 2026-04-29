@@ -31,6 +31,14 @@ function initialsFromName(value) {
     .toUpperCase()
 }
 
+function buildArticleMetrics(article) {
+  return {
+    views: Number.isFinite(Number(article?.views_count)) ? Number(article.views_count) : 0,
+    likes: Number.isFinite(Number(article?.likes_count)) ? Number(article.likes_count) : 0,
+    comments: Number.isFinite(Number(article?.comments_count)) ? Number(article.comments_count) : 0,
+  }
+}
+
 export default function FeaturedDesktopArticle({ article, locale, t }) {
   if (!article) {
     return null
@@ -38,7 +46,8 @@ export default function FeaturedDesktopArticle({ article, locale, t }) {
 
   const authorName = t('articles.featured.author_name')
   const readingMinutes = estimateReadingMinutes(article)
-  const publishedDate = formatShortPublishedDate(article.published_at, locale, '—')
+  const publishedDate = formatShortPublishedDate(article?.published_at, locale, '-')
+  const metrics = buildArticleMetrics(article)
 
   return (
     <section className={styles.featuredSection}>
@@ -47,14 +56,14 @@ export default function FeaturedDesktopArticle({ article, locale, t }) {
           <div
             className={styles.poster}
             style={
-              article.featured_image
+              article?.cover_image_url
                 ? {
-                    backgroundImage: `url("${article.featured_image}")`,
+                    backgroundImage: `url("${article.cover_image_url}")`,
                   }
                 : undefined
             }
           >
-            {!article.featured_image ? (
+            {!article?.cover_image_url ? (
               <div className={styles.logo}>
                 <span className={styles.logoMain}>SLAM</span>
                 <span className={styles.logoBottom}>IN</span>
@@ -71,8 +80,8 @@ export default function FeaturedDesktopArticle({ article, locale, t }) {
               </div>
 
               <div className={styles.textRow}>
-                <h2 className={styles.title}>{article.title ?? t('articles.featured.no_title')}</h2>
-                <p className={styles.excerpt}>{article.excerpt ?? t('articles.featured.no_excerpt')}</p>
+                <h2 className={styles.title}>{article?.title ?? t('articles.featured.no_title')}</h2>
+                <p className={styles.excerpt}>{article?.excerpt ?? t('articles.featured.no_excerpt')}</p>
               </div>
             </div>
 
@@ -100,7 +109,7 @@ export default function FeaturedDesktopArticle({ article, locale, t }) {
           <div className={styles.interactions}>
             <SocialActions
               article={article}
-              metrics={article.metrics}
+              metrics={metrics}
               shareLabel={t('articles.featured.share')}
               reportLabel={t('articles.featured.save')}
               variant="featured"
@@ -124,4 +133,3 @@ export default function FeaturedDesktopArticle({ article, locale, t }) {
     </section>
   )
 }
-

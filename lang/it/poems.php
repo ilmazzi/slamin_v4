@@ -1,0 +1,48 @@
+<?php
+
+return [
+    'title' => 'poesie',
+    'lead_prefix' => 'l\'arte della',
+    'lead_emphasis' => 'parola scritta',
+    'create_poem' => 'Scrivi una poesia',
+    'all' => [
+        'title' => 'tutte le poesie',
+        'empty' => 'Nessuna poesia disponibile con i filtri correnti.',
+        'read_poem' => 'Leggi poesia',
+        'no_author' => 'Autore sconosciuto',
+        'no_title' => 'Poesia senza titolo',
+        'no_excerpt' => 'Anteprima non disponibile',
+        'no_category' => 'Senza categoria',
+    ],
+    'featured' => [
+        'title' => 'dalla redazione',
+
+        'reading_time' => ':minutes min di lettura',
+        'share' => 'Condividi poesia',
+        'save' => 'Salva poesia',
+        'empty' => 'Nessuna poesia disponibile con i filtri correnti.',
+        'no_title' => 'Poesia senza titolo',
+        'no_excerpt' => 'Anteprima non disponibile',
+    ],
+    'form' => [
+        'label_title' => 'Titolo',
+        'label_language' => 'Lingua',
+        'label_poem_category_id' => 'Categoria',
+        'label_poem_type_id' => 'Tipo',
+        'label_status' => 'Stato',
+        'label_published_at' => 'Data pubblicazione',
+        'label_description' => 'Descrizione',
+        'label_content' => 'Testo',
+        'label_image' => 'Immagine',
+        'label_is_public' => 'Pubblico',
+        'label_submit_button' => 'Invia',
+        'label_submit_button_label' => 'Crea poesia',
+        'submit_button_label' => 'Crea poesia',
+        'title' => 'Nuova poesia',
+        'lead' => '',
+        'error_loading_lookups' => 'Impossibile caricare le opzioni del form.',
+        'error_not_authenticated' => 'Devi essere autenticato per pubblicare una poesia.',
+        'error_creating_poem' => 'Impossibile creare la poesia.',
+        'success_creating_poem' => 'Poesia creata con successo.',
+    ],
+];

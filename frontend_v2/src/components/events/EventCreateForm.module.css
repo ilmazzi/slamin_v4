@@ -1,0 +1,612 @@
+.form {
+  max-width: 880px;
+  margin: 0 auto;
+  padding: 0 36px 72px;
+  background: #fff;
+  color: #000;
+}
+
+.error {
+  color: #e30613;
+  font-size: 15px;
+  margin: 12px 0 0;
+}
+
+.separator {
+  height: 4px;
+  margin: 20px 0 36px;
+  background: #e30613;
+}
+
+.sectionBlock,
+.confirmSection {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.hero {
+  padding: 34px 0 18px;
+  text-align: center;
+}
+
+.heroTitle {
+  margin: 0;
+  font-size: 64px;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.heroLead {
+  margin: 16px 0 0;
+  font-size: 32px;
+  font-weight: 300;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.full {
+  width: 100%;
+}
+
+.fieldLabel,
+.inviteTitle {
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.fieldHint,
+.microCopy {
+  font-size: 14px;
+  line-height: 1.35;
+  color: rgba(0, 0, 0, 0.72);
+}
+
+.twoCols,
+.twoColsTight {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 28px;
+}
+
+.threeCols {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 18px;
+}
+
+.threeColsPlace {
+  display: grid;
+  grid-template-columns: 2fr 0.65fr 1.2fr;
+  gap: 22px;
+}
+
+.input {
+  width: 100%;
+  min-height: 48px;
+  border: 1px solid #7a7a7a;
+  border-radius: 12px;
+  background: #fff;
+  padding: 0 14px;
+  font-size: 16px;
+  line-height: 1.2;
+  box-sizing: border-box;
+}
+
+.textarea,
+.textareaSmall {
+  width: 100%;
+  border: 1px solid #7a7a7a;
+  border-radius: 12px;
+  background: #fff;
+  padding: 12px 14px;
+  font-size: 16px;
+  line-height: 1.35;
+  resize: vertical;
+  min-height: 180px;
+}
+
+.textareaSmall {
+  min-height: 96px;
+}
+
+.input::placeholder {
+  color: rgba(0, 0, 0, 0.42);
+}
+
+.toggleRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.toggle {
+  width: 72px;
+  height: 28px;
+  border: 1px solid #000;
+  border-radius: 999px;
+  background: #fff;
+  position: relative;
+  cursor: pointer;
+  padding: 0;
+}
+
+.toggleOn .toggleKnob {
+  transform: translateX(0);
+}
+
+.toggleKnob {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #000;
+}
+
+.availabilityHeader {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.addInline {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  border: 0;
+  background: transparent;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.addCircle,
+.bigPlus {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: #000;
+  color: #fff;
+  font-size: 24px;
+  line-height: 1;
+}
+
+.choiceGroup {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 20px;
+}
+
+.choiceButton {
+  min-height: 58px;
+  border: 1px solid #7a7a7a;
+  border-radius: 14px;
+  background: #fff;
+  color: rgba(0, 0, 0, 0.42);
+  font-size: 16px;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  padding: 8px 12px;
+}
+
+.choiceButtonActive {
+  background: #000;
+  border-color: #000;
+  color: #fff;
+}
+
+.choiceTitle {
+  font-weight: 700;
+}
+
+.choiceSub {
+  font-size: 14px;
+  font-weight: 400;
+}
+
+.mapPanel {
+  display: grid;
+  grid-template-columns: 42px minmax(0, 1fr);
+  gap: 16px;
+  align-items: start;
+}
+
+.mapBadge {
+  padding-top: 20px;
+  color: #84dab4;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+}
+
+.mapBadgeIcon {
+  width: 34px;
+  height: 34px;
+  display: block;
+}
+
+.cleanMap {
+  height: 200px;
+  min-height: 200px;
+  border-radius: 10px;
+  background: linear-gradient(180deg, #d5d5d5 0%, #c9c9c9 100%);
+  position: relative;
+  overflow: hidden;
+}
+
+.mapLeaflet {
+  width: 100%;
+  height: 100%;
+  min-height: inherit;
+  display: block;
+  position: relative;
+  z-index: 0;
+}
+
+.mapPlaceholderText {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 12px 14px;
+  text-align: center;
+  font-size: 14px;
+  line-height: 1.3;
+  color: rgba(0, 0, 0, 0.55);
+}
+
+.mapMarkerIconRoot {
+  background: transparent;
+  border: 0;
+}
+
+.mapMarkerIconSvgWrap {
+  display: inline-block;
+  width: 38px;
+  height: 54px;
+  color: var(--page-hero-accent, var(--color-event));
+  filter: drop-shadow(0 6px 8px rgba(0, 0, 0, 0.3));
+}
+
+.mapMarkerIconSvgWrap svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.mediaBox {
+  min-height: 74px;
+  border: 1px solid #7a7a7a;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  padding: 0 14px;
+}
+
+.fileInput {
+  width: 100%;
+  font-size: 14px;
+}
+
+.inviteRow,
+.gigComposer,
+.publishRow {
+  display: grid;
+  grid-template-columns: 1fr 1fr 0.9fr;
+  gap: 18px;
+}
+
+.gigComposer {
+  grid-template-columns: minmax(0, 1fr) 40px;
+  align-items: center;
+}
+
+.gigCard {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 20px;
+  border: 1px solid #d9d9d9;
+  border-radius: 16px;
+  background: #fff;
+}
+
+.gigTopRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+}
+
+.gigRowTitle {
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.gigRowActions {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  flex: 0 0 auto;
+}
+
+.removeCircle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  border: 1px solid #000;
+  background: transparent;
+  color: #000;
+  font-size: 24px;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0;
+}
+
+.removeCircle:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+.gigFields {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 18px;
+}
+
+.checkInline {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.offerBox {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 14px;
+  border-radius: 12px;
+  background: #fafafa;
+}
+
+.textareaInline {
+  width: 100%;
+  min-height: 74px;
+  border: 1px solid #7a7a7a;
+  border-radius: 12px;
+  background: #fff;
+  padding: 12px 14px;
+  font-size: 16px;
+  line-height: 1.35;
+  resize: vertical;
+}
+
+.mailButton {
+  min-height: 30px;
+  border: 0;
+  border-radius: 10px;
+  background: #000;
+  color: #fff;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.summaryCard {
+  border: 1px solid #7a7a7a;
+  border-radius: 14px;
+  padding: 14px 14px 18px;
+}
+
+.summaryTitle {
+  color: #e30613;
+  font-size: 15px;
+  font-weight: 700;
+  margin-bottom: 10px;
+}
+
+.summaryGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 24px;
+}
+
+.summaryGridTwo {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.summaryLabel {
+  font-size: 13px;
+  font-weight: 700;
+  margin-bottom: 18px;
+}
+
+.summaryValue {
+  min-height: 22px;
+  border-bottom: 1px solid #d1d1d1;
+  font-size: 13px;
+}
+
+.confirmTitle {
+  margin: 8px 0 0;
+  font-size: 48px;
+  font-weight: 800;
+  text-align: center;
+}
+
+.confirmSub {
+  margin: 0 0 10px;
+  font-size: 16px;
+  text-align: center;
+}
+
+.readyBox {
+  text-align: center;
+  padding-top: 4px;
+}
+
+.readyTitle {
+  font-size: 18px;
+  font-weight: 700;
+  margin-bottom: 6px;
+}
+
+.readyText {
+  font-size: 14px;
+}
+
+.submit {
+  width: 100%;
+  min-height: 32px;
+  border: 0;
+  border-radius: 10px;
+  background: #e30613;
+  color: #fff;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+@media (max-width: 768px) {
+  .form {
+    padding: 0 18px 40px;
+  }
+
+  .separator {
+    margin: 14px 0 22px;
+  }
+
+  .hero {
+    padding: 18px 0 10px;
+  }
+
+  .heroTitle {
+    font-size: 30px;
+  }
+
+  .heroLead {
+    margin-top: 10px;
+    font-size: 15px;
+  }
+
+  .twoCols,
+  .twoColsTight,
+  .threeCols,
+  .threeColsPlace,
+  .inviteRow,
+  .gigComposer,
+  .gigFields,
+  .gigTopRow,
+  .publishRow,
+  .summaryGrid,
+  .summaryGridTwo,
+  .choiceGroup {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .input {
+    min-height: 36px;
+    font-size: 10px;
+    border-radius: 7px;
+  }
+
+  .textarea,
+  .textareaSmall {
+    font-size: 10px;
+    border-radius: 7px;
+    min-height: 84px;
+  }
+
+  .textareaInline {
+    font-size: 10px;
+    border-radius: 7px;
+    min-height: 56px;
+  }
+
+  .textareaSmall {
+    min-height: 56px;
+  }
+
+  .fieldLabel,
+  .inviteTitle,
+  .toggleRow {
+    font-size: 10px;
+  }
+
+  .fieldHint,
+  .microCopy,
+  .choiceSub,
+  .confirmSub,
+  .readyText,
+  .submit,
+  .summaryLabel,
+  .summaryValue,
+  .summaryTitle,
+  .checkInline {
+    font-size: 10px;
+  }
+
+  .choiceButton {
+    min-height: 38px;
+    border-radius: 7px;
+    font-size: 10px;
+  }
+
+  .toggle {
+    width: 32px;
+    height: 18px;
+  }
+
+  .toggleKnob {
+    width: 10px;
+    height: 10px;
+    top: 3px;
+    right: 3px;
+  }
+
+  .mapPanel {
+    grid-template-columns: 24px minmax(0, 1fr);
+    gap: 8px;
+  }
+
+  .mapBadge {
+    padding-top: 10px;
+  }
+
+  .mapBadgeIcon {
+    width: 20px;
+    height: 20px;
+  }
+
+  .cleanMap {
+    height: 140px;
+    min-height: 140px;
+  }
+
+  .confirmTitle {
+    font-size: 30px;
+  }
+}

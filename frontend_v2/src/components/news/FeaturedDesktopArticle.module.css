@@ -242,6 +242,8 @@
   color: #000;
   cursor: pointer;
   padding: 0;
+  width: clamp(26px, 2.6vw, 50px);
+  height: clamp(28px, 2.81vw, 54px);
 }
 
 .actions svg {
@@ -379,6 +381,11 @@
     gap: 16px;
     padding-top: 0;
     margin-left: auto;
+  }
+
+  .actions button {
+    width: 24px;
+    height: 26px;
   }
 
   .actionIconShare {

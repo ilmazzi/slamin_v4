@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { useAuth } from '../../context/AuthContext.jsx'
+import { useAuth } from '../../app/hooks/useAuth.js'
 import { resolvePublicUrl } from '../../app/api/url.js'
 import HeaderLanguageSwitcher from './HeaderLanguageSwitcher.jsx'
 import styles from './Header.module.css'

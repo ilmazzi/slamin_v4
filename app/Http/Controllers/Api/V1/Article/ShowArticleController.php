@@ -19,9 +19,11 @@ class ShowArticleController extends Controller
 
     public function __invoke(Request $request, string $slug): JsonResponse
     {
-        $article = $this->action->execute($slug, $request->user()?->id);
+        $authUserId = auth('sanctum')->id();
 
-        if ($article->status === ArticleStatus::Published && $article->is_public && $article->user_id !== $request->user()?->id) {
+        $article = $this->action->execute($slug, $authUserId);
+
+        if ($article->status === ArticleStatus::Published && $article->is_public && $article->user_id !== $authUserId) {
             $article->increment('views_count');
         }
 

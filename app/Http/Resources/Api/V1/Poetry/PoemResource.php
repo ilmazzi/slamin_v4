@@ -42,6 +42,8 @@ class PoemResource extends JsonResource
             'language' => $this->language,
             'status' => $this->status?->value,
             'is_public' => $this->is_public,
+            'is_featured' => (bool) ($this->is_featured ?? false),
+            'featured_rank' => (int) ($this->featured_rank ?? 0),
             'published_at' => $this->published_at?->toISOString(),
             'created_at' => $this->created_at?->toISOString(),
             'updated_at' => $this->updated_at?->toISOString(),

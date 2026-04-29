@@ -4,7 +4,7 @@ import HeaderActions from './HeaderActions.jsx'
 import HeaderLogo from './HeaderLogo.jsx'
 import styles from './Header.module.css'
 import { useI18n } from '../../app/hooks/useI18n.js'
-import { useAuth } from '../../context/AuthContext.jsx'
+import { useAuth } from '../../app/hooks/useAuth.js'
 const normalizeLocaleOption = (entry) => {
   if (typeof entry === 'string') {
     return { code: entry.toLowerCase(), name: entry }

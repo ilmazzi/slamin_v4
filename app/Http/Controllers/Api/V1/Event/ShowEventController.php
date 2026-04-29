@@ -19,9 +19,11 @@ class ShowEventController extends Controller
 
     public function __invoke(Request $request, string $slug): JsonResponse
     {
-        $event = $this->showEventQuery->execute($slug, $request->user()?->id);
+        $authUserId = auth('sanctum')->id();
 
-        if ($event->status === EventStatus::Published && $event->is_public && $event->user_id !== $request->user()?->id) {
+        $event = $this->showEventQuery->execute($slug, $authUserId);
+
+        if ($event->status === EventStatus::Published && $event->is_public && $event->user_id !== $authUserId) {
             $event->increment('views_count');
         }
 

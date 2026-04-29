@@ -7,6 +7,8 @@ use Domain\Event\Enums\EventRecurrenceFrequency;
 use Domain\Event\Enums\EventScheduleMode;
 use Domain\Event\Enums\EventStatus;
 use Domain\Event\Models\Event;
+use Domain\Gig\Enums\GigStatus;
+use Domain\Gig\Enums\GigType;
 use Domain\Group\Enums\GroupMemberRole;
 use Domain\Group\Enums\GroupMemberStatus;
 use Domain\Group\Models\GroupMember;
@@ -20,6 +22,96 @@ class StoreEventRequest extends FormRequest
     public function authorize(): bool
     {
         return true;
+    }
+
+    protected function prepareForValidation(): void
+    {
+        /**
+         * When the frontend sends multipart/form-data (e.g. with cover_image),
+         * nested arrays/objects may arrive as JSON-encoded strings.
+         * Normalize them back into arrays so validation + withValidator foreach() are safe.
+         */
+        $jsonFields = [
+            'occurrence',
+            'recurrence',
+            'availability_poll',
+            'availability_options',
+            'venue',
+            'online',
+            'participant_invites',
+            'gigs',
+            'group_ids',
+            'audience_invite_user_ids',
+        ];
+
+        $updates = [];
+
+        foreach ($jsonFields as $field) {
+            $value = $this->input($field);
+            if (! is_string($value)) {
+                continue;
+            }
+
+            $decoded = json_decode($value, true);
+            if (json_last_error() === JSON_ERROR_NONE && (is_array($decoded) || is_object($decoded))) {
+                $updates[$field] = $decoded;
+            }
+        }
+
+        $booleanFields = [
+            'has_cost',
+            'public_invite_enabled',
+            'audience_capacity_enabled',
+            'is_public',
+        ];
+
+        foreach ($booleanFields as $field) {
+            $value = $this->input($field);
+            if (! is_string($value)) {
+                continue;
+            }
+
+            $parsed = filter_var($value, FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE);
+            if ($parsed !== null) {
+                $updates[$field] = $parsed;
+            }
+        }
+
+        // If nested structures were JSON-decoded, normalize their booleans too.
+        if (isset($updates['gigs']) && is_array($updates['gigs'])) {
+            $updates['gigs'] = collect($updates['gigs'])->map(function ($gig) {
+                if (! is_array($gig)) {
+                    return $gig;
+                }
+
+                // Normalize empty date strings to null so Postgres timestamp casts don't choke.
+                foreach (['deadline'] as $dateField) {
+                    if (array_key_exists($dateField, $gig) && $gig[$dateField] === '') {
+                        $gig[$dateField] = null;
+                    }
+                }
+
+                foreach ([
+                    'hospitality_required',
+                    'cachet_enabled',
+                    'travel_expenses_enabled',
+                    'accommodation_enabled',
+                ] as $field) {
+                    if (array_key_exists($field, $gig) && is_string($gig[$field])) {
+                        $parsed = filter_var($gig[$field], FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE);
+                        if ($parsed !== null) {
+                            $gig[$field] = $parsed;
+                        }
+                    }
+                }
+
+                return $gig;
+            })->all();
+        }
+
+        if ($updates !== []) {
+            $this->merge($updates);
+        }
     }
 
     public function rules(): array
@@ -61,6 +153,32 @@ class StoreEventRequest extends FormRequest
             'participant_invites.*.status' => ['nullable', Rule::in(['pending', 'sent', 'accepted', 'declined'])],
             'audience_invite_user_ids' => ['nullable', 'array'],
             'audience_invite_user_ids.*' => ['integer', 'distinct', 'exists:users,id'],
+            'gigs' => ['nullable', 'array'],
+            'gigs.*.type' => ['required_with:gigs', 'string', Rule::in([
+                GigType::PoetArtist->value,
+                GigType::McHost->value,
+                GigType::TechnicalSupport->value,
+                GigType::Volunteer->value,
+            ])],
+            'gigs.*.quantity' => ['required_with:gigs', 'integer', 'min:1'],
+            'gigs.*.language' => ['nullable', 'string', 'max:255'],
+            'gigs.*.hospitality_required' => ['nullable', 'boolean'],
+            'gigs.*.description' => ['nullable', 'string'],
+            'gigs.*.proposed_price' => ['nullable', 'numeric', 'min:0'],
+            'gigs.*.currency' => ['nullable', 'string', 'size:3'],
+            'gigs.*.deadline' => ['nullable', 'date'],
+            'gigs.*.special_requirements' => ['nullable', 'string'],
+            'gigs.*.cachet_enabled' => ['nullable', 'boolean'],
+            'gigs.*.travel_expenses_enabled' => ['nullable', 'boolean'],
+            'gigs.*.travel_expenses_max' => ['nullable', 'numeric', 'min:0'],
+            'gigs.*.accommodation_enabled' => ['nullable', 'boolean'],
+            'gigs.*.accommodation_details' => ['nullable', 'string'],
+            'gigs.*.status' => ['nullable', 'string', Rule::in([
+                GigStatus::Draft->value,
+                GigStatus::Open->value,
+                GigStatus::Closed->value,
+                GigStatus::Cancelled->value,
+            ])],
 
             'occurrence.starts_at' => ['nullable', 'date'],
             'occurrence.ends_at' => ['nullable', 'date', 'after_or_equal:occurrence.starts_at'],

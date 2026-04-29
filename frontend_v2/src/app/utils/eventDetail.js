@@ -31,8 +31,8 @@ export function hasEventCoordinates(event) {
     return false
   }
 
-  const latitude = Number(event.latitude)
-  const longitude = Number(event.longitude)
+  const latitude = Number(event.latitude ?? event.venue?.latitude)
+  const longitude = Number(event.longitude ?? event.venue?.longitude)
 
   return Number.isFinite(latitude) && Number.isFinite(longitude)
 }
@@ -42,7 +42,13 @@ export function buildEventLocationLines(event) {
     return []
   }
 
-  return [event.city, event.venue_name, event.venue_address]
+  const venue = event.venue && typeof event.venue === 'object' ? event.venue : null
+
+  return [
+    event.city ?? venue?.city,
+    event.venue_name ?? venue?.place_name,
+    event.venue_address ?? venue?.address_line,
+  ]
     .map((item) => normalizeDisplayString(item))
     .filter(Boolean)
 }

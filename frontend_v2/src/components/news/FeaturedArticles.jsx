@@ -2,7 +2,6 @@ import ArticleTeaserCard from '../shared/ArticleTeaserCard.jsx'
 import { useState } from 'react'
 import { useI18n } from '../../app/hooks/useI18n.js'
 import { listFeaturedArticles } from '../../app/api/articles.js'
-import { normalizeArticlesForUi } from '../../app/normalizers/article.js'
 import { usePaginatedApiList } from '../../app/hooks/usePaginatedApiList.js'
 import Pagination from '../shared/Pagination.jsx'
 
@@ -18,7 +17,6 @@ export default function FeaturedArticles() {
   const { items: featuredArticles, meta, isLoading, error } = usePaginatedApiList({
     fetcher: listFeaturedArticles,
     params: { page, perPage: API_PER_PAGE },
-    normalizeItems: normalizeArticlesForUi,
     deps: [page],
   })
 

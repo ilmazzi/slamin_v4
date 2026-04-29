@@ -72,6 +72,11 @@
   align-items: center;
   justify-content: center;
   cursor: pointer;
+  /* Fixed hit box so img { width/height: 100% } cannot resolve against an empty box and blow up to intrinsic SVG size when module CSS order varies. */
+  box-sizing: border-box;
+  width: 22px;
+  height: 22px;
+  flex-shrink: 0;
 }
 
 .icon {

@@ -1,19 +1,21 @@
-import { useEffect, useMemo, useState } from 'react'
-import { useSearchParams } from 'react-router-dom'
-import { listArticleCategories, listArticles } from '../../app/api/articles.js'
+import { useEffect, useMemo } from 'react'
+import { listArticles } from '../../app/api/articles.js'
 import { usePaginatedApiList } from '../../app/hooks/usePaginatedApiList.js'
 import MainLayout from '../../components/layout/MainLayout.jsx'
 import PageHero from '../../components/PageHero.jsx'
 import { useI18n } from '../../app/hooks/useI18n.js'
-import { useArticleFeedbackUi } from '../../app/hooks/useArticleFeedbackUi.js'
-import { normalizeArticlesForUi } from '../../app/normalizers/article.js'
+import { useContentFeedbackUi } from '../../app/hooks/useContentFeedbackUi.js'
+import { useArticlePageSearchParams } from '../../app/hooks/useArticlePageSearchParams.js'
+import { useArticleCategoryLookup } from '../../app/hooks/useArticleCategoryLookup.js'
+import { usePaginationUi } from '../../app/hooks/usePaginationUi.js'
+import { splitFeaturedArticle } from '../../app/helpers/splitFeaturedArticle.js'
 import pageStyles from '../shared/ContentPageShell.module.css'
 import styles from './ArticlePage.module.css'
 import NewsFilterBar from '../../components/news/NewsFilterBar.jsx'
 import FeaturedDesktopArticle from '../../components/news/FeaturedDesktopArticle.jsx'
 import AllArticlesSection from '../../components/news/AllArticlesSection.jsx'
 import HomeDashboardPromoSection from '../../components/home/HomeDashboardPromoSection.jsx'
-import ArticleReportModal from '../../components/shared/ArticleReportModal.jsx'
+import ContentReportModal from '../../components/shared/ContentReportModal.jsx'
 import AppToast from '../../components/shared/AppToast.jsx'
 import Pagination from '../../components/shared/Pagination.jsx'
 
@@ -21,49 +23,20 @@ const API_PER_PAGE = 5
 
 export default function ArticlePage() {
   const { t, locale } = useI18n()
-  const [searchParams, setSearchParams] = useSearchParams()
-  const [categories, setCategories] = useState([])
-  const [isLoadingLookups, setIsLoadingLookups] = useState(true)
-  const [lookupsError, setLookupsError] = useState('')
-
-  const categorySlug = searchParams.get('category') ?? ''
-  const rawPage = searchParams.get('page') ?? '1'
-  const currentPageFromUrl = Math.max(1, Math.floor(Number.parseInt(rawPage, 10)) || 1)
-
-  useEffect(() => {
-    const controller = new AbortController()
-
-    async function loadCategories() {
-      setIsLoadingLookups(true)
-      setLookupsError('')
-
-      try {
-        const { categories: nextCategories } = await listArticleCategories({ signal: controller.signal })
-        setCategories(nextCategories)
-      } catch (error) {
-        if (error?.name !== 'AbortError') {
-          setCategories([])
-          setLookupsError(t('articles.filters.load_error'))
-        }
-      } finally {
-        if (!controller.signal.aborted) {
-          setIsLoadingLookups(false)
-        }
-      }
-    }
-
-    loadCategories()
-    return () => controller.abort()
-  }, [t])
-
-  const categoryIdForFilter = useMemo(() => {
-    if (!categorySlug) {
-      return null
-    }
-
-    const found = categories.find((category) => category?.slug === categorySlug)
-    return found?.id ?? null
-  }, [categories, categorySlug])
+  const {
+    categorySlug,
+    currentPage: currentPageFromUrl,
+    setSearchParams,
+    setCategory,
+    resetFilters,
+    goToPage,
+  } = useArticlePageSearchParams()
+  const {
+    categoryOptions,
+    categoryIdForFilter,
+    isLoadingLookups,
+    lookupsError,
+  } = useArticleCategoryLookup({ categorySlug, t })
 
   const {
     items: pageItems,
@@ -77,7 +50,6 @@ export default function ArticlePage() {
       articleCategoryId: categoryIdForFilter,
     },
     enabled: !isLoadingLookups && (!categorySlug || Boolean(categoryIdForFilter)),
-    normalizeItems: normalizeArticlesForUi,
     deps: [currentPageFromUrl, categoryIdForFilter, categorySlug, isLoadingLookups],
   })
 
@@ -112,98 +84,42 @@ export default function ArticlePage() {
     )
   }, [currentPageFromUrl, listMeta?.last_page, setSearchParams])
 
-  const categoryOptions = useMemo(
-    () =>
-      categories.map((category) => ({
-        value: category?.slug ?? '',
-        label: category?.name ?? '',
-      })),
-    [categories],
+  const { featuredArticle, articlesList } = useMemo(
+    () => splitFeaturedArticle(pageItems, listMeta?.current_page ?? currentPageFromUrl),
+    [currentPageFromUrl, listMeta?.current_page, pageItems],
   )
 
-  const { featuredArticle, articlesList } = useMemo(() => {
-    if (pageItems.length === 0) {
-      return { featuredArticle: null, articlesList: [] }
-    }
-
-    if ((listMeta?.current_page ?? currentPageFromUrl) === 1) {
-      return {
-        featuredArticle: pageItems[0] ?? null,
-        articlesList: pageItems.slice(1),
-      }
-    }
-
-    return {
-      featuredArticle: null,
-      articlesList: pageItems,
-    }
-  }, [currentPageFromUrl, listMeta?.current_page, pageItems])
-
-  const currentPage = Math.max(1, Number(listMeta?.current_page ?? currentPageFromUrl))
-  const lastPage = Math.max(1, Number(listMeta?.last_page ?? 1))
-  const total = Math.max(0, Number(listMeta?.total ?? pageItems.length))
-  const perPage = Math.max(1, Number(listMeta?.per_page ?? API_PER_PAGE))
-  const pageStart = total === 0 ? 0 : ((currentPage - 1) * perPage) + 1
-  const pageEnd = total === 0 ? 0 : Math.min(total, pageStart + Math.max(0, pageItems.length - 1))
-  const paginationInfoTemplate =
-    t('articles.pagination.results') === 'articles.pagination.results'
-      ? 'Mostra :from-:to di :total risultati'
-      : t('articles.pagination.results')
-  const prevPaginationLabel =
-    t('articles.pagination.prev') === 'articles.pagination.prev'
-      ? 'Pagina precedente'
-      : t('articles.pagination.prev')
-  const nextPaginationLabel =
-    t('articles.pagination.next') === 'articles.pagination.next'
-      ? 'Pagina successiva'
-      : t('articles.pagination.next')
-  const paginationInfo = paginationInfoTemplate
-    .replace(':from', String(pageStart))
-    .replace(':to', String(pageEnd))
-    .replace(':total', String(total))
-
-  const handleParamChange = (key, value) => {
-    const next = new URLSearchParams(searchParams)
-    const normalizedValue = String(value ?? '').trim()
-
-    if (normalizedValue) {
-      next.set(key, normalizedValue)
-    } else {
-      next.delete(key)
-    }
-
-    next.set('page', '1')
-    setSearchParams(next, { replace: true })
-  }
-
-  const handleResetFilters = () => {
-    const next = new URLSearchParams()
-    next.set('page', '1')
-    setSearchParams(next, { replace: true })
-  }
-
-  const goToPage = (page) => {
-    setSearchParams(
-      (prev) => {
-        const next = new URLSearchParams(prev)
-        next.set('page', String(page))
-        return next
-      },
-      { replace: true },
-    )
-
-    if (typeof window !== 'undefined') {
-      window.scrollTo({ top: 0, behavior: 'smooth' })
-    }
-  }
+  const {
+    currentPage,
+    lastPage,
+    total,
+    prevPaginationLabel,
+    nextPaginationLabel,
+    paginationInfo,
+  } = usePaginationUi({
+    meta: listMeta,
+    fallbackPage: currentPageFromUrl,
+    fallbackPerPage: API_PER_PAGE,
+    itemCount: pageItems.length,
+    t,
+    mode: 'results',
+  })
 
   const {
-    reportModalArticle,
+    reportModalItem,
     toastMessage,
-    setReportModalArticle,
+    setReportModalItem,
     setToastMessage,
     handleReportConfirm,
-  } = useArticleFeedbackUi(t, pageItems)
+  } = useContentFeedbackUi({
+    t,
+    contentType: 'article',
+    knownItems: pageItems,
+    shareCopiedMessage: t('articles.actions.share_copied'),
+    shareSentMessage: t('articles.actions.share_sent'),
+    shareFailedMessage: t('articles.actions.share_failed'),
+    reportSubmittedMessage: t('articles.actions.report_submitted'),
+  })
 
   return (
     <MainLayout themeTone="articles">
@@ -222,13 +138,13 @@ export default function ArticlePage() {
             onSearchChange={() => {}}
             categoryValue={categorySlug}
             categoryOptions={categoryOptions}
-            onCategoryChange={(value) => handleParamChange('category', value)}
+            onCategoryChange={setCategory}
             tagValue=""
             tagOptions={[]}
             onTagChange={() => {}}
             sortValue="newest"
             onSortChange={() => {}}
-            onReset={handleResetFilters}
+            onReset={resetFilters}
             isLoading={isLoadingLookups}
             t={t}
             showTag={false}
@@ -262,11 +178,15 @@ export default function ArticlePage() {
 
         <HomeDashboardPromoSection compactTop={true} />
 
-        <ArticleReportModal
-          isOpen={Boolean(reportModalArticle)}
-          article={reportModalArticle}
-          t={t}
-          onClose={() => setReportModalArticle(null)}
+        <ContentReportModal
+          isOpen={Boolean(reportModalItem)}
+          item={reportModalItem}
+          itemTitle={reportModalItem?.title ?? t('articles.all.no_title')}
+          title={t('articles.actions.report_title')}
+          description={t('articles.actions.report_description')}
+          cancelLabel={t('articles.actions.report_cancel')}
+          confirmLabel={t('articles.actions.report_confirm')}
+          onClose={() => setReportModalItem(null)}
           onConfirm={handleReportConfirm}
         />
 

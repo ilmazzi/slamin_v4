@@ -73,3 +73,20 @@ export async function authApiGet(
     allowStatuses,
   })
 }
+
+export async function authApiPost(path, data, {token, signal, cache = 'no-store', fallbackMessage = 'Request failed' } = {}) {
+  const isFormData = typeof FormData !== 'undefined' && data instanceof FormData
+
+  return authApiRequest(path, {
+    token,
+    signal,
+    method: 'POST',
+    headers: isFormData
+      ? { Accept: 'application/json' }
+      : { Accept: 'application/json', 'Content-Type': 'application/json' },
+    cache,
+    fallbackMessage,
+    allowStatuses: [200, 201],
+    body: isFormData ? data : JSON.stringify(data),
+  })
+}

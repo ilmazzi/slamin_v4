@@ -3,7 +3,7 @@ import { formatLocaleNumber } from '../../app/formatters/number.js'
 import { useDashboardWidgets } from '../../app/hooks/useDashboardWidgets.js'
 import { useI18n } from '../../app/hooks/useI18n.js'
 import { resolvePublicUrl } from '../../app/api/url.js'
-import { useAuth } from '../../context/AuthContext.jsx'
+import { useAuth } from '../../app/hooks/useAuth.js'
 import HomeDashboardPromo from './HomeDashboardPromo.jsx'
 
 export default function HomeDashboardPromoSection({ compactTop = false }) {

@@ -9,16 +9,50 @@ import {
   mediaViewsDesktopIcon,
 } from '../../assets/home/media/index.js'
 import { authApiRequest } from '../../app/api/client.js'
-import { useAuth } from '../../context/AuthContext.jsx'
+import { useAuth } from '../../app/hooks/useAuth.js'
 import styles from './SocialActions.module.css'
 
-function resolveArticleUrl(article) {
-  const slug = article?.slug ?? article?.id
-  if (!slug) {
-    return `${window.location.origin}/articles`
+function pluralizeContentType(contentType) {
+  const normalized = String(contentType ?? '').trim().toLowerCase()
+  if (!normalized) {
+    return 'articles'
   }
 
-  return `${window.location.origin}/articles/${slug}`
+  if (normalized.endsWith('y')) {
+    return `${normalized.slice(0, -1)}ies`
+  }
+
+  if (normalized.endsWith('s')) {
+    return normalized
+  }
+
+  return `${normalized}s`
+}
+
+function buildContentBasePath(contentType, apiBasePath) {
+  if (apiBasePath) {
+    return String(apiBasePath).replace(/\/+$/, '')
+  }
+
+  return `/${pluralizeContentType(contentType)}`
+}
+
+function buildContentEventName(contentType, action) {
+  const normalizedType = String(contentType ?? 'article').trim().toLowerCase() || 'article'
+  return `${normalizedType}:${action}`
+}
+
+function resolveContentUrl(target, contentType = 'article', publicBasePath) {
+  const slug = target?.slug ?? target?.id
+  const basePath = publicBasePath
+    ? String(publicBasePath).replace(/\/+$/, '')
+    : `/${pluralizeContentType(contentType)}`
+
+  if (!slug) {
+    return `${window.location.origin}${basePath}`
+  }
+
+  return `${window.location.origin}${basePath}/${slug}`
 }
 
 function resolveMetricValue(value) {
@@ -26,9 +60,9 @@ function resolveMetricValue(value) {
   return Number.isFinite(numeric) ? numeric : 0
 }
 
-async function defaultShare(article) {
-  const shareUrl = resolveArticleUrl(article)
-  const shareTitle = article?.title ?? ''
+async function defaultShare(target, { contentType, publicBasePath }) {
+  const shareUrl = resolveContentUrl(target, contentType, publicBasePath)
+  const shareTitle = target?.title ?? ''
 
   if (navigator.share) {
     await navigator.share({
@@ -43,14 +77,22 @@ async function defaultShare(article) {
   }
 }
 
-function defaultReport(article) {
+function buildReportDetail(target, contentType) {
+  const normalizedType = String(contentType ?? 'article').trim().toLowerCase() || 'article'
+
+  return {
+    [normalizedType]: target ?? null,
+    [`${normalizedType}Id`]: target?.id ?? null,
+    [`${normalizedType}Slug`]: target?.slug ?? null,
+    contentType: normalizedType,
+    target: target ?? null,
+  }
+}
+
+function defaultReport(target, { contentType }) {
   window.dispatchEvent(
-    new CustomEvent('article:report', {
-      detail: {
-        article: article ?? null,
-        articleId: article?.id ?? null,
-        articleSlug: article?.slug ?? null,
-      },
+    new CustomEvent(buildContentEventName(contentType, 'report'), {
+      detail: buildReportDetail(target, contentType),
     }),
   )
 }
@@ -58,6 +100,10 @@ function defaultReport(article) {
 export default function SocialActions({
   article,
   item,
+  target: explicitTarget,
+  contentType = 'article',
+  apiBasePath,
+  publicBasePath,
   metrics,
   showMetrics = true,
   showActions = true,
@@ -80,17 +126,20 @@ export default function SocialActions({
   iconClassName = '',
   shareIconClassName = '',
   reportIconClassName = '',
+  /** Order of view / like / comment metrics, e.g. poem detail: ['likes', 'comments', 'views'] */
+  metricsOrder = ['views', 'likes', 'comments'],
   onLike,
   onComments,
   onShare,
   onReport,
 }) {
   const auth = useAuth()
-  const target = item ?? article ?? null
+  const target = explicitTarget ?? item ?? article ?? null
   const normalizedMetrics = metrics ?? target?.metrics ?? null
   const classes = [styles.actions, styles[layout] || '', className].filter(Boolean).join(' ')
   const shareIcon = variant === 'list' ? mediaShareListFigmaIcon : mediaShareFeaturedFigmaIcon
   const reportIcon = variant === 'list' ? mediaReportListFigmaIcon : mediaReportFeaturedFigmaIcon
+  const resolvedApiBasePath = buildContentBasePath(contentType, apiBasePath)
 
   const initialIsLiked = Boolean(target?.is_liked)
   const [isLiked, setIsLiked] = useState(initialIsLiked)
@@ -100,7 +149,6 @@ export default function SocialActions({
     ? likesOverride
     : resolveMetricValue(normalizedMetrics?.likes)
 
-  // Keep local like state in sync when the item changes (navigation / refetch).
   useEffect(() => {
     setIsLiked(Boolean(target?.is_liked))
     setLikesOverride(null)
@@ -122,11 +170,14 @@ export default function SocialActions({
 
     try {
       const method = isLiked ? 'DELETE' : 'POST'
-      const result = await authApiRequest(`/api/v1/articles/${encodeURIComponent(target.id)}/like`, {
-        token: auth.token,
-        method,
-        fallbackMessage: 'Unable to toggle like',
-      })
+      const result = await authApiRequest(
+        `/api/v1${resolvedApiBasePath}/${encodeURIComponent(target.id)}/like`,
+        {
+          token: auth.token,
+          method,
+          fallbackMessage: 'Unable to toggle like',
+        },
+      )
 
       if (!result.ok) {
         throw new Error('Unable to toggle like')
@@ -137,18 +188,20 @@ export default function SocialActions({
       setLikesOverride(Math.max(0, likesValue + (nextIsLiked ? 1 : -1)))
 
       window.dispatchEvent(
-        new CustomEvent('article:like-changed', {
+        new CustomEvent(buildContentEventName(contentType, 'like-changed'), {
           detail: {
-            article: target ?? null,
+            target: target ?? null,
+            contentType,
             isLiked: nextIsLiked,
           },
         }),
       )
     } catch {
       window.dispatchEvent(
-        new CustomEvent('article:like-error', {
+        new CustomEvent(buildContentEventName(contentType, 'like-error'), {
           detail: {
-            article: target ?? null,
+            target: target ?? null,
+            contentType,
           },
         }),
       )
@@ -162,9 +215,10 @@ export default function SocialActions({
     }
 
     window.dispatchEvent(
-      new CustomEvent('article:comments', {
+      new CustomEvent(buildContentEventName(contentType, 'comments'), {
         detail: {
-          article: target ?? null,
+          target: target ?? null,
+          contentType,
         },
       }),
     )
@@ -175,9 +229,10 @@ export default function SocialActions({
       if (onShare) {
         await onShare(target)
         window.dispatchEvent(
-          new CustomEvent('article:share-success', {
+          new CustomEvent(buildContentEventName(contentType, 'share-success'), {
             detail: {
-              article: target ?? null,
+              target: target ?? null,
+              contentType,
               mode: 'custom',
             },
           }),
@@ -185,20 +240,22 @@ export default function SocialActions({
         return
       }
 
-      await defaultShare(target)
+      await defaultShare(target, { contentType, publicBasePath })
       window.dispatchEvent(
-        new CustomEvent('article:share-success', {
+        new CustomEvent(buildContentEventName(contentType, 'share-success'), {
           detail: {
-            article: target ?? null,
+            target: target ?? null,
+            contentType,
             mode: navigator.share ? 'native' : 'clipboard',
           },
         }),
       )
     } catch {
       window.dispatchEvent(
-        new CustomEvent('article:share-error', {
+        new CustomEvent(buildContentEventName(contentType, 'share-error'), {
           detail: {
-            article: target ?? null,
+            target: target ?? null,
+            contentType,
           },
         }),
       )
@@ -211,55 +268,82 @@ export default function SocialActions({
       return
     }
 
-    defaultReport(target)
+    defaultReport(target, { contentType })
+  }
+
+  const allowedMetricKeys = ['views', 'likes', 'comments']
+  const resolvedMetricsOrder = (Array.isArray(metricsOrder) ? metricsOrder : ['views', 'likes', 'comments']).filter(
+    (key) => allowedMetricKeys.includes(key),
+  )
+  const metricOrderFinal = resolvedMetricsOrder.length ? resolvedMetricsOrder : ['views', 'likes', 'comments']
+
+  const viewMetricEl = (
+    <div
+      key="views"
+      className={[styles.metric, metricClassName, viewMetricClassName].filter(Boolean).join(' ')}
+    >
+      <span className={[styles.metricValue, metricValueClassName].filter(Boolean).join(' ')}>
+        {resolveMetricValue(normalizedMetrics?.views)}
+      </span>
+      <img
+        src={mediaViewsDesktopIcon}
+        alt=""
+        className={[styles.metricIcon, viewIconClassName].filter(Boolean).join(' ')}
+        aria-hidden="true"
+      />
+    </div>
+  )
+
+  const likeMetricEl = (
+    <button
+      key="likes"
+      type="button"
+      className={[styles.metricButton, styles.metric, metricClassName, likeMetricClassName, isLiked ? styles.isLiked : '']
+        .filter(Boolean)
+        .join(' ')}
+      aria-label="Like"
+      onClick={handleLike}
+      disabled={!onLike && (!auth?.isAuthenticated || !auth?.token)}
+    >
+      <span className={[styles.metricValue, metricValueClassName].filter(Boolean).join(' ')}>{likesValue}</span>
+      <img
+        src={mediaLikeDesktopIcon}
+        alt=""
+        className={[styles.metricIcon, likeIconClassName].filter(Boolean).join(' ')}
+        aria-hidden="true"
+      />
+    </button>
+  )
+
+  const commentMetricEl = (
+    <button
+      key="comments"
+      type="button"
+      className={[styles.metricButton, styles.metric, metricClassName, commentMetricClassName].filter(Boolean).join(' ')}
+      aria-label="Commenti"
+      onClick={handleComments}
+    >
+      <span className={[styles.metricValue, metricValueClassName].filter(Boolean).join(' ')}>
+        {resolveMetricValue(normalizedMetrics?.comments)}
+      </span>
+      <img
+        src={mediaCommentsDesktopIcon}
+        alt=""
+        className={[styles.metricIcon, commentIconClassName].filter(Boolean).join(' ')}
+        aria-hidden="true"
+      />
+    </button>
+  )
+
+  const metricByKey = {
+    views: viewMetricEl,
+    likes: likeMetricEl,
+    comments: commentMetricEl,
   }
 
   const metricsBlock = showMetrics && normalizedMetrics ? (
     <div className={[styles.metrics, metricsClassName].filter(Boolean).join(' ')}>
-      <div className={[styles.metric, metricClassName, viewMetricClassName].filter(Boolean).join(' ')}>
-        <span className={[styles.metricValue, metricValueClassName].filter(Boolean).join(' ')}>
-          {resolveMetricValue(normalizedMetrics?.views)}
-        </span>
-        <img
-          src={mediaViewsDesktopIcon}
-          alt=""
-          className={[styles.metricIcon, viewIconClassName].filter(Boolean).join(' ')}
-          aria-hidden="true"
-        />
-      </div>
-      <button
-        type="button"
-        className={[styles.metricButton, styles.metric, metricClassName, likeMetricClassName, isLiked ? styles.isLiked : '']
-          .filter(Boolean)
-          .join(' ')}
-        aria-label="Like"
-        onClick={handleLike}
-        disabled={!onLike && (!auth?.isAuthenticated || !auth?.token)}
-      >
-        <span className={[styles.metricValue, metricValueClassName].filter(Boolean).join(' ')}>{likesValue}</span>
-        <img
-          src={mediaLikeDesktopIcon}
-          alt=""
-          className={[styles.metricIcon, likeIconClassName].filter(Boolean).join(' ')}
-          aria-hidden="true"
-        />
-      </button>
-      <button
-        type="button"
-        className={[styles.metricButton, styles.metric, metricClassName, commentMetricClassName].filter(Boolean).join(' ')}
-        aria-label="Commenti"
-        onClick={handleComments}
-      >
-        <span className={[styles.metricValue, metricValueClassName].filter(Boolean).join(' ')}>
-          {resolveMetricValue(normalizedMetrics?.comments)}
-        </span>
-        <img
-          src={mediaCommentsDesktopIcon}
-          alt=""
-          className={[styles.metricIcon, commentIconClassName].filter(Boolean).join(' ')}
-          aria-hidden="true"
-        />
-      </button>
+      {metricOrderFinal.map((key) => metricByKey[key]).filter(Boolean)}
     </div>
   ) : null
 

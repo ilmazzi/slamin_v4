@@ -7,13 +7,12 @@ import shellStyles from '../shared/ContentPageShell.module.css'
 import { listArticles } from '../../app/api/articles.js'
 import { useI18n } from '../../app/hooks/useI18n.js'
 import { usePaginatedApiList } from '../../app/hooks/usePaginatedApiList.js'
-import { normalizeArticlesForUi } from '../../app/normalizers/article.js'
-import ArticleReportModal from '../../components/shared/ArticleReportModal.jsx'
+import ContentReportModal from '../../components/shared/ContentReportModal.jsx'
 import AppToast from '../../components/shared/AppToast.jsx'
 import FeaturedArticles from '../../components/news/FeaturedArticles.jsx'
 import AllArticlesSection from '../../components/news/AllArticlesSection.jsx'
 import Pagination from '../../components/shared/Pagination.jsx'
-import { useArticleFeedbackUi } from '../../app/hooks/useArticleFeedbackUi.js'
+import { useContentFeedbackUi } from '../../app/hooks/useContentFeedbackUi.js'
 
 const ALL_ARTICLES_PER_PAGE = 5
 
@@ -24,7 +23,6 @@ export default function ArticleDetailPage() {
   const { items: allArticles, meta, isLoading: isLoadingAllArticles } = usePaginatedApiList({
     fetcher: listArticles,
     params: { page: allArticlesPage, perPage: ALL_ARTICLES_PER_PAGE },
-    normalizeItems: normalizeArticlesForUi,
     deps: [allArticlesPage],
   })
 
@@ -47,12 +45,20 @@ export default function ArticleDetailPage() {
     .replace(':last', String(lastPage))
 
   const {
-    reportModalArticle,
+    reportModalItem,
     toastMessage,
-    setReportModalArticle,
+    setReportModalItem,
     setToastMessage,
     handleReportConfirm,
-  } = useArticleFeedbackUi(t, allArticles)
+  } = useContentFeedbackUi({
+    t,
+    contentType: 'article',
+    knownItems: allArticles,
+    shareCopiedMessage: t('articles.actions.share_copied'),
+    shareSentMessage: t('articles.actions.share_sent'),
+    shareFailedMessage: t('articles.actions.share_failed'),
+    reportSubmittedMessage: t('articles.actions.report_submitted'),
+  })
 
   return (
     <MainLayout themeTone="articles">
@@ -73,11 +79,15 @@ export default function ArticleDetailPage() {
           />
         ) : null}
       </div>
-      <ArticleReportModal
-        isOpen={Boolean(reportModalArticle)}
-        article={reportModalArticle}
-        t={t}
-        onClose={() => setReportModalArticle(null)}
+      <ContentReportModal
+        isOpen={Boolean(reportModalItem)}
+        item={reportModalItem}
+        itemTitle={reportModalItem?.title ?? t('articles.all.no_title')}
+        title={t('articles.actions.report_title')}
+        description={t('articles.actions.report_description')}
+        cancelLabel={t('articles.actions.report_cancel')}
+        confirmLabel={t('articles.actions.report_confirm')}
+        onClose={() => setReportModalItem(null)}
         onConfirm={handleReportConfirm}
       />
       <AppToast message={toastMessage} isVisible={Boolean(toastMessage)} onClose={() => setToastMessage('')} />

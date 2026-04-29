@@ -19,12 +19,14 @@ class ShowPoemController extends Controller
 
     public function __invoke(Request $request, string $slug): JsonResponse
     {
+        $authUserId = auth('sanctum')->id();
+
         $poem = $this->showPoemAction->execute(
             slug: $slug,
-            authUserId: $request->user()?->id,
+            authUserId: $authUserId,
         );
 
-        if ($poem->status === PoemStatus::Published && $poem->is_public && $poem->user_id !== $request->user()?->id) {
+        if ($poem->status === PoemStatus::Published && $poem->is_public && $poem->user_id !== $authUserId) {
             $poem->increment('views_count');
         }
 
