@@ -14,7 +14,7 @@ function eventAuthor(): User
     ]);
 }
 
-function poetrySlamCategory(): EventCategory
+function eventPoetrySlamCategory(): EventCategory
 {
     $category = EventCategory::query()->create([
         'slug' => 'poetry-slam',
@@ -65,7 +65,7 @@ it('creates a poetry slam for a poetry slam event', function () {
     $user = eventAuthor();
     Sanctum::actingAs($user);
 
-    $category = poetrySlamCategory();
+    $category = eventPoetrySlamCategory();
 
     $event = poetrySlamEvent($user, $category, [
         'title' => 'Poetry Slam Lecco',
@@ -133,7 +133,7 @@ it('rejects duplicate poetry slam creation for the same event', function () {
     $user = eventAuthor();
     Sanctum::actingAs($user);
 
-    $category = poetrySlamCategory();
+    $category = eventPoetrySlamCategory();
 
     $event = poetrySlamEvent($user, $category, [
         'title' => 'Poetry Slam Milano',
@@ -167,7 +167,7 @@ it('shows a poetry slam for an event', function () {
     $user = eventAuthor();
     Sanctum::actingAs($user);
 
-    $category = poetrySlamCategory();
+    $category = eventPoetrySlamCategory();
 
     $event = poetrySlamEvent($user, $category, [
         'title' => 'Poetry Slam Torino',
@@ -199,7 +199,7 @@ it('returns not found when event has no poetry slam', function () {
     $user = eventAuthor();
     Sanctum::actingAs($user);
 
-    $category = poetrySlamCategory();
+    $category = eventPoetrySlamCategory();
 
     $event = poetrySlamEvent($user, $category, [
         'title' => 'Poetry Slam Roma',
