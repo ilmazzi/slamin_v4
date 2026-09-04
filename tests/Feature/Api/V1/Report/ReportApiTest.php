@@ -2,6 +2,7 @@
 
 use Domain\Article\Models\Article;
 use Domain\Comment\Models\Comment;
+use Domain\Media\Models\MediaItem;
 use Domain\Notification\Models\Notification;
 use Domain\Poetry\Models\Poem;
 use Domain\Report\Models\Report;
@@ -133,6 +134,70 @@ it('allows reporting a comment on public content', function () {
         ->assertOk()
         ->assertJsonPath('data.report.reportable.type', 'comment')
         ->assertJsonPath('data.report.reportable.content', 'Bad comment');
+});
+
+it('allows reporting a comment on public media', function () {
+    $owner = reportUser();
+    $commentAuthor = reportUser();
+    $reporter = reportUser();
+    Sanctum::actingAs($reporter);
+
+    $media = MediaItem::query()->create([
+        'user_id' => $owner->id,
+        'type' => 'video',
+        'title' => 'Reportable media',
+        'visibility' => 'public',
+        'status' => 'ready',
+        'peertube_video_id' => 'report-media-1',
+        'peertube_uuid' => 'report-media-1',
+        'uploaded_at' => now(),
+        'published_at' => now(),
+    ]);
+
+    $comment = Comment::query()->create([
+        'user_id' => $commentAuthor->id,
+        'commentable_type' => $media->getMorphClass(),
+        'commentable_id' => $media->id,
+        'content' => 'Bad media comment',
+    ]);
+
+    $response = $this->postJson("/api/v1/comments/{$comment->id}/reports", [
+        'reason' => 'harassment',
+    ]);
+
+    $response
+        ->assertOk()
+        ->assertJsonPath('data.report.reportable.type', 'comment')
+        ->assertJsonPath('data.report.reportable.content', 'Bad media comment');
+});
+
+it('allows reporting a public media item', function () {
+    $owner = reportUser();
+    $reporter = reportUser();
+    Sanctum::actingAs($reporter);
+
+    $media = MediaItem::query()->create([
+        'user_id' => $owner->id,
+        'type' => 'video',
+        'title' => 'Public media',
+        'visibility' => 'public',
+        'status' => 'ready',
+        'peertube_video_id' => 'report-media-2',
+        'peertube_uuid' => 'report-media-2',
+        'uploaded_at' => now(),
+        'published_at' => now(),
+    ]);
+
+    $response = $this->postJson("/api/v1/media/{$media->id}/reports", [
+        'reason' => 'spam',
+        'details' => 'Suspicious media',
+    ]);
+
+    $response
+        ->assertOk()
+        ->assertJsonPath('data.report.reportable.type', 'media')
+        ->assertJsonPath('data.report.reportable.id', $media->id)
+        ->assertJsonPath('data.report.reason', 'spam');
 });
 
 it('lists and updates reports for moderators', function () {

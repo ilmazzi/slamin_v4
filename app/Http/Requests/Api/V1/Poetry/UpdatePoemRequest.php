@@ -8,6 +8,29 @@ use Illuminate\Validation\Rule;
 
 class UpdatePoemRequest extends FormRequest
 {
+    protected function prepareForValidation(): void
+    {
+        foreach (['remove_image', 'is_public'] as $field) {
+            if (! $this->has($field)) {
+                continue;
+            }
+
+            $value = $this->input($field);
+
+            if (! is_string($value)) {
+                continue;
+            }
+
+            $normalized = strtolower(trim($value));
+
+            if (in_array($normalized, ['true', '1', 'yes', 'on'], true)) {
+                $this->merge([$field => true]);
+            } elseif (in_array($normalized, ['false', '0', 'no', 'off', ''], true)) {
+                $this->merge([$field => false]);
+            }
+        }
+    }
+
     public function authorize(): bool
     {
         return true;

@@ -1,0 +1,620 @@
+/* Variables */
+
+:root {
+  /* Global color system */
+  --color-black: #000000;
+  --color-white: #ffffff;
+  --color-red: #e30613;
+  --color-event: #84dab4;
+  --color-gigs: #fdae5f;
+  --color-poems: #a553dd;
+  --color-articles: #6574de;
+  --color-forum: #f5e6be;
+  --color-media: #000000;
+  --color-text: var(--color-black);
+  --color-text-muted: rgb(0 0 0 / 0.4);
+  --color-surface: var(--color-white);
+  --color-border: #e5e4e7;
+  --color-brand: var(--color-red);
+  --color-on-brand: var(--color-white);
+  --color-header-bg: var(--color-black);
+  --color-header-fg: var(--color-white);
+  --color-header-accent: var(--color-brand);
+  --color-header-border: var(--color-white);
+  --color-footer-bg: var(--color-white);
+  --color-footer-fg: var(--color-black);
+  --color-footer-accent: var(--color-brand);
+
+  /* Typography */
+  --font-family-sans: 'Switzer', system-ui, -apple-system, sans-serif;
+
+  /* Radius */
+  --radius-pill-sm: 30px;
+  --radius-pill-md: 40px;
+  --radius-pill-lg: 100px;
+
+  --header-desktop-height: 210px;
+  --header-desktop-padding-x: clamp(24px, 5.73vw, 110px);
+  --header-desktop-padding-y: clamp(14px, 2.2vw, 36px);
+
+  --header-mobile-height: 96px;
+  --header-mobile-padding-x: 24px;
+  --header-mobile-padding-y: 12px;
+
+  --header-logo-width-desktop: 184px;
+  --header-logo-height-desktop: 93.55px;
+  --header-logo-width-mobile: 88px;
+  --header-logo-height-mobile: 45px;
+
+  --header-actions-gap-desktop: 32px;
+  --header-actions-gap-mobile: 18px;
+
+  --header-language-width: 106px;
+  --header-language-height: 60px;
+  --header-language-padding-x: 23px;
+  --header-language-padding-y: 10px;
+  --header-language-gap: 15px;
+  --header-language-radius: 40px;
+  --header-language-font-size: 24px;
+  --header-language-line-height: 31px;
+
+  --header-button-width: 146px;
+  --header-button-height: 57px;
+  --header-button-radius: 30px;
+  --header-button-gap: 10px;
+  --header-button-padding-y: 13px;
+  --header-login-padding-x: 37px;
+  --header-register-padding-x: 20px;
+  --header-login-border-width: 2px;
+
+  --header-login-font-size: 22px;
+  --header-login-line-height: 31px;
+
+  --header-chevron-width: 18px;
+  --header-chevron-height: 11px;
+
+  --header-user-pill-height: 57px;
+  --header-user-pill-radius: 30px;
+  --footer-desktop-padding-x: 110px;
+  --footer-desktop-padding-top: 130px;
+  --footer-desktop-padding-bottom: 30px;
+  --footer-desktop-gap: 70px;
+  --footer-mobile-padding: 30px;
+  --footer-mobile-gap: 20px;
+
+   /* Pill - base tokens */
+   --pill-radius: 40px;
+   --pill-bg-dark: #000000;
+   --pill-text-dark: #ffffff;
+   --pill-icon-color-dark: #ffffff;
+   /* Pill desktop (create button) */
+   --pill-create-width-desktop: 369px;
+   --pill-create-height-desktop: 78px;
+   --pill-create-padding-top-desktop: 19px;
+   --pill-create-padding-right-desktop: 25px;
+   --pill-create-padding-bottom-desktop: 19px;
+   --pill-create-padding-left-desktop: 35px;
+   --pill-create-gap-desktop: 20px;
+   --pill-create-label-font-size-desktop: 30px;
+   --pill-create-label-line-height-desktop: 40px;
+   --pill-create-label-font-weight: 300;
+   --pill-create-icon-size-desktop: 35px;
+   --pill-create-icon-stroke-desktop: 5px;
+   /* Pill mobile (create button) */
+   --pill-create-width-mobile: 242px;
+   --pill-create-height-mobile: 43px;
+   --pill-create-padding-top-mobile: 1px;
+   --pill-create-padding-right-mobile: 17px;
+   --pill-create-padding-bottom-mobile: 0px;
+   --pill-create-padding-left-mobile: 23px;
+   --pill-create-gap-mobile: 20px;
+   --pill-create-label-font-size-mobile: 25px;
+   --pill-create-label-line-height-mobile: 33px;
+   --pill-create-icon-size-mobile: 23.76px;
+   --pill-create-icon-stroke-mobile: 3px;
+}
+
+html,
+body,
+#root {
+  min-height: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--color-surface);
+  color: var(--color-text);
+  font-family: var(--font-family-sans);
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+img,
+picture,
+svg,
+video,
+canvas {
+  display: block;
+  max-width: 100%;
+}
+
+button,
+input,
+textarea,
+select {
+  font: inherit;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.textDefault {
+  color: #000000;
+}
+
+.textBlack {
+  color: #000000;
+}
+
+.textWhite {
+  color: #ffffff;
+}
+
+.textMuted {
+  color: rgb(0 0 0 / 0.4);
+}
+
+.textBrand {
+  color: #e30613;
+}
+
+.textRed {
+  color: #e30613;
+}
+
+.textEvent {
+  color: #84dab4;
+}
+
+.textGigs {
+  color: #fdae5f;
+}
+
+.textPoems {
+  color: #a553dd;
+}
+
+.textArticles {
+  color: #6574de;
+}
+
+.textForum {
+  color: #f5e6be;
+}
+
+.textOnBrand {
+  color: #ffffff;
+}
+
+.textHeader {
+  color: #ffffff;
+}
+
+.textFooter {
+  color: #000000;
+}
+
+.bgSurface {
+  background: #ffffff;
+}
+
+.bgWhite {
+  background: #ffffff;
+}
+
+.bgBlack {
+  background: #000000;
+}
+
+.bgBrand {
+  background: #e30613;
+}
+
+.bgRed {
+  background: #e30613;
+}
+
+.bgEvent {
+  background: #84dab4;
+}
+
+.bgGigs {
+  background: #fdae5f;
+}
+
+.bgPoems {
+  background: #a553dd;
+}
+
+.bgArticles {
+  background: #6574de;
+}
+
+.bgForum {
+  background: #f5e6be;
+}
+
+.bgHeader {
+  background: #000000;
+}
+
+.bgFooter {
+  background: #ffffff;
+}
+
+.borderDefault {
+  border-color: #e5e4e7;
+}
+
+.borderBrand {
+  border-color: #e30613;
+}
+
+.borderRed {
+  border-color: #e30613;
+}
+
+.borderEvent {
+  border-color: #84dab4;
+}
+
+.borderGigs {
+  border-color: #fdae5f;
+}
+
+.borderPoems {
+  border-color: #a553dd;
+}
+
+.borderArticles {
+  border-color: #6574de;
+}
+
+.borderForum {
+  border-color: #f5e6be;
+}
+
+.typeDisplay {
+  font-family: 'Switzer', system-ui, -apple-system, sans-serif;
+  font-size: 220px;
+  font-weight: 800;
+  font-style: italic;
+  line-height: 1;
+  letter-spacing: 0;
+}
+
+.typeH1 {
+  font-family: 'Switzer', system-ui, -apple-system, sans-serif;
+  font-size: 160px;
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: -0.00625em;
+}
+
+.typeH2 {
+  font-family: 'Switzer', system-ui, -apple-system, sans-serif;
+  font-size: 85px;
+  font-weight: 300;
+  line-height: 95px;
+  letter-spacing: -0.035294118em;
+}
+
+.typeH3 {
+  font-family: 'Switzer', system-ui, -apple-system, sans-serif;
+  font-size: 64px;
+  font-weight: 700;
+  line-height: normal;
+  letter-spacing: 0;
+}
+
+.typeBody {
+  font-family: 'Switzer', system-ui, -apple-system, sans-serif;
+  font-size: 40px;
+  font-weight: 300;
+  line-height: normal;
+  letter-spacing: 0;
+}
+
+.typeBodyStrong {
+  font-family: 'Switzer', system-ui, -apple-system, sans-serif;
+  font-size: 40px;
+  font-weight: 700;
+  line-height: normal;
+  letter-spacing: 0;
+}
+
+.typeBodySmall {
+  font-family: 'Switzer', system-ui, -apple-system, sans-serif;
+  font-size: 22px;
+  font-weight: 300;
+  line-height: 31px;
+  letter-spacing: -0.136363636em;
+}
+
+.typeUi {
+  font-family: 'Switzer', system-ui, -apple-system, sans-serif;
+  font-size: 22px;
+  font-weight: 300;
+  line-height: 31px;
+  letter-spacing: -0.03em;
+}
+
+.typeUiSection {
+  font-family: 'Switzer', system-ui, -apple-system, sans-serif;
+  font-size: 24px;
+  font-weight: 300;
+  line-height: 31px;
+  letter-spacing: 0;
+}
+
+.typeUiSmall {
+  font-family: 'Switzer', system-ui, -apple-system, sans-serif;
+  font-size: 18px;
+  font-weight: 300;
+  line-height: 31px;
+  letter-spacing: -0.166666667em;
+}
+
+.typeUiSmallStrong {
+  font-family: 'Switzer', system-ui, -apple-system, sans-serif;
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 31px;
+  letter-spacing: -0.166666667em;
+}
+
+.typeButton {
+  font-family: 'Switzer', system-ui, -apple-system, sans-serif;
+  font-size: 20px;
+  font-weight: 300;
+  line-height: 31px;
+  letter-spacing: 0;
+}
+
+.typePlaceholder {
+  font-family: 'Switzer', system-ui, -apple-system, sans-serif;
+  font-size: 30px;
+  font-weight: 300;
+  line-height: normal;
+  letter-spacing: 0;
+  color: rgb(0 0 0 / 0.4);
+}
+
+.typeHeaderItalic {
+  font-family: 'Switzer';
+font-style: italic;
+font-weight: 800;
+font-size: 85px;
+line-height: 95px;
+/* identical to box height, or 112% */
+letter-spacing: -0.03em;
+}
+/* Fonts */
+@font-face {
+  font-family: 'Switzer';
+  src: url('./assets/fonts/Switzer-Thin.otf') format('opentype'), local('Switzer-Thin'),
+    local('Switzer Thin');
+  font-weight: 100;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Switzer';
+  src: url('./assets/fonts/Switzer-ThinItalic.otf') format('opentype'),
+    local('Switzer-ThinItalic'), local('Switzer Thin Italic');
+  font-weight: 100;
+  font-style: italic;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Switzer';
+  src: url('./assets/fonts/Switzer-Extralight.otf') format('opentype'),
+    local('Switzer-Extralight'), local('Switzer Extralight');
+  font-weight: 200;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Switzer';
+  src: url('./assets/fonts/Switzer-ExtralightItalic.otf') format('opentype'),
+    local('Switzer-ExtralightItalic'), local('Switzer Extralight Italic');
+  font-weight: 200;
+  font-style: italic;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Switzer';
+  src: url('./assets/fonts/Switzer-Light.otf') format('opentype'), local('Switzer-Light'),
+    local('Switzer Light');
+  font-weight: 300;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Switzer';
+  src: url('./assets/fonts/Switzer-LightItalic.otf') format('opentype'),
+    local('Switzer-LightItalic'), local('Switzer Light Italic');
+  font-weight: 300;
+  font-style: italic;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Switzer';
+  src: url('./assets/fonts/Switzer-Regular.otf') format('opentype'), local('Switzer-Regular'),
+    local('Switzer Regular');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Switzer';
+  src: url('./assets/fonts/Switzer-Italic.otf') format('opentype'), local('Switzer-Italic'),
+    local('Switzer Italic');
+  font-weight: 400;
+  font-style: italic;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Switzer';
+  src: url('./assets/fonts/Switzer-Medium.otf') format('opentype'), local('Switzer-Medium'),
+    local('Switzer Medium');
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Switzer';
+  src: url('./assets/fonts/Switzer-MediumItalic.otf') format('opentype'),
+    local('Switzer-MediumItalic'), local('Switzer Medium Italic');
+  font-weight: 500;
+  font-style: italic;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Switzer';
+  src: url('./assets/fonts/Switzer-Semibold.otf') format('opentype'), local('Switzer-Semibold'),
+    local('Switzer Semibold');
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Switzer';
+  src: url('./assets/fonts/Switzer-Bold.otf') format('opentype'), local('Switzer-Bold'),
+    local('Switzer Bold');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Switzer';
+  src: url('./assets/fonts/Switzer-SemiboldItalic.otf') format('opentype'),
+    local('Switzer-SemiboldItalic'), local('Switzer Semibold Italic');
+  font-weight: 600;
+  font-style: italic;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Switzer';
+  src: url('./assets/fonts/Switzer-BoldItalic.otf') format('opentype'),
+    local('Switzer-BoldItalic'), local('Switzer Bold Italic');
+  font-weight: 700;
+  font-style: italic;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Switzer';
+  src: url('./assets/fonts/Switzer-Extrabold.otf') format('opentype'),
+    local('Switzer-Extrabold'), local('Switzer Extrabold');
+  font-weight: 800;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Switzer';
+  src: url('./assets/fonts/Switzer-ExtraboldItalic.otf') format('opentype'),
+    local('Switzer-ExtraboldItalic'), local('Switzer Extrabold Italic');
+  font-weight: 800;
+  font-style: italic;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Switzer';
+  src: url('./assets/fonts/Switzer-Black.otf') format('opentype'), local('Switzer-Black'),
+    local('Switzer Black');
+  font-weight: 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Switzer';
+  src: url('./assets/fonts/Switzer-BlackItalic.otf') format('opentype'),
+    local('Switzer-BlackItalic'), local('Switzer Black Italic');
+  font-weight: 900;
+  font-style: italic;
+  font-display: swap;
+}
+
+
+/*Badges*/
+
+.badge{
+    box-sizing: border-box;
+
+    /* Auto layout */
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    padding: 10px 30px;
+
+    width: 168px;
+    height: 52px;
+
+    background: rgba(255, 255, 255, 0.2);
+    border: 1px solid #FFFFFF;
+    border-radius: 50px;
+
+    /* Inside auto layout */
+    flex: none;
+    order: 1;
+    flex-grow: 0;
+
+
+}/* ruolo 2 */
+
+@keyframes commentsAnchorPulse {
+  0% {
+    box-shadow: 0 0 0 0 rgb(101 116 222 / 0.38);
+    transform: translateY(0);
+  }
+  45% {
+    box-shadow: 0 0 0 10px rgb(101 116 222 / 0.12);
+    transform: translateY(-1px);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgb(101 116 222 / 0);
+    transform: translateY(0);
+  }
+}
+
+#comments[data-comments-highlight='1'] {
+  border-radius: 14px;
+  animation: commentsAnchorPulse 1.15s ease;
+}

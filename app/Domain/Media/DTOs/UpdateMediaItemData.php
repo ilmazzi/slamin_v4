@@ -9,8 +9,11 @@ class UpdateMediaItemData
 {
     public function __construct(
         public readonly ?string $title,
+        public readonly bool $titleProvided,
         public readonly ?string $description,
+        public readonly bool $descriptionProvided,
         public readonly ?MediaVisibility $visibility,
+        public readonly bool $visibilityProvided,
     ) {
     }
 
@@ -18,10 +21,13 @@ class UpdateMediaItemData
     {
         return new self(
             title: $request->has('title') ? $request->validated('title') : null,
+            titleProvided: $request->has('title'),
             description: $request->has('description') ? $request->validated('description') : null,
+            descriptionProvided: $request->has('description'),
             visibility: $request->has('visibility')
                 ? MediaVisibility::from($request->validated('visibility'))
                 : null,
+            visibilityProvided: $request->has('visibility'),
         );
     }
 }

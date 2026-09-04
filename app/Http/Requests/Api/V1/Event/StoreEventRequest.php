@@ -63,6 +63,7 @@ class StoreEventRequest extends FormRequest
             'public_invite_enabled',
             'audience_capacity_enabled',
             'is_public',
+            'remove_cover_image',
         ];
 
         foreach ($booleanFields as $field) {
@@ -270,7 +271,12 @@ class StoreEventRequest extends FormRequest
                 $validator->errors()->add('audience_capacity', __('event.validation.audience_capacity_required'));
             }
 
-            foreach ($this->input('participant_invites', []) as $index => $invite) {
+            $participantInvites = $this->input('participant_invites', []);
+            if (! is_array($participantInvites)) {
+                $participantInvites = [];
+            }
+
+            foreach ($participantInvites as $index => $invite) {
                 $inviteType = $invite['invite_type'] ?? null;
 
                 if ($inviteType === 'internal' && empty($invite['user_id'])) {
@@ -298,7 +304,12 @@ class StoreEventRequest extends FormRequest
             }
 
             if ($this->filled('group_ids')) {
-                $invalidGroupIds = collect($this->input('group_ids', []))
+                $groupIds = $this->input('group_ids', []);
+                if (! is_array($groupIds)) {
+                    $groupIds = [];
+                }
+
+                $invalidGroupIds = collect($groupIds)
                     ->filter(function ($groupId): bool {
                         return ! GroupMember::query()
                             ->where('group_id', $groupId)

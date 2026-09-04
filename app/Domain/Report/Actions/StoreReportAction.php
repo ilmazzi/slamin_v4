@@ -5,6 +5,9 @@ namespace Domain\Report\Actions;
 use Domain\Article\Enums\ArticleStatus;
 use Domain\Article\Models\Article;
 use Domain\Comment\Models\Comment;
+use Domain\Media\Enums\MediaStatus;
+use Domain\Media\Enums\MediaVisibility;
+use Domain\Media\Models\MediaItem;
 use Domain\Notification\Actions\CreateNotificationAction;
 use Domain\Poetry\Enums\PoemStatus;
 use Domain\Poetry\Models\Poem;
@@ -68,6 +71,7 @@ class StoreReportAction
             $reportable instanceof Poem => 'poem',
             $reportable instanceof Article => 'article',
             $reportable instanceof Comment => 'comment',
+            $reportable instanceof MediaItem => 'media',
             default => 'content',
         };
 
@@ -139,6 +143,16 @@ class StoreReportAction
             }
 
             if ($commentable instanceof Article && $commentable->status === ArticleStatus::Published && $commentable->is_public === true) {
+                return;
+            }
+
+            if ($commentable instanceof MediaItem && $commentable->status === MediaStatus::Ready && $commentable->visibility === MediaVisibility::Public) {
+                return;
+            }
+        }
+
+        if ($reportable instanceof MediaItem) {
+            if ($reportable->status === MediaStatus::Ready && $reportable->visibility === MediaVisibility::Public) {
                 return;
             }
         }

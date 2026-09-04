@@ -4,6 +4,7 @@ namespace App\Http\Resources\Api\V1\Report;
 
 use Domain\Article\Models\Article;
 use Domain\Comment\Models\Comment;
+use Domain\Media\Models\MediaItem;
 use Domain\Poetry\Models\Poem;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
@@ -62,6 +63,12 @@ class ReportResource extends JsonResource
                 'id' => $reportable->id,
                 'content' => $reportable->content,
                 'parent_id' => $reportable->parent_id,
+            ],
+            $reportable instanceof MediaItem => [
+                'type' => 'media',
+                'id' => $reportable->id,
+                'title' => $reportable->title,
+                'status' => $reportable->status?->value,
             ],
             default => null,
         };

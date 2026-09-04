@@ -479,3 +479,25 @@ it('prevents outsiders from reading a group thread', function () {
     $this->getJson("/api/v1/chat/threads/{$threadId}")
         ->assertForbidden();
 });
+
+it('does not list group attached threads for users without active group membership', function () {
+    $owner = chatPoetOrganizer();
+    $outsider = User::factory()->create();
+    $group = createChatGroupWithOwner($owner);
+
+    Sanctum::actingAs($owner);
+    $this->postJson("/api/v1/groups/{$group->slug}/chat-thread")->assertCreated();
+
+    $thread = ChatThread::query()->where('group_id', $group->id)->firstOrFail();
+    $thread->memberRecords()->firstOrCreate([
+        'user_id' => $outsider->id,
+    ], [
+        'joined_at' => now(),
+    ]);
+
+    Sanctum::actingAs($outsider);
+
+    $this->getJson('/api/v1/chat/threads')
+        ->assertOk()
+        ->assertJsonCount(0, 'data.threads');
+});

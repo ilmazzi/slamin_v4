@@ -1,0 +1,63 @@
+.mediaPage {
+  max-width: 1160px;
+  margin: 0 auto;
+  padding: 0 20px 56px;
+}
+
+.listSection {
+  margin-top: 20px;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 16px;
+}
+
+.card {
+  border: 1px solid #ebebeb;
+  border-radius: 14px;
+  overflow: hidden;
+  background: #fff;
+}
+
+.coverWrap {
+  display: block;
+  aspect-ratio: 16 / 9;
+  background: #f4f4f4;
+}
+
+.cover {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.coverPlaceholder {
+  width: 100%;
+  height: 100%;
+}
+
+.cardBody {
+  padding: 12px;
+}
+
+.cardTitle {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.cardMeta {
+  margin: 8px 0 12px;
+  color: #666;
+  font-size: 0.9rem;
+}
+
+.pager {
+  margin-top: 16px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+}

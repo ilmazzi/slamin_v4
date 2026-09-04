@@ -21,7 +21,7 @@ class ListGigNegotiationsController extends Controller
     {
         abort_unless($this->canAccess($request->user()->id, $gig), 403);
 
-        $negotiations = $this->action->execute($gig);
+        $negotiations = $this->action->execute($gig, (int) $request->user()->id);
 
         return ApiResponse::success([
             'negotiations' => $negotiations->map(fn (GigNegotiation $negotiation): array => [
@@ -46,6 +46,6 @@ class ListGigNegotiationsController extends Controller
             return true;
         }
 
-        return $gig->applications()->where('user_id', $userId)->exists();
+        return $gig->negotiations()->where('translator_user_id', $userId)->exists();
     }
 }

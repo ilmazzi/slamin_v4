@@ -19,6 +19,10 @@ class ListFeaturedArticlesQuery
             ->where('is_featured', true)
             ->orderBy('featured_rank');
 
-            return $query->paginate($data->perPage);
+        if ($data->articleCategoryId) {
+            $query->where('article_category_id', $data->articleCategoryId);
+        }
+
+        return $query->paginate($data->perPage);
     }
 }

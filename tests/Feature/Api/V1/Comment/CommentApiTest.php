@@ -2,6 +2,7 @@
 
 use Domain\Article\Models\Article;
 use Domain\Comment\Models\Comment;
+use Domain\Media\Models\MediaItem;
 use Domain\Notification\Models\Notification;
 use Domain\Poetry\Models\Poem;
 use Domain\User\Models\User;
@@ -202,4 +203,109 @@ it('lists root comments with replies for published public content', function () 
         ->assertJsonPath('data.0.content', 'Root comment')
         ->assertJsonPath('data.0.replies_count', 1)
         ->assertJsonPath('data.0.replies.0.content', 'Reply comment');
+});
+
+it('prevents storing a comment on non-public content', function () {
+    $author = commentUser();
+    $commenter = commentUser();
+    Sanctum::actingAs($commenter);
+
+    $privatePoem = Poem::query()->create([
+        'user_id' => $author->id,
+        'title' => 'Private poem',
+        'slug' => 'private-poem-comment-test',
+        'content' => 'Body',
+        'language' => 'it',
+        'status' => 'draft',
+        'is_public' => false,
+        'published_at' => null,
+    ]);
+
+    $this->postJson("/api/v1/poems/{$privatePoem->id}/comments", [
+        'content' => 'Should fail',
+    ])->assertNotFound();
+});
+
+it('prevents replying with a parent from another content item', function () {
+    $author = commentUser();
+    $commenter = commentUser();
+    Sanctum::actingAs($commenter);
+
+    $firstArticle = Article::query()->create([
+        'user_id' => $author->id,
+        'title' => 'First article',
+        'slug' => 'first-article-comment-parent',
+        'content' => 'Body',
+        'language' => 'it',
+        'status' => 'published',
+        'is_public' => true,
+        'published_at' => now(),
+    ]);
+
+    $secondArticle = Article::query()->create([
+        'user_id' => $author->id,
+        'title' => 'Second article',
+        'slug' => 'second-article-comment-parent',
+        'content' => 'Body',
+        'language' => 'it',
+        'status' => 'published',
+        'is_public' => true,
+        'published_at' => now(),
+    ]);
+
+    $parentOnFirst = Comment::query()->create([
+        'user_id' => $author->id,
+        'commentable_type' => $firstArticle->getMorphClass(),
+        'commentable_id' => $firstArticle->id,
+        'content' => 'Parent on first article',
+    ]);
+
+    $this->postJson("/api/v1/articles/{$secondArticle->id}/comments", [
+        'content' => 'Invalid reply',
+        'parent_id' => $parentOnFirst->id,
+    ])
+        ->assertUnprocessable()
+        ->assertJsonPath('errors.fields.parent_id.0', __('comment.errors.parent_mismatch'));
+});
+
+it('lists media comments only for ready public media', function () {
+    $owner = commentUser();
+
+    $publicMedia = MediaItem::query()->create([
+        'user_id' => $owner->id,
+        'type' => 'video',
+        'title' => 'Public media for comments',
+        'visibility' => 'public',
+        'status' => 'ready',
+        'peertube_video_id' => 'comment-media-1',
+        'peertube_uuid' => 'comment-media-1',
+        'uploaded_at' => now(),
+        'published_at' => now(),
+    ]);
+
+    $privateMedia = MediaItem::query()->create([
+        'user_id' => $owner->id,
+        'type' => 'video',
+        'title' => 'Private media for comments',
+        'visibility' => 'private',
+        'status' => 'ready',
+        'peertube_video_id' => 'comment-media-2',
+        'peertube_uuid' => 'comment-media-2',
+        'uploaded_at' => now(),
+    ]);
+
+    Comment::query()->create([
+        'user_id' => commentUser()->id,
+        'commentable_type' => $publicMedia->getMorphClass(),
+        'commentable_id' => $publicMedia->id,
+        'content' => 'Public media comment',
+    ]);
+
+    $this->getJson("/api/v1/media/{$publicMedia->id}/comments")
+        ->assertOk()
+        ->assertJsonCount(1, 'data')
+        ->assertJsonPath('data.0.content', 'Public media comment');
+
+    $this->getJson("/api/v1/media/{$privateMedia->id}/comments")
+        ->assertNotFound();
 });

@@ -530,6 +530,34 @@ it('lists and shows only ready public media', function () {
         ->assertJsonPath('data.media.title', 'Public media');
 });
 
+it('allows media owner to clear description with null on update', function () {
+    $owner = mediaPoetOrganizer();
+    Sanctum::actingAs($owner);
+
+    $media = MediaItem::query()->create([
+        'user_id' => $owner->id,
+        'type' => 'photo',
+        'title' => 'Media with description',
+        'description' => 'Da rimuovere',
+        'visibility' => 'private',
+        'status' => 'ready',
+        'file_path' => 'media/photos/desc.jpg',
+        'file_url' => '/storage/media/photos/desc.jpg',
+        'uploaded_at' => now(),
+    ]);
+
+    $this->patchJson("/api/v1/media/{$media->id}", [
+        'description' => null,
+    ])
+        ->assertOk()
+        ->assertJsonPath('data.media.description', null);
+
+    $this->assertDatabaseHas('media_items', [
+        'id' => $media->id,
+        'description' => null,
+    ]);
+});
+
 it('allows liking and commenting a public media item', function () {
     $owner = mediaPoetOrganizer();
     $viewer = mediaPoetOrganizer();

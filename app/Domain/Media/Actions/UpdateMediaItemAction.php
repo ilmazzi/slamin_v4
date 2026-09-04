@@ -12,20 +12,22 @@ class UpdateMediaItemAction
     {
         $updates = [];
 
-        if ($data->title !== null) {
+        if ($data->titleProvided) {
             $updates['title'] = $data->title;
         }
 
-        if ($data->description !== null) {
+        if ($data->descriptionProvided) {
             $updates['description'] = $data->description;
         }
 
-        if ($data->visibility !== null) {
+        if ($data->visibilityProvided && $data->visibility !== null) {
             $updates['visibility'] = $data->visibility;
             $updates['published_at'] = $data->visibility === MediaVisibility::Public ? now() : null;
         }
 
-        $media->update($updates);
+        if ($updates !== []) {
+            $media->update($updates);
+        }
 
         audit()->log(
             event: 'media.updated',

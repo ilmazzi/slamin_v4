@@ -348,6 +348,60 @@ it('allows the owner to agree a negotiation and rejects competing applications',
     ]);
 });
 
+it('does not expose other translators negotiations in list endpoint', function () {
+    $owner = translationOwner();
+    $translatorOne = User::factory()->poetOrganizer()->create(['email_verified_at' => now()]);
+    $translatorTwo = User::factory()->poetOrganizer()->create(['email_verified_at' => now()]);
+
+    $category = translationPoemCategory();
+    $type = translationPoemType();
+    $poem = makeTranslationPoem($owner, $category, $type);
+
+    $gig = $poem->gigs()->create([
+        'type' => 'translator',
+        'quantity' => 1,
+        'filled_quantity' => 0,
+        'language' => 'English',
+        'proposed_price' => 50,
+        'currency' => 'EUR',
+        'status' => 'open',
+        'opened_at' => now(),
+        'created_by_user_id' => $owner->id,
+        'updated_by_user_id' => $owner->id,
+    ]);
+
+    $applicationOne = GigApplication::query()->create([
+        'gig_id' => $gig->id,
+        'user_id' => $translatorOne->id,
+        'status' => 'accepted',
+    ]);
+
+    $applicationTwo = GigApplication::query()->create([
+        'gig_id' => $gig->id,
+        'user_id' => $translatorTwo->id,
+        'status' => 'pending',
+    ]);
+
+    GigNegotiation::query()->create([
+        'gig_id' => $gig->id,
+        'gig_application_id' => $applicationOne->id,
+        'owner_user_id' => $owner->id,
+        'translator_user_id' => $translatorOne->id,
+        'status' => 'open',
+        'currency' => 'EUR',
+    ]);
+
+    Sanctum::actingAs($translatorTwo);
+
+    $this->getJson(route('api.v1.gigs.negotiations.index', $gig))
+        ->assertForbidden();
+
+    Sanctum::actingAs($owner);
+    $this->getJson(route('api.v1.gigs.negotiations.index', $gig))
+        ->assertOk()
+        ->assertJsonCount(1, 'data.negotiations');
+});
+
 it('creates a translation job when a negotiation is agreed', function () {
     $owner = translationOwner();
     Sanctum::actingAs($owner);

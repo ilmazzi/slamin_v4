@@ -2,13 +2,10 @@
 
 use App\Http\Middleware\EnsureEmailIsVerified;
 use App\Http\Middleware\EnsureAccountType;
-use App\Http\Middleware\HandleAppearance;
-use App\Http\Middleware\HandleInertiaRequests;
 use App\Http\Middleware\SetLocale;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
-use Illuminate\Http\Middleware\AddLinkHeadersForPreloadedAssets;
 use App\Http\Middleware\EnsureRole;
 use App\Providers\AuthServiceProvider;
 
@@ -34,12 +31,6 @@ return Application::configure(basePath: dirname(__DIR__))
             'account.verified' => EnsureEmailIsVerified::class,
             'account.type' => EnsureAccountType::class,
             'role' => EnsureRole::class,
-        ]);
-        $middleware->web(append: [
-            HandleAppearance::class,
-            HandleInertiaRequests::class,
-            AddLinkHeadersForPreloadedAssets::class,
-            SetLocale::class,
         ]);
 
         $middleware->api(append: [

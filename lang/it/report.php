@@ -16,6 +16,7 @@ return [
         'poem' => 'poesia',
         'article' => 'articolo',
         'comment' => 'commento',
+        'media' => 'media',
         'content' => 'contenuto',
     ],
 ];
