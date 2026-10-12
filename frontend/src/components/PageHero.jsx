@@ -8,17 +8,19 @@ export default function PageHero({
   ctaLabel,
   ctaHref,
   hideCta = false,
+  hideTitle = false,
   showCornerMark = false,
   ctaOnClick,
+  ctaVariant = 'dark',
 }) {
   return (
     <section className={styles.hero}>
-      <div className={styles.topBand}>
-        <h1 className={styles.title}>{title}</h1>
+      <div className={[styles.topBand, hideTitle ? styles.topBandCompact : ''].join(' ')}>
+        {hideTitle ? null : <h1 className={styles.title}>{title}</h1>}
       </div>
 
       <div className={styles.mobileHero}>
-        <h1 className={styles.mobileTitle}>{title}</h1>
+        <h1 className={styles.mobileTitle}>{hideTitle ? null : title}</h1>
         <p className={styles.mobileLead}>
           {leadPrefix}
           <span>{leadEmphasis}</span>
@@ -28,6 +30,7 @@ export default function PageHero({
             label={ctaLabel}
             href={ctaHref}
             onClick={ctaOnClick}
+            variant={ctaVariant}
             className={styles.mobileCtaButton}
           />
         ) : null}
@@ -35,10 +38,17 @@ export default function PageHero({
 
       <div className={styles.bottomSection}>
         <div className={styles.bottomFrame}>
-          <p className={styles.lead}>
-            {leadPrefix}
-            <span>{leadEmphasis}</span>
-          </p>
+          {hideTitle ? (
+            <h1 className={styles.lead}>
+              {leadPrefix}
+              <span>{leadEmphasis}</span>
+            </h1>
+          ) : (
+            <p className={styles.lead}>
+              {leadPrefix}
+              <span>{leadEmphasis}</span>
+            </p>
+          )}
         </div>
         <div className={styles.desktopPolygon} aria-hidden="true" />
       </div>
@@ -49,6 +59,7 @@ export default function PageHero({
             label={ctaLabel}
             href={ctaHref}
             onClick={ctaOnClick}
+            variant={ctaVariant}
             className={styles.ctaButton}
           />
         </div>

@@ -14,15 +14,14 @@ class UpdateMediaSettingsController extends Controller
     public function __construct(
         private readonly UpdateMediaSettingsAction $updateAction,
         private readonly ResolveMediaSettingsAction $resolveAction,
-    ) {
-    }
+    ) {}
 
     public function __invoke(UpdateMediaSettingsRequest $request): JsonResponse
     {
         $this->updateAction->execute($request->validated());
 
         return ApiResponse::success([
-            'settings' => $this->resolveAction->execute(),
+            'settings' => $this->resolveAction->presentForAdmin(),
         ]);
     }
 }

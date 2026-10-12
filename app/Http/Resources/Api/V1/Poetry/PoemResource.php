@@ -2,16 +2,18 @@
 
 namespace App\Http\Resources\Api\V1\Poetry;
 
+use Domain\Poetry\Models\Poem;
+use Illuminate\Filesystem\FilesystemAdapter;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 use Illuminate\Support\Facades\Storage;
 
-/** @mixin \Domain\Poetry\Models\Poem */
+/** @mixin Poem */
 class PoemResource extends JsonResource
 {
     public function toArray(Request $request): array
     {
-        $disk = Storage::disk('public'); /** @var \Illuminate\Filesystem\FilesystemAdapter $disk */
+        $disk = Storage::disk('public'); /** @var FilesystemAdapter $disk */
 
         return [
             'id' => $this->id,
@@ -50,6 +52,7 @@ class PoemResource extends JsonResource
 
             'likes_count' => (int) ($this->likes_count ?? 0),
             'bookmarks_count' => (int) ($this->bookmarks_count ?? 0),
+            'comments_count' => (int) ($this->comments_count ?? 0),
             'views_count' => (int) ($this->views_count ?? 0),
             'is_liked' => (bool) ($this->is_liked ?? false),
             'is_bookmarked' => (bool) ($this->is_bookmarked ?? false),

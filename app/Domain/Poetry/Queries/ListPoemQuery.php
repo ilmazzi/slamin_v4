@@ -13,11 +13,9 @@ class ListPoemQuery
     {
         $query = Poem::query()
             ->with(['user.profile', 'category.translations', 'type.translations'])
-            ->withCount(['likes', 'bookmarks'])
+            ->withCount(['likes', 'bookmarks', 'comments'])
             ->where('status', PoemStatus::Published)
-            ->where('is_public', true)
-            ->orderByDesc('published_at')
-            ->orderByDesc('created_at');
+            ->where('is_public', true);
 
         if ($data->poemCategoryId) {
             $query->where('poem_category_id', $data->poemCategoryId);
@@ -27,12 +25,32 @@ class ListPoemQuery
             $query->where('poem_type_id', $data->poemTypeId);
         }
 
+        if (filled($data->language)) {
+            $query->where('language', $data->language);
+        }
+
+        if (filled($data->search)) {
+            $term = '%'.addcslashes($data->search, '%_\\').'%';
+            $query->where(function ($builder) use ($term): void {
+                $builder
+                    ->where('title', 'like', $term)
+                    ->orWhere('description', 'like', $term)
+                    ->orWhere('content', 'like', $term);
+            });
+        }
+
         if ($authUserId) {
             $query->withExists([
                 'likes as is_liked' => fn ($q) => $q->where('user_id', $authUserId),
                 'bookmarks as is_bookmarked' => fn ($q) => $q->where('user_id', $authUserId),
             ]);
         }
+
+        match ($data->sort) {
+            'oldest' => $query->orderBy('published_at')->orderBy('created_at'),
+            'popular' => $query->orderByDesc('likes_count')->orderByDesc('published_at'),
+            default => $query->orderByDesc('published_at')->orderByDesc('created_at'),
+        };
 
         return $query->paginate($data->perPage);
     }

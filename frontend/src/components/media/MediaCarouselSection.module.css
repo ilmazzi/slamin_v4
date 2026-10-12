@@ -1,0 +1,131 @@
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+  width: 100%;
+  box-sizing: border-box;
+  padding: 8px 0 48px;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding-inline: var(--page-inline-padding);
+}
+
+.title {
+  display: inline-flex;
+  align-items: center;
+  gap: 14px;
+  margin: 0;
+  font-family: 'Switzer', sans-serif;
+  font-size: clamp(28px, 2.6vw, 48px);
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: -0.03em;
+}
+
+.icon {
+  display: inline-flex;
+  width: clamp(28px, 2.4vw, 42px);
+  height: clamp(28px, 2.4vw, 42px);
+  flex: 0 0 auto;
+}
+
+.icon svg {
+  width: 100%;
+  height: 100%;
+}
+
+.videoIcon {
+  color: var(--color-red);
+}
+
+.galleryIcon {
+  color: #f08a3a;
+}
+
+.paginationWrap {
+  flex: 0 0 auto;
+}
+
+.paginationWrap :global(section) {
+  width: auto;
+  padding: 0;
+  justify-content: flex-end;
+}
+
+.slider {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+  padding-inline: clamp(8px, 1vw, 18px);
+}
+
+.arrow {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: #000;
+  cursor: pointer;
+}
+
+.arrow svg {
+  width: 28px;
+  height: 28px;
+}
+
+.arrow:disabled {
+  opacity: 0.2;
+  cursor: default;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  justify-items: center;
+  gap: clamp(16px, 2vw, 36px);
+  min-width: 0;
+}
+
+.state {
+  margin: 0;
+  padding-inline: var(--page-inline-padding);
+  color: var(--color-text-muted);
+}
+
+@media (max-width: 1024px) {
+  .grid {
+    grid-template-columns: 1fr;
+  }
+
+  .arrow {
+    width: 36px;
+    height: 36px;
+  }
+}
+
+@media (max-width: 768px) {
+  .header {
+    flex-direction: column;
+    align-items: flex-start;
+    padding-inline: 24px;
+  }
+
+  .slider {
+    gap: 4px;
+    padding-inline: 8px;
+  }
+
+  .state {
+    padding-inline: 24px;
+  }
+}

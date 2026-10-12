@@ -15,7 +15,10 @@ class ListPoemRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'per_page' => ['nullable', 'integer', 'min:1', 'max:50'],
+            'per_page' => ['nullable', 'integer', 'min:1', 'max:100'],
+            'q' => ['nullable', 'string', 'max:191'],
+            'language' => ['nullable', 'string', 'max:8'],
+            'sort' => ['nullable', 'string', Rule::in(['newest', 'oldest', 'popular'])],
             'poem_category_id' => [
                 'nullable',
                 'integer',

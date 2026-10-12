@@ -2,10 +2,13 @@
 
 namespace Tests\Feature\Api\V1;
 
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
 class I18nTest extends TestCase
 {
+    use RefreshDatabase;
+
     public function test_it_locale_returns_translations_payload(): void
     {
         $response = $this->getJson('/api/v1/i18n/it.json');

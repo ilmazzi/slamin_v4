@@ -23,3 +23,11 @@ export async function createMediaReport(mediaId, payload, { token, signal } = {}
     fallbackMessage: 'Unable to submit media report',
   })
 }
+
+export async function createEventReport(eventId, payload, { token, signal } = {}) {
+  return authApiPost(`/api/v1/events/${encodeURIComponent(eventId)}/reports`, payload, {
+    token,
+    signal,
+    fallbackMessage: 'Unable to submit event report',
+  })
+}

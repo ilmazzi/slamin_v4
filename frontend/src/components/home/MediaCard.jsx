@@ -18,9 +18,26 @@ import {
   mediaViewsMobileIcon,
 } from '../../assets/home/media/index.js'
 import { resolvePublicUrl } from '../../app/api/url.js'
+import SocialActions from '../shared/SocialActions.jsx'
 import styles from './MediaCard.module.css'
 
 const isInternalHref = (href) => typeof href === 'string' && href.startsWith('/') && !href.startsWith('//')
+
+function MediaTarget({ href, className, ariaLabel, children }) {
+  if (isInternalHref(href)) {
+    return (
+      <Link to={href} className={className} aria-label={ariaLabel}>
+        {children}
+      </Link>
+    )
+  }
+
+  return (
+    <a href={href} target="_blank" rel="noreferrer" className={className} aria-label={ariaLabel}>
+      {children}
+    </a>
+  )
+}
 
 function StatPill({ value, desktopIcon, mobileIcon, alt }) {
   return (
@@ -29,6 +46,48 @@ function StatPill({ value, desktopIcon, mobileIcon, alt }) {
       <img src={desktopIcon} alt={alt} className={styles.desktopStatIcon} />
       <img src={mobileIcon} alt={alt} className={styles.mobileStatIcon} />
     </span>
+  )
+}
+
+function MediaSocialFooter({
+  item,
+  views,
+  likes,
+  comments,
+  shareLabel,
+  reportLabel,
+  shareIconSrc,
+  reportIconSrc,
+  className,
+  metricsClassName,
+  metricClassName,
+  metricValueClassName,
+  buttonsClassName,
+  viewIconClassName,
+  likeIconClassName,
+  commentIconClassName,
+}) {
+  return (
+    <SocialActions
+      target={item}
+      contentType="media"
+      apiBasePath="/media"
+      publicBasePath="/media"
+      variant="list"
+      metrics={{ views, likes, comments }}
+      shareLabel={shareLabel}
+      reportLabel={reportLabel}
+      shareIconSrc={shareIconSrc}
+      reportIconSrc={reportIconSrc}
+      className={className}
+      metricsClassName={metricsClassName}
+      metricClassName={metricClassName}
+      metricValueClassName={metricValueClassName}
+      buttonsClassName={buttonsClassName}
+      viewIconClassName={viewIconClassName}
+      likeIconClassName={likeIconClassName}
+      commentIconClassName={commentIconClassName}
+    />
   )
 }
 
@@ -45,6 +104,10 @@ export default function MediaCard({
   comments,
   playAria,
   openAria,
+  shareLabel,
+  reportLabel,
+  item = null,
+  fluid = false,
 }) {
   const normalizedCoverUrl = useMemo(() => {
     if (!coverUrl) return null
@@ -56,119 +119,157 @@ export default function MediaCard({
     return resolvePublicUrl(mediaUrl)
   }, [mediaUrl])
 
-  const canPlay = type === 'video' && Boolean(normalizedMediaUrl)
   const openHref = href || normalizedMediaUrl || '#'
+  const playHref = isInternalHref(href) ? href : normalizedMediaUrl
+  const canPlay = type === 'video' && Boolean(playHref)
+  const hasSocial = Boolean(item?.id)
 
   return (
-    <article className={[styles.card, styles[tone] || ''].join(' ')} data-media-card>
+    <article className={[styles.card, fluid ? styles.fluid : '', styles[tone] || ''].filter(Boolean).join(' ')} data-media-card>
       <div className={styles.preview}>
         <div className={styles.mobileHeader}>
           {canPlay ? (
-            <a
-              href={normalizedMediaUrl}
-              target="_blank"
-              rel="noreferrer"
-              className={styles.playButton}
-              aria-label={playAria}
-            >
+            <MediaTarget href={playHref} className={styles.playButton} ariaLabel={playAria}>
               <img src={mediaPlayMobileIcon} alt="" className={styles.playIcon} aria-hidden="true" />
-            </a>
+            </MediaTarget>
           ) : null}
           <div className={styles.copy}>
-            <h3 className={styles.title}>{title}</h3>
+            <h3 className={styles.title}>
+              {isInternalHref(openHref) ? <Link to={openHref}>{title}</Link> : title}
+            </h3>
             <p className={styles.subtitle}>{subtitle}</p>
           </div>
         </div>
 
-        <div className={styles.previewImage} aria-hidden="true">
-          <img
-            src={normalizedCoverUrl || mediaPreviewDesktop}
-            alt=""
-            className={styles.desktopPreviewAsset}
-            onError={(event) => {
-              event.currentTarget.src = mediaPreviewDesktop
-            }}
-          />
-          <img
-            src={normalizedCoverUrl || mediaPreviewMobile}
-            alt=""
-            className={styles.mobilePreviewAsset}
-            onError={(event) => {
-              event.currentTarget.src = mediaPreviewMobile
-            }}
-          />
+        <div className={styles.previewImage}>
+          {isInternalHref(openHref) ? (
+            <Link to={openHref} className={styles.coverLink} aria-label={openAria}>
+              <img
+                src={normalizedCoverUrl || mediaPreviewDesktop}
+                alt=""
+                className={styles.desktopPreviewAsset}
+                onError={(event) => {
+                  event.currentTarget.src = mediaPreviewDesktop
+                }}
+              />
+              <img
+                src={normalizedCoverUrl || mediaPreviewMobile}
+                alt=""
+                className={styles.mobilePreviewAsset}
+                onError={(event) => {
+                  event.currentTarget.src = mediaPreviewMobile
+                }}
+              />
+            </Link>
+          ) : (
+            <>
+              <img
+                src={normalizedCoverUrl || mediaPreviewDesktop}
+                alt=""
+                className={styles.desktopPreviewAsset}
+                onError={(event) => {
+                  event.currentTarget.src = mediaPreviewDesktop
+                }}
+              />
+              <img
+                src={normalizedCoverUrl || mediaPreviewMobile}
+                alt=""
+                className={styles.mobilePreviewAsset}
+                onError={(event) => {
+                  event.currentTarget.src = mediaPreviewMobile
+                }}
+              />
+            </>
+          )}
           {canPlay ? (
-            <a
-              href={normalizedMediaUrl}
-              target="_blank"
-              rel="noreferrer"
-              className={styles.desktopPlayButton}
-              aria-label={playAria}
-            >
+            <MediaTarget href={playHref} className={styles.desktopPlayButton} ariaLabel={playAria}>
               <img src={mediaPlayDesktopIcon} alt="" className={styles.desktopPlayAsset} aria-hidden="true" />
-            </a>
+            </MediaTarget>
           ) : null}
         </div>
       </div>
 
       <div className={styles.desktopCopy}>
-        <h3 className={styles.title}>{title}</h3>
+        <h3 className={styles.title}>
+          {isInternalHref(openHref) ? <Link to={openHref}>{title}</Link> : title}
+        </h3>
         <p className={styles.subtitle}>{subtitle}</p>
       </div>
 
       <div className={styles.desktopFooter}>
-        <div className={styles.desktopInteractionStrip}>
-          <div className={styles.desktopFooterIcons}>
-            <StatPill
-              value={views}
-              desktopIcon={mediaViewsDesktopIcon}
-              mobileIcon={mediaViewsMobileIcon}
-              alt=""
-            />
-            <StatPill
-              value={likes}
-              desktopIcon={mediaLikeDesktopIcon}
-              mobileIcon={mediaLikeMobileIcon}
-              alt=""
-            />
-            <StatPill
-              value={comments}
-              desktopIcon={mediaCommentsDesktopIcon}
-              mobileIcon={mediaCommentsMobileIcon}
-              alt=""
-            />
-          </div>
-
-          <div className={styles.desktopFooterActions}>
-            {isInternalHref(openHref) ? (
-              <Link to={openHref} className={styles.iconButton} aria-label={openAria}>
-                <img
-                  src={mediaShareDesktopIcon}
-                  alt=""
-                  className={styles.desktopActionIcon}
-                  aria-hidden="true"
-                />
-              </Link>
-            ) : (
-              <a href={openHref} className={styles.iconButton} aria-label={openAria}>
-                <img
-                  src={mediaShareDesktopIcon}
-                  alt=""
-                  className={styles.desktopActionIcon}
-                  aria-hidden="true"
-                />
-              </a>
-            )}
-            <button type="button" className={styles.iconButton} aria-label={openAria} disabled>
-              <img
-                src={mediaReportDesktopIcon}
+        {hasSocial ? (
+          <MediaSocialFooter
+            item={item}
+            views={views}
+            likes={likes}
+            comments={comments}
+            shareLabel={shareLabel}
+            reportLabel={reportLabel}
+            shareIconSrc={mediaShareDesktopIcon}
+            reportIconSrc={mediaReportDesktopIcon}
+            className={styles.desktopSocial}
+            metricsClassName={styles.desktopFooterIcons}
+            metricClassName={styles.statPill}
+            metricValueClassName={styles.statValue}
+            buttonsClassName={styles.desktopFooterActions}
+            viewIconClassName={styles.desktopStatIcon}
+            likeIconClassName={styles.desktopStatIcon}
+            commentIconClassName={styles.desktopStatIcon}
+          />
+        ) : (
+          <div className={styles.desktopInteractionStrip}>
+            <div className={styles.desktopFooterIcons}>
+              <StatPill
+                value={views}
+                desktopIcon={mediaViewsDesktopIcon}
+                mobileIcon={mediaViewsMobileIcon}
                 alt=""
-                className={styles.desktopActionIcon}
-                aria-hidden="true"
               />
-            </button>
+              <StatPill
+                value={likes}
+                desktopIcon={mediaLikeDesktopIcon}
+                mobileIcon={mediaLikeMobileIcon}
+                alt=""
+              />
+              <StatPill
+                value={comments}
+                desktopIcon={mediaCommentsDesktopIcon}
+                mobileIcon={mediaCommentsMobileIcon}
+                alt=""
+              />
+            </div>
+
+            <div className={styles.desktopFooterActions}>
+              {isInternalHref(openHref) ? (
+                <Link to={openHref} className={styles.iconButton} aria-label={openAria}>
+                  <img
+                    src={mediaShareDesktopIcon}
+                    alt=""
+                    className={styles.desktopActionIcon}
+                    aria-hidden="true"
+                  />
+                </Link>
+              ) : (
+                <a href={openHref} className={styles.iconButton} aria-label={openAria}>
+                  <img
+                    src={mediaShareDesktopIcon}
+                    alt=""
+                    className={styles.desktopActionIcon}
+                    aria-hidden="true"
+                  />
+                </a>
+              )}
+              <button type="button" className={styles.iconButton} aria-label={openAria} disabled>
+                <img
+                  src={mediaReportDesktopIcon}
+                  alt=""
+                  className={styles.desktopActionIcon}
+                  aria-hidden="true"
+                />
+              </button>
+            </div>
           </div>
-        </div>
+        )}
 
         <img
           src={mediaCornerDesktop}
@@ -179,56 +280,79 @@ export default function MediaCard({
       </div>
 
       <div className={styles.mobileFooter}>
-        <div className={styles.mobileFooterIcons}>
-          <StatPill
-            value={views}
-            desktopIcon={mediaViewsDesktopIcon}
-            mobileIcon={mediaViewsMobileIcon}
-            alt=""
+        {hasSocial ? (
+          <MediaSocialFooter
+            item={item}
+            views={views}
+            likes={likes}
+            comments={comments}
+            shareLabel={shareLabel}
+            reportLabel={reportLabel}
+            shareIconSrc={mediaShareMobileIcon}
+            reportIconSrc={mediaReportMobileIcon}
+            className={styles.mobileSocial}
+            metricsClassName={styles.mobileFooterIcons}
+            metricClassName={styles.statPill}
+            metricValueClassName={styles.statValue}
+            buttonsClassName={styles.mobileFooterActions}
+            viewIconClassName={styles.mobileStatIcon}
+            likeIconClassName={styles.mobileStatIcon}
+            commentIconClassName={styles.mobileStatIcon}
           />
-          <StatPill
-            value={likes}
-            desktopIcon={mediaLikeDesktopIcon}
-            mobileIcon={mediaLikeMobileIcon}
-            alt=""
-          />
-          <StatPill
-            value={comments}
-            desktopIcon={mediaCommentsDesktopIcon}
-            mobileIcon={mediaCommentsMobileIcon}
-            alt=""
-          />
-        </div>
+        ) : (
+          <>
+            <div className={styles.mobileFooterIcons}>
+              <StatPill
+                value={views}
+                desktopIcon={mediaViewsDesktopIcon}
+                mobileIcon={mediaViewsMobileIcon}
+                alt=""
+              />
+              <StatPill
+                value={likes}
+                desktopIcon={mediaLikeDesktopIcon}
+                mobileIcon={mediaLikeMobileIcon}
+                alt=""
+              />
+              <StatPill
+                value={comments}
+                desktopIcon={mediaCommentsDesktopIcon}
+                mobileIcon={mediaCommentsMobileIcon}
+                alt=""
+              />
+            </div>
 
-        <div className={styles.mobileFooterActions}>
-          {isInternalHref(openHref) ? (
-            <Link to={openHref} className={styles.iconButton} aria-label={openAria}>
-              <img
-                src={mediaShareMobileIcon}
-                alt=""
-                className={styles.mobileActionIcon}
-                aria-hidden="true"
-              />
-            </Link>
-          ) : (
-            <a href={openHref} className={styles.iconButton} aria-label={openAria}>
-              <img
-                src={mediaShareMobileIcon}
-                alt=""
-                className={styles.mobileActionIcon}
-                aria-hidden="true"
-              />
-            </a>
-          )}
-          <button type="button" className={styles.iconButton} aria-label={openAria} disabled>
-            <img
-              src={mediaReportMobileIcon}
-              alt=""
-              className={styles.mobileActionIcon}
-              aria-hidden="true"
-            />
-          </button>
-        </div>
+            <div className={styles.mobileFooterActions}>
+              {isInternalHref(openHref) ? (
+                <Link to={openHref} className={styles.iconButton} aria-label={openAria}>
+                  <img
+                    src={mediaShareMobileIcon}
+                    alt=""
+                    className={styles.mobileActionIcon}
+                    aria-hidden="true"
+                  />
+                </Link>
+              ) : (
+                <a href={openHref} className={styles.iconButton} aria-label={openAria}>
+                  <img
+                    src={mediaShareMobileIcon}
+                    alt=""
+                    className={styles.mobileActionIcon}
+                    aria-hidden="true"
+                  />
+                </a>
+              )}
+              <button type="button" className={styles.iconButton} aria-label={openAria} disabled>
+                <img
+                  src={mediaReportMobileIcon}
+                  alt=""
+                  className={styles.mobileActionIcon}
+                  aria-hidden="true"
+                />
+              </button>
+            </div>
+          </>
+        )}
       </div>
     </article>
   )

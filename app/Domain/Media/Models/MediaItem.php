@@ -7,12 +7,13 @@ use Domain\Engagement\Models\Like;
 use Domain\Media\Enums\MediaStatus;
 use Domain\Media\Enums\MediaType;
 use Domain\Media\Enums\MediaVisibility;
+use Domain\Media\Services\PeerTubeService;
 use Domain\Report\Models\Report;
 use Domain\User\Models\User;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Facades\Storage;
 
@@ -86,6 +87,11 @@ class MediaItem extends Model
         }
 
         return $this->file_url ?: $this->peertube_url;
+    }
+
+    public function resolvedThumbnailUrl(): ?string
+    {
+        return app(PeerTubeService::class)->resolveAssetUrl($this->peertube_thumbnail_url);
     }
 
     public function isPubliclyVisible(): bool

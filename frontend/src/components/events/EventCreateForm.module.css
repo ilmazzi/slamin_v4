@@ -49,6 +49,7 @@
   gap: 8px;
 }
 
+
 .full {
   width: 100%;
 }
@@ -129,30 +130,37 @@
 }
 
 .toggle {
-  width: 72px;
-  height: 28px;
-  border: 1px solid #000;
-  border-radius: 999px;
-  background: #fff;
-  position: relative;
-  cursor: pointer;
-  padding: 0;
-}
+    width: 72px;
+    height: 28px;
+    border: 1px solid #000;
+    border-radius: 999px;
+    background: #fff;
+    position: relative;
+    cursor: pointer;
+    padding: 0;
+  }
 
-.toggleOn .toggleKnob {
-  transform: translateX(0);
-}
+  .toggleKnob {
+    position: absolute;
+    top: 4px;
+    left: 4px;
 
-.toggleKnob {
-  position: absolute;
-  top: 4px;
-  right: 4px;
-  width: 18px;
-  height: 18px;
-  border-radius: 50%;
-  background: #000;
-}
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: #000;
 
+    transition: transform 0.2s ease;
+  }
+  .toggleOn {
+    background: var(--color-black);
+  }
+
+  .toggleOn .toggleKnob {
+    transform: translateX(44px);
+    background: var(--color-white);
+
+  }
 .availabilityHeader {
   display: flex;
   justify-content: flex-end;
@@ -187,10 +195,11 @@
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 20px;
+  margin: 5px;
 }
 
 .choiceButton {
-  min-height: 58px;
+  min-height: 54px;
   border: 1px solid #7a7a7a;
   border-radius: 14px;
   background: #fff;
@@ -201,8 +210,8 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 2px;
-  padding: 8px 12px;
+  gap: 4px;
+  padding: 8px 12px 10px 12px;
 }
 
 .choiceButtonActive {
@@ -242,12 +251,13 @@
 }
 
 .cleanMap {
-  height: 200px;
+  height: 300px;
   min-height: 200px;
   border-radius: 10px;
   background: linear-gradient(180deg, #d5d5d5 0%, #c9c9c9 100%);
   position: relative;
   overflow: hidden;
+  z-index: 0;
 }
 
 .mapLeaflet {

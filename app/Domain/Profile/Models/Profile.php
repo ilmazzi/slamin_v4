@@ -25,10 +25,14 @@ class Profile extends Model
         'website_url',
         'preferred_locale',
         'is_public',
+        'avatar_path',
+        'banner_path',
+        'visibility',
     ];
 
     protected $casts = [
         'is_public' => 'boolean',
+        'visibility' => 'array',
     ];
 
     protected static function booted(): void

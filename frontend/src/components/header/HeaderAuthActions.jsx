@@ -16,6 +16,10 @@ export default function HeaderAuthActions({
   menuAriaLabel = 'Apri menu',
   fallbackUserName = 'Nome Cognome',
   dashboardLabel = 'Dashboard',
+  showAdmin = false,
+  adminHref = '/admin',
+  adminLabel = 'Amministrazione',
+  adminMenuLabel = 'Amministrazione',
   quickActionsTitle = 'Azioni rapide',
   writePoemLabel = 'Scrivi poesia',
   createEventLabel = 'Organizza evento',
@@ -113,6 +117,12 @@ export default function HeaderAuthActions({
             <rect x="14" y="14" width="7" height="7" rx="1.5" stroke="currentColor" strokeWidth="1.8" />
           </svg>
         </Link>
+
+        {showAdmin ? (
+          <Link to={adminHref} className={styles.adminButton}>
+            {adminLabel}
+          </Link>
+        ) : null}
 
         <button
           type="button"
@@ -267,6 +277,18 @@ export default function HeaderAuthActions({
             <span className={styles.authMenuArrow} aria-hidden="true">›</span>
             <span>{editProfileLabel}</span>
           </Link>
+          {showAdmin ? (
+            <Link
+              to={adminHref}
+              className={styles.authMenuLink}
+              data-tone="red"
+              role="menuitem"
+              onClick={() => setIsProfileMenuOpen(false)}
+            >
+              <span className={styles.authMenuArrow} aria-hidden="true">›</span>
+              <span>{adminMenuLabel}</span>
+            </Link>
+          ) : null}
           <button
             type="button"
             className={`${styles.authMenuButton} ${styles.authMenuButtonDanger}`}

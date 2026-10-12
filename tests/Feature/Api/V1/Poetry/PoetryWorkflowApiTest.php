@@ -1,7 +1,5 @@
 <?php
 
-use Domain\Engagement\Models\Bookmark;
-use Domain\Engagement\Models\Like;
 use Domain\Poetry\Models\Poem;
 use Domain\Poetry\Models\PoemCategory;
 use Domain\Poetry\Models\PoemType;
@@ -69,7 +67,7 @@ function poetryWorkflowPoem(
         'user_id' => $author->id,
         'poem_category_id' => $category->id,
         'poem_type_id' => $type->id,
-        'title' => 'Poem ' . fake()->unique()->word(),
+        'title' => 'Poem '.fake()->unique()->word(),
         'slug' => fake()->unique()->slug(),
         'content' => 'Test content',
         'description' => 'Test description',
@@ -229,6 +227,52 @@ it('accepts string boolean for remove_image while updating poem', function () {
     expect(Storage::disk('public')->exists($oldImagePath))->toBeFalse();
 });
 
+it('filters published poems by search, language, category and sort', function () {
+    $author = poetryWorkflowOrganizer();
+    $sonnet = poetryWorkflowCategory('sonetto');
+    $haiku = poetryWorkflowCategory('haiku');
+    $type = poetryWorkflowType('testo');
+
+    poetryWorkflowPoem($author, $sonnet, $type, [
+        'title' => 'Relazione di coppia',
+        'slug' => 'relazione-di-coppia',
+        'content' => 'Mi ha detto ti vorrei',
+        'language' => 'it',
+        'published_at' => now()->subDay(),
+    ]);
+    poetryWorkflowPoem($author, $haiku, $type, [
+        'title' => 'Silent garden',
+        'slug' => 'silent-garden',
+        'content' => 'A quiet pond',
+        'language' => 'en',
+        'published_at' => now(),
+    ]);
+
+    $this->getJson('/api/v1/poems?q=Relazione')
+        ->assertOk()
+        ->assertJsonCount(1, 'data')
+        ->assertJsonPath('data.0.slug', 'relazione-di-coppia');
+
+    $this->getJson('/api/v1/poems?language=en')
+        ->assertOk()
+        ->assertJsonCount(1, 'data')
+        ->assertJsonPath('data.0.slug', 'silent-garden');
+
+    $this->getJson('/api/v1/poems?poem_category_id='.$sonnet->id)
+        ->assertOk()
+        ->assertJsonCount(1, 'data')
+        ->assertJsonPath('data.0.slug', 'relazione-di-coppia');
+
+    $this->getJson('/api/v1/poems?sort=oldest')
+        ->assertOk()
+        ->assertJsonPath('data.0.slug', 'relazione-di-coppia')
+        ->assertJsonPath('data.1.slug', 'silent-garden');
+
+    $this->getJson('/api/v1/poems?sort=newest')
+        ->assertOk()
+        ->assertJsonPath('data.0.slug', 'silent-garden');
+});
+
 it('validates per_page bounds in my poems endpoint', function () {
     $author = poetryWorkflowOrganizer();
     $category = poetryWorkflowCategory('mine');
@@ -240,4 +284,3 @@ it('validates per_page bounds in my poems endpoint', function () {
     $this->getJson('/api/v1/my/poems?per_page=1000')
         ->assertStatus(422);
 });
-

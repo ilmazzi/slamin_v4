@@ -10,6 +10,8 @@ use Domain\Moderation\Enums\ModerationDecisionType;
 use Domain\Moderation\Models\ModerationDecision;
 use Domain\Poetry\Enums\PoemStatus;
 use Domain\Poetry\Models\Poem;
+use Domain\Report\Enums\ReportStatus;
+use Domain\Report\Models\Report;
 
 class GetModerationDashboardStatsAction
 {
@@ -30,12 +32,12 @@ class GetModerationDashboardStatsAction
             'published_count' => Article::query()->where('status', ArticleStatus::Published)->count(),
             'draft_count' => Article::query()->where('status', ArticleStatus::Draft)->count(),
             'approved_today_count' => ModerationDecision::query()
-                ->where('moderatable_type', (new Article())->getMorphClass())
+                ->where('moderatable_type', (new Article)->getMorphClass())
                 ->where('decision', ModerationDecisionType::Approved)
                 ->where('created_at', '>=', $today)
                 ->count(),
             'rejected_today_count' => ModerationDecision::query()
-                ->where('moderatable_type', (new Article())->getMorphClass())
+                ->where('moderatable_type', (new Article)->getMorphClass())
                 ->where('decision', ModerationDecisionType::Rejected)
                 ->where('created_at', '>=', $today)
                 ->count(),
@@ -47,12 +49,12 @@ class GetModerationDashboardStatsAction
             'published_count' => Event::query()->where('status', EventStatus::Published)->count(),
             'draft_count' => Event::query()->where('status', EventStatus::Draft)->count(),
             'approved_today_count' => ModerationDecision::query()
-                ->where('moderatable_type', (new Event())->getMorphClass())
+                ->where('moderatable_type', (new Event)->getMorphClass())
                 ->where('decision', ModerationDecisionType::Approved)
                 ->where('created_at', '>=', $today)
                 ->count(),
             'rejected_today_count' => ModerationDecision::query()
-                ->where('moderatable_type', (new Event())->getMorphClass())
+                ->where('moderatable_type', (new Event)->getMorphClass())
                 ->where('decision', ModerationDecisionType::Rejected)
                 ->where('created_at', '>=', $today)
                 ->count(),
@@ -73,18 +75,22 @@ class GetModerationDashboardStatsAction
                 ->count(),
             'poems' => array_merge($poemStats, [
                 'approved_today_count' => ModerationDecision::query()
-                    ->where('moderatable_type', (new Poem())->getMorphClass())
+                    ->where('moderatable_type', (new Poem)->getMorphClass())
                     ->where('decision', ModerationDecisionType::Approved)
                     ->where('created_at', '>=', $today)
                     ->count(),
                 'rejected_today_count' => ModerationDecision::query()
-                    ->where('moderatable_type', (new Poem())->getMorphClass())
+                    ->where('moderatable_type', (new Poem)->getMorphClass())
                     ->where('decision', ModerationDecisionType::Rejected)
                     ->where('created_at', '>=', $today)
                     ->count(),
             ]),
             'articles' => $articleStats,
             'events' => $eventStats,
+            'reports' => [
+                'open_count' => Report::query()->where('status', ReportStatus::Open)->count(),
+                'in_review_count' => Report::query()->where('status', ReportStatus::InReview)->count(),
+            ],
         ];
     }
 }

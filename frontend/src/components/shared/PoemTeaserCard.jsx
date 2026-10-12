@@ -65,7 +65,7 @@ export default function PoemTeaserCard({ poem, locale, t }) {
           <div className={styles.bottom}>
             <PillButton
               href={detailId ? `/poems/${detailId}` : '/poems'}
-              label={t('common.discover_more')}
+              label={t('common.read')}
               variant="accent"
               size="poemTeaser"
               iconSrc={mediaArrowListFigmaIcon}

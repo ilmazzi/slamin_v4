@@ -13,12 +13,11 @@ class SyncPeerTubeVideoStatusController extends Controller
 {
     public function __construct(
         private readonly SyncPeerTubeVideoStatusAction $action,
-    ) {
-    }
+    ) {}
 
     public function __invoke(MediaItem $media): JsonResponse
     {
-        $this->authorize('view', $media);
+        $this->authorizeForUser(auth('sanctum')->user(), 'view', $media);
 
         $media = $this->action->execute($media);
 

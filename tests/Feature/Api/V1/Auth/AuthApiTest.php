@@ -1,7 +1,8 @@
 <?php
 
-use Domain\User\Models\User;
 use Domain\Audit\Models\AuditLog;
+use Domain\User\Models\Role;
+use Domain\User\Models\User;
 use Illuminate\Auth\Notifications\ResetPassword;
 use Illuminate\Auth\Notifications\VerifyEmail;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -88,6 +89,11 @@ it('rejects login with invalid credentials', function () {
 
 it('returns the authenticated user on me endpoint', function () {
     $user = User::factory()->create();
+    $role = Role::query()->firstOrCreate(
+        ['name' => 'admin'],
+        ['label' => 'Admin']
+    );
+    $user->roles()->syncWithoutDetaching([$role->id]);
     $token = $user->createToken('auth_token')->plainTextToken;
 
     $response = $this->withHeader('Authorization', "Bearer {$token}")
@@ -96,6 +102,8 @@ it('returns the authenticated user on me endpoint', function () {
     $response
         ->assertOk()
         ->assertJsonPath('data.user.public_id', $user->public_id)
+        ->assertJsonPath('data.user.roles.0', 'admin')
+        ->assertJsonPath('data.user.account_type', 'audience')
         ->assertJsonPath('errors', null);
 });
 

@@ -1,21 +1,32 @@
+import { useState } from 'react'
 import { listFeaturedPoems } from '../../app/api/poems.js'
-import { Link } from 'react-router-dom'
-import { resolvePublicUrl } from '../../app/api/url.js'
-import { formatShortPublishedDate } from '../../app/formatters/date.js'
 import { useI18n } from '../../app/hooks/useI18n.js'
-import { useContentFeedbackUi } from '../../app/hooks/useContentFeedbackUi.js'
+import { useMediaQuery } from '../../app/hooks/useMediaQuery.js'
 import { usePaginatedApiList } from '../../app/hooks/usePaginatedApiList.js'
-import AppToast from '../shared/AppToast.jsx'
-import ContentReportModal from '../shared/ContentReportModal.jsx'
-import FeaturedPoemCard from './FeaturedPoemCard.jsx'
-import SocialActions from '../shared/SocialActions.jsx'
+import PoemCatalogCard from './PoemCatalogCard.jsx'
 import styles from './FeaturedPoemSection.module.css'
 
+const FEATURED_POEMS_PER_PAGE = 9
 
-const FEATURED_POEMS_PER_PAGE = 3
+function ChevronIcon({ direction }) {
+  const isPrev = direction === 'prev'
+  return (
+    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path
+        d={isPrev ? 'M15 5L8 12L15 19' : 'M9 5L16 12L9 19'}
+        stroke="currentColor"
+        strokeWidth="2.4"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  )
+}
 
-export default  function FeaturedPoemsSection() {
+export default function FeaturedPoemsSection() {
   const { t, locale } = useI18n()
+  const isDesktop = useMediaQuery('(min-width: 1024px)')
+  const [slideStart, setSlideStart] = useState(0)
 
   const {
     items: poems,
@@ -30,189 +41,75 @@ export default  function FeaturedPoemsSection() {
     deps: [],
   })
 
-  const featuredTitle = t('poems.featured.title') === 'poems.featured.title'
-    ? 'Featured Poems'
-    : t('poems.featured.title')
-  const loadingLabel = t('common.loading') === 'common.loading' ? 'Loading...' : t('common.loading')
-  const shareCopiedMessage = t('poems.actions.share_copied') === 'poems.actions.share_copied'
-    ? 'Link poesia copiato'
-    : t('poems.actions.share_copied')
-  const shareSentMessage = t('poems.actions.share_sent') === 'poems.actions.share_sent'
-    ? 'Condivisione avviata'
-    : t('poems.actions.share_sent')
-  const shareFailedMessage = t('poems.actions.share_failed') === 'poems.actions.share_failed'
-    ? 'Impossibile condividere la poesia'
-    : t('poems.actions.share_failed')
-  const reportSubmittedMessage = t('poems.actions.report_submitted') === 'poems.actions.report_submitted'
-    ? 'Segnalazione inviata'
-    : t('poems.actions.report_submitted')
-  const reportTitle = t('poems.actions.report_title') === 'poems.actions.report_title'
-    ? 'Segnala questa poesia?'
-    : t('poems.actions.report_title')
-  const reportDescription = t('poems.actions.report_description') === 'poems.actions.report_description'
-    ? 'Invieremo la segnalazione al team di moderazione per una verifica.'
-    : t('poems.actions.report_description')
-  const reportCancelLabel = t('poems.actions.report_cancel') === 'poems.actions.report_cancel'
-    ? 'Annulla'
-    : t('poems.actions.report_cancel')
-  const reportConfirmLabel = t('poems.actions.report_confirm') === 'poems.actions.report_confirm'
-    ? 'Segnala'
-    : t('poems.actions.report_confirm')
-  const noTitleLabel = t('poems.all.no_title') === 'poems.all.no_title'
-    ? 'Poesia senza titolo'
-    : t('poems.all.no_title')
-  const noAuthorLabel = t('poems.all.no_author') === 'poems.all.no_author'
-    ? 'Autore sconosciuto'
-    : t('poems.all.no_author')
-  const otherPoemsTitle = t('poems.featured.other_title') === 'poems.featured.other_title'
-    ? 'Other poems'
-    : t('poems.featured.other_title')
-  const readMoreLabel = t('common.discover_more') === 'common.discover_more'
-    ? 'Scopri di piu'
-    : t('common.discover_more')
-  const shareLabel = t('poems.actions.share') === 'poems.actions.share' ? 'Condividi poesia' : t('poems.actions.share')
-  const reportLabel = t('poems.actions.report') === 'poems.actions.report' ? 'Segnala poesia' : t('poems.actions.report')
-
-  const {
-    reportModalItem,
-    toastMessage,
-    setReportModalItem,
-    setToastMessage,
-    handleReportConfirm,
-  } = useContentFeedbackUi({
-    t,
-    contentType: 'poem',
-    knownItems: poems,
-    shareCopiedMessage,
-    shareSentMessage,
-    shareFailedMessage,
-    reportSubmittedMessage,
-  })
+  const cardsPerView = Math.min(isDesktop ? 3 : 1, Math.max(1, poems.length))
+  const maxSlideStart = Math.max(0, poems.length - cardsPerView)
+  const clampedSlideStart = Math.min(slideStart, maxSlideStart)
 
   if (isLoading) {
     return (
-      <section className={styles.section}>
-        <h1 className={styles.title}>{featuredTitle}</h1>
-        <p>{loadingLabel}</p>
+      <section className={styles.section} aria-label={t('poems.featured.title')}>
+        <p className={styles.stateText}>{t('common.loading')}</p>
       </section>
     )
   }
 
   if (error) {
     return (
-      <section className={styles.section}>
-        <h1 className={styles.title}>{featuredTitle}</h1>
-        <p>{error}</p>
+      <section className={styles.section} aria-label={t('poems.featured.title')}>
+        <p className={styles.stateText}>{error}</p>
       </section>
     )
   }
 
-  if (!poems || poems.length === 0) {
+  if (!poems.length) {
     return null
   }
-  const mainPoem = poems[0] ?? null
-  const otherPoems = poems.slice(1)
 
-  const [titlePrefix = '', ...titleRest] = t('poems.featured.title').split(' ')
-  const titleEmphasis = titleRest.join(' ')
+  const canNavigate = maxSlideStart > 0
 
   return (
-    <>
-      <section className={styles.section}>
-          <h1 className={styles.title}>
-            <span className={styles.titlePrefix}>{titlePrefix} </span>
-            <span className={styles.titleEmphasis}>{titleEmphasis}</span>
-          </h1>
-          <div className={styles.grid}>
-          <FeaturedPoemCard poem={mainPoem} />
+    <section className={styles.section} aria-label={t('poems.featured.title')}>
+      {canNavigate ? (
+        <button
+          type="button"
+          className={`${styles.navButton} ${styles.prev}`}
+          aria-label={t('poems.featured.prev_slide')}
+          onClick={() => setSlideStart((prev) => (prev <= 0 ? maxSlideStart : prev - 1))}
+        >
+          <ChevronIcon direction="prev" />
+        </button>
+      ) : null}
 
-          {otherPoems.length > 0 ? (
-            <aside className={styles.otherPanel} aria-label={otherPoemsTitle}>
-              <h2 className={styles.otherTitle}>{otherPoemsTitle}</h2>
-              <div className={styles.otherList}>
-                {otherPoems.map((poem) => {
-                  const slugOrId = poem?.slug ?? poem?.id
-                  const href = slugOrId ? `/poems/${slugOrId}` : '/poems'
-                  const imageUrl = poem?.image_url ? resolvePublicUrl(poem.image_url) : ''
-                  const authorName = poem?.author?.nickname ?? poem?.author?.display_name ?? noAuthorLabel
-                  const publishedDate = formatShortPublishedDate(poem?.published_at, locale, '-')
-                  const metrics = {
-                    views: poem?.views_count ?? 0,
-                    likes: poem?.likes_count ?? 0,
-                    comments: poem?.comments_count ?? 0,
-                  }
+      <div className={styles.viewport}>
+        <div
+          className={styles.track}
+          style={{
+            width: `${(poems.length / cardsPerView) * 100}%`,
+            transform: `translateX(-${(clampedSlideStart / poems.length) * 100}%)`,
+          }}
+        >
+          {poems.map((poem) => (
+            <div
+              key={poem.id ?? poem.slug}
+              className={styles.slide}
+              style={{ width: `${100 / poems.length}%` }}
+            >
+              <PoemCatalogCard poem={poem} locale={locale} t={t} />
+            </div>
+          ))}
+        </div>
+      </div>
 
-                  return (
-                    <article key={poem?.id ?? poem?.slug ?? href} className={styles.otherItem}>
-                      <Link to={href} className={styles.otherCoverLink} aria-label={poem?.title ?? noTitleLabel}>
-                        {imageUrl ? (
-                          <img src={imageUrl} alt="" className={styles.otherCover} />
-                        ) : (
-                          <span className={styles.otherCoverFallback} aria-hidden="true" />
-                        )}
-                      </Link>
-
-                      <div className={styles.otherContent}>
-                        <p className={styles.otherMeta}>
-                          <span>{authorName}</span>
-                          <span>{publishedDate}</span>
-                        </p>
-                        <Link to={href} className={styles.otherItemTitle}>
-                          {poem?.title ?? noTitleLabel}
-                        </Link>
-                        <p className={styles.otherExcerpt}>{poem?.description ?? poem?.content ?? ''}</p>
-                        <div className={styles.otherBottom}>
-                          <Link to={href} className={styles.otherLink}>
-                            {readMoreLabel}
-                          </Link>
-                          <SocialActions
-                            target={poem}
-                            contentType="poem"
-                            metrics={metrics}
-                            shareLabel={shareLabel}
-                            reportLabel={reportLabel}
-                            publicBasePath="/poems"
-                            apiBasePath="/poems"
-                            variant="list"
-                            className={styles.otherSocialActions}
-                            metricsClassName={styles.otherMetrics}
-                            metricClassName={styles.otherMetric}
-                            metricValueClassName={styles.otherMetricValue}
-                            viewIconClassName={styles.otherMetricIcon}
-                            likeIconClassName={styles.otherMetricIcon}
-                            commentIconClassName={styles.otherMetricIcon}
-                            buttonsClassName={styles.otherActionButtons}
-                            iconClassName={styles.otherActionIcon}
-                          />
-                        </div>
-                      </div>
-                    </article>
-                  )
-                })}
-              </div>
-            </aside>
-          ) : null}
-  </div>
-
-      </section>
-
-      <ContentReportModal
-        isOpen={Boolean(reportModalItem)}
-        item={reportModalItem}
-        itemTitle={reportModalItem?.title ?? noTitleLabel}
-        title={reportTitle}
-        description={reportDescription}
-        cancelLabel={reportCancelLabel}
-        confirmLabel={reportConfirmLabel}
-        onClose={() => setReportModalItem(null)}
-        onConfirm={handleReportConfirm}
-      />
-
-      <AppToast
-        message={toastMessage}
-        isVisible={Boolean(toastMessage)}
-        onClose={() => setToastMessage('')}
-      />
-    </>
-)
+      {canNavigate ? (
+        <button
+          type="button"
+          className={`${styles.navButton} ${styles.next}`}
+          aria-label={t('poems.featured.next_slide')}
+          onClick={() => setSlideStart((prev) => (prev >= maxSlideStart ? 0 : prev + 1))}
+        >
+          <ChevronIcon direction="next" />
+        </button>
+      ) : null}
+    </section>
+  )
 }

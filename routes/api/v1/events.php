@@ -5,24 +5,28 @@ use App\Http\Controllers\Api\V1\Event\AdminListEventCategoriesController;
 use App\Http\Controllers\Api\V1\Event\AdminShowEventCategoryController;
 use App\Http\Controllers\Api\V1\Event\AdminStoreEventCategoryController;
 use App\Http\Controllers\Api\V1\Event\AdminUpdateEventCategoryController;
+use App\Http\Controllers\Api\V1\Event\BookmarkEventController;
 use App\Http\Controllers\Api\V1\Event\DeleteEventController;
 use App\Http\Controllers\Api\V1\Event\FinalizeEventAvailabilityOptionController;
+use App\Http\Controllers\Api\V1\Event\LikeEventController;
 use App\Http\Controllers\Api\V1\Event\ListEventCategoriesController;
 use App\Http\Controllers\Api\V1\Event\ListEventController;
-use App\Http\Controllers\Api\V1\Event\ListMyEventsController;
 use App\Http\Controllers\Api\V1\Event\ListMyAudienceInvitesController;
+use App\Http\Controllers\Api\V1\Event\ListMyEventsController;
 use App\Http\Controllers\Api\V1\Event\ListMyParticipantInvitesController;
 use App\Http\Controllers\Api\V1\Event\ListRecentEventPlacesController;
+use App\Http\Controllers\Api\V1\Event\RemoveBookmarkEventController;
 use App\Http\Controllers\Api\V1\Event\RemoveEventAvailabilityVoteController;
 use App\Http\Controllers\Api\V1\Event\RespondToAudienceInviteController;
 use App\Http\Controllers\Api\V1\Event\RespondToParticipantInviteController;
 use App\Http\Controllers\Api\V1\Event\ShowEventController;
 use App\Http\Controllers\Api\V1\Event\StoreEventController;
+use App\Http\Controllers\Api\V1\Event\UnlikeEventController;
 use App\Http\Controllers\Api\V1\Event\UpdateEventController;
 use App\Http\Controllers\Api\V1\Event\VoteForEventAvailabilityOptionController;
+use App\Http\Controllers\Api\V1\Gig\CloseGigController;
 use App\Http\Controllers\Api\V1\Gig\DeleteEventGigController;
 use App\Http\Controllers\Api\V1\Gig\DeleteGigAnnouncementController;
-use App\Http\Controllers\Api\V1\Gig\CloseGigController;
 use App\Http\Controllers\Api\V1\Gig\ListEventGigsController;
 use App\Http\Controllers\Api\V1\Gig\ListGigAnnouncementsController;
 use App\Http\Controllers\Api\V1\Gig\ListGigApplicationsController;
@@ -38,20 +42,20 @@ use App\Http\Controllers\Api\V1\Gig\UpdateGigApplicationStatusController;
 use App\Http\Controllers\Api\V1\Gig\WithdrawGigApplicationController;
 use App\Http\Controllers\Api\V1\PoetrySlam\DeletePoetrySlamEntryController;
 use App\Http\Controllers\Api\V1\PoetrySlam\DeletePoetrySlamRoundController;
-use App\Http\Controllers\Api\V1\PoetrySlam\ListPoetrySlamLeaderboardController;
 use App\Http\Controllers\Api\V1\PoetrySlam\ListPoetrySlamEntriesController;
+use App\Http\Controllers\Api\V1\PoetrySlam\ListPoetrySlamLeaderboardController;
 use App\Http\Controllers\Api\V1\PoetrySlam\ListPoetrySlamRoundAdvancementDecisionsController;
 use App\Http\Controllers\Api\V1\PoetrySlam\ListPoetrySlamRoundLeaderboardController;
 use App\Http\Controllers\Api\V1\PoetrySlam\ListPoetrySlamRoundsController;
 use App\Http\Controllers\Api\V1\PoetrySlam\ListPoetrySlamRoundScoresController;
 use App\Http\Controllers\Api\V1\PoetrySlam\ShowPoetrySlamController;
+use App\Http\Controllers\Api\V1\PoetrySlam\StorePoetrySlamController;
 use App\Http\Controllers\Api\V1\PoetrySlam\StorePoetrySlamEntryController;
 use App\Http\Controllers\Api\V1\PoetrySlam\StorePoetrySlamRoundController;
-use App\Http\Controllers\Api\V1\PoetrySlam\StorePoetrySlamController;
-use App\Http\Controllers\Api\V1\PoetrySlam\UpsertPoetrySlamRoundAdvancementDecisionController;
-use App\Http\Controllers\Api\V1\PoetrySlam\UpsertPoetrySlamEntryScoresController;
 use App\Http\Controllers\Api\V1\PoetrySlam\UpdatePoetrySlamEntryController;
 use App\Http\Controllers\Api\V1\PoetrySlam\UpdatePoetrySlamRoundController;
+use App\Http\Controllers\Api\V1\PoetrySlam\UpsertPoetrySlamEntryScoresController;
+use App\Http\Controllers\Api\V1\PoetrySlam\UpsertPoetrySlamRoundAdvancementDecisionController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware([
@@ -60,7 +64,6 @@ Route::middleware([
     'account.type:poet_organizer',
 ])->group(function () {
     Route::post('/events', StoreEventController::class)->name('events.store');
-    Route::get('/my/events', ListMyEventsController::class)->name('events.my');
     Route::patch('/events/{event}', UpdateEventController::class)->name('events.update');
     Route::delete('/events/{event}', DeleteEventController::class)->name('events.delete');
     Route::get('/events/{event}/gigs', ListEventGigsController::class)->name('api.v1.events.gigs.index');
@@ -70,7 +73,7 @@ Route::middleware([
     Route::get('/events/recent-places', ListRecentEventPlacesController::class)->name('events.recent-places');
     Route::post('/events/{event}/availability-options/{option}/finalize', FinalizeEventAvailabilityOptionController::class)->name('events.availability.finalize');
     Route::get('events/{event}/poetry-slam', ShowPoetrySlamController::class)
-    ->name('api.v1.poetry-slam.show');
+        ->name('api.v1.poetry-slam.show');
 
     Route::post('events/{event}/poetry-slam', StorePoetrySlamController::class)
         ->name('api.v1.poetry-slam.store');
@@ -120,12 +123,17 @@ Route::middleware([
     Route::post('/gigs/{gig}/announcements', StoreGigAnnouncementController::class)->name('api.v1.gigs.announcements.store');
     Route::patch('/gigs/{gig}/announcements/{announcement}', UpdateGigAnnouncementController::class)->name('api.v1.gigs.announcements.update');
     Route::delete('/gigs/{gig}/announcements/{announcement}', DeleteGigAnnouncementController::class)->name('api.v1.gigs.announcements.delete');
+    Route::get('/my/events', ListMyEventsController::class)->name('events.my');
     Route::get('/my/event-participant-invites', ListMyParticipantInvitesController::class)->name('events.participant-invites.my');
     Route::get('/my/event-audience-invites', ListMyAudienceInvitesController::class)->name('events.audience-invites.my');
     Route::patch('/event-participant-invites/{invite}/respond', RespondToParticipantInviteController::class)->name('events.participant-invites.respond');
     Route::patch('/event-audience-invites/{invite}/respond', RespondToAudienceInviteController::class)->name('events.audience-invites.respond');
     Route::post('/events/{event}/availability-options/{option}/vote', VoteForEventAvailabilityOptionController::class)->name('events.availability.vote');
     Route::delete('/events/{event}/availability-options/{option}/vote', RemoveEventAvailabilityVoteController::class)->name('events.availability.unvote');
+    Route::post('/events/{event}/like', LikeEventController::class)->name('events.like');
+    Route::delete('/events/{event}/like', UnlikeEventController::class)->name('events.unlike');
+    Route::post('/events/{event}/bookmark', BookmarkEventController::class)->name('events.bookmark');
+    Route::delete('/events/{event}/bookmark', RemoveBookmarkEventController::class)->name('events.unbookmark');
 });
 
 Route::middleware([

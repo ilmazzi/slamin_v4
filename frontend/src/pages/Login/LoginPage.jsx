@@ -78,7 +78,7 @@ export function LoginPage() {
         return
       }
 
-      login(token, user)
+      await login(token, user)
       navigate('/dashboard', { replace: true })
     } catch {
       setErrorMessage(t('common.no_results'))

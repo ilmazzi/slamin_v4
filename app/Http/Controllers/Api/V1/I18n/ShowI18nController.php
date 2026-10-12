@@ -25,6 +25,8 @@ class ShowI18nController extends Controller
             );
         }
 
-        return ApiResponse::success($data);
+        return ApiResponse::success($data)
+            ->header('Cache-Control', 'no-store, no-cache, must-revalidate')
+            ->header('Pragma', 'no-cache');
     }
 }

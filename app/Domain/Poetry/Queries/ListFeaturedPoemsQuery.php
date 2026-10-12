@@ -13,7 +13,7 @@ class ListFeaturedPoemsQuery
     {
         $baseQuery = Poem::query()
             ->with(['user.profile', 'category.translations', 'type.translations'])
-            ->withCount(['likes', 'bookmarks'])
+            ->withCount(['likes', 'bookmarks', 'comments'])
             ->where('status', PoemStatus::Published)
             ->where('is_public', true);
 

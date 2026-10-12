@@ -19,8 +19,8 @@ export default function FeaturedPoemCard({ poem }) {
   const categoryName = poem?.category?.name ?? ''
   const typeName = poem?.type?.name ?? ''
   const imageUrl = poem?.image_url ? resolvePublicUrl(poem.image_url) : ''
-  const shareLabel = t('poems.actions.share') === 'poems.actions.share' ? 'Condividi poesia' : t('poems.actions.share')
-  const reportLabel = t('poems.actions.report') === 'poems.actions.report' ? 'Segnala poesia' : t('poems.actions.report')
+  const shareLabel = t('poems.actions.share')
+  const reportLabel = t('poems.actions.report')
   const metrics = {
     views: poem?.views_count ?? 0,
     likes: poem?.likes_count ?? 0,

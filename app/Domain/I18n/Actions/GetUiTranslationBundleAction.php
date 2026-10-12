@@ -3,12 +3,23 @@
 namespace Domain\I18n\Actions;
 
 use Domain\I18n\Exceptions\InvalidLocaleException;
+use Domain\I18n\Models\Language;
+use Domain\I18n\Support\FileTranslationCatalog;
+use Domain\I18n\Support\I18nCache;
+use Domain\I18n\Support\TranslationTree;
 use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 use Throwable;
 
 class GetUiTranslationBundleAction
 {
+    public function __construct(
+        private readonly FileTranslationCatalog $files,
+        private readonly ResolveSupportedLocalesAction $supportedLocales,
+        private readonly ResolveDefaultLocaleAction $defaultLocale,
+    ) {}
+
     /**
      * @return array{
      *     locale: string,
@@ -22,139 +33,112 @@ class GetUiTranslationBundleAction
      */
     public function execute(string $locale): array
     {
-        $availableLocales = $this->getAvailableLocales();
+        $availableLocales = $this->supportedLocales->execute();
         if (! in_array($locale, $availableLocales, true)) {
             throw new InvalidLocaleException;
         }
 
-        $availableLanguages = $this->getAvailableLanguages();
+        $defaultLocale = $this->defaultLocale->execute();
+        $cacheKey = I18nCache::key('bundle.'.$locale);
 
-        $cacheKey = sprintf('i18n.%s.%s', $locale, $this->translationFilesVersion($locale));
-        $translations = [];
         try {
-            $translations = Cache::remember($cacheKey, 3600, fn (): array => $this->loadLocaleTranslationFiles($locale));
+            $translations = Cache::remember($cacheKey, 3600, fn (): array => $this->buildTranslations($locale, $defaultLocale));
         } catch (Throwable) {
-            $translations = $this->loadLocaleTranslationFiles($locale);
+            $translations = $this->buildTranslations($locale, $defaultLocale);
         }
 
         return [
             'locale' => $locale,
-            'default_locale' => (string) config('app.fallback_locale', 'en'),
+            'default_locale' => $defaultLocale,
             'available_locales' => $availableLocales,
-            'available_languages' => array_values($availableLanguages),
+            'available_languages' => $this->availableLanguages(),
             'translations' => $translations,
         ];
     }
 
     /**
-     * @return list<string>
-     */
-    private function getAvailableLocales(): array
-    {
-        $langPath = lang_path();
-        if (! is_dir($langPath)) {
-            return [];
-        }
-
-        $locales = [];
-        foreach (File::directories($langPath) as $dir) {
-            $locales[] = basename($dir);
-        }
-
-        return $locales;
-    }
-
-    /**
-     * @return array<string, array{code: string, name: string, flag: string}>
-     */
-    private function getAvailableLanguages(): array
-    {
-        $languages = [];
-        $langPath = lang_path();
-        if (! is_dir($langPath)) {
-            return [];
-        }
-
-        foreach (File::directories($langPath) as $dir) {
-            $code = basename($dir);
-            $meta = $this->readLanguageMeta($code);
-            $languages[$code] = [
-                'code' => $code,
-                'name' => $meta['name'],
-                'flag' => $meta['flag'],
-            ];
-        }
-        uasort($languages, fn ($a, $b) => strcmp($a['name'], $b['name']));
-
-        return $languages;
-    }
-
-    /**
-     * @return array{name: string, flag: string}
-     */
-    private function readLanguageMeta(string $locale): array
-    {
-        $metaPath = lang_path($locale.'/meta.php');
-        $meta = File::exists($metaPath) ? require $metaPath : [];
-        if (! is_array($meta)) {
-            $meta = [];
-        }
-
-        $name = (string) ($meta['name'] ?? '');
-        if ($name === '') {
-            if (class_exists(\Locale::class)) {
-                $displayName = \Locale::getDisplayLanguage($locale, $locale);
-                $name = $displayName ? ucfirst($displayName) : strtoupper($locale);
-            } else {
-                $name = strtoupper($locale);
-            }
-        }
-
-        $flag = (string) ($meta['flag'] ?? '🌐');
-        if ($flag === '') {
-            $flag = '🌐';
-        }
-
-        return [
-            'name' => $name,
-            'flag' => $flag,
-        ];
-    }
-
-    private function translationFilesVersion(string $locale): string
-    {
-        $path = lang_path($locale);
-        if (! is_dir($path)) {
-            return '0';
-        }
-
-        $lastModified = 0;
-        foreach (File::files($path) as $file) {
-            $lastModified = max($lastModified, $file->getMTime());
-        }
-
-        return (string) $lastModified;
-    }
-
-    /**
      * @return array<string, mixed>
      */
-    private function loadLocaleTranslationFiles(string $locale): array
+    private function buildTranslations(string $locale, string $defaultLocale): array
     {
-        $bundle = [];
-        $path = lang_path($locale);
-        if (! is_dir($path)) {
+        if ($this->databaseHasTranslations()) {
+            $fallback = $this->dottedForLocale($defaultLocale);
+            $current = $locale === $defaultLocale ? [] : $this->dottedForLocale($locale);
+            $merged = [...$fallback, ...$current];
+
+            if ($merged !== []) {
+                return TranslationTree::nest($merged);
+            }
+        }
+
+        $fileFallback = $this->files->translations($defaultLocale);
+        $fileCurrent = $locale === $defaultLocale ? [] : $this->files->translations($locale);
+
+        return array_replace_recursive($fileFallback, $fileCurrent);
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    private function dottedForLocale(string $locale): array
+    {
+        try {
+            return DB::table('i18n_translations')
+                ->join('i18n_languages', 'i18n_languages.id', '=', 'i18n_translations.language_id')
+                ->join('i18n_translation_keys', 'i18n_translation_keys.id', '=', 'i18n_translations.translation_key_id')
+                ->where('i18n_languages.code', $locale)
+                ->pluck('i18n_translations.value', 'i18n_translation_keys.key')
+                ->all();
+        } catch (Throwable) {
             return [];
         }
+    }
 
-        foreach (File::files($path) as $file) {
-            if (str_ends_with($file->getFilename(), '_ui.php')) {
-                continue;
+    /**
+     * @return list<array{code: string, name: string, flag: string}>
+     */
+    private function availableLanguages(): array
+    {
+        if ($this->databaseReady()) {
+            $languages = Language::query()
+                ->where('is_active', true)
+                ->orderBy('name')
+                ->get(['code', 'name', 'flag'])
+                ->map(fn (Language $language): array => [
+                    'code' => $language->code,
+                    'name' => $language->name,
+                    'flag' => $language->flag,
+                ])
+                ->values()
+                ->all();
+
+            if ($languages !== []) {
+                return $languages;
             }
-            $key = $file->getFilenameWithoutExtension();
-            $bundle[$key] = require $file->getPathname();
         }
 
-        return $bundle;
+        return $this->files->availableLanguages();
+    }
+
+    private function databaseHasTranslations(): bool
+    {
+        if (! $this->databaseReady()) {
+            return false;
+        }
+
+        try {
+            return DB::table('i18n_translations')->exists();
+        } catch (Throwable) {
+            return false;
+        }
+    }
+
+    private function databaseReady(): bool
+    {
+        try {
+            return Schema::hasTable('i18n_languages') && Schema::hasTable('i18n_translations');
+        } catch (Throwable) {
+            return false;
+        }
     }
 }

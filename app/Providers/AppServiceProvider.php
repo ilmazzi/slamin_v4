@@ -2,20 +2,20 @@
 
 namespace App\Providers;
 
+use App\Support\Responses\ApiResponse;
 use Carbon\CarbonImmutable;
-use Illuminate\Support\Facades\Date;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\ServiceProvider;
-use Illuminate\Validation\Rules\Password;
+use Domain\Audit\Actions\StoreAuditLogAction;
+use Domain\Audit\Support\AuditLogger;
+use Domain\I18n\Support\DatabaseTranslationLoader;
+use Domain\User\Models\User;
+use Illuminate\Auth\Notifications\VerifyEmail;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Date;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\RateLimiter;
-use App\Support\Responses\ApiResponse;
-use Domain\User\Models\User;
-use Illuminate\Auth\Notifications\ResetPassword;
-use Illuminate\Auth\Notifications\VerifyEmail;
-use Illuminate\Support\Facades\URL;
-use Domain\Audit\Support\AuditLogger;
+use Illuminate\Support\ServiceProvider;
+use Illuminate\Validation\Rules\Password;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -26,8 +26,12 @@ class AppServiceProvider extends ServiceProvider
     {
         $this->app->singleton(AuditLogger::class, function ($app) {
             return new AuditLogger(
-                storeAuditLogAction: $app->make(\Domain\Audit\Actions\StoreAuditLogAction::class),
+                storeAuditLogAction: $app->make(StoreAuditLogAction::class),
             );
+        });
+
+        $this->app->extend('translation.loader', function ($fileLoader) {
+            return new DatabaseTranslationLoader($fileLoader);
         });
     }
 
@@ -72,7 +76,7 @@ class AppServiceProvider extends ServiceProvider
                 config('app.key')
             );
 
-            return rtrim(config('app.frontend_url'), '/') . '/verify-email?' . http_build_query([
+            return rtrim(config('app.frontend_url'), '/').'/verify-email?'.http_build_query([
                 'id' => $id,
                 'hash' => $hash,
                 'expires' => $expires,
@@ -95,7 +99,7 @@ class AppServiceProvider extends ServiceProvider
             $email = (string) $request->string('email');
 
             return Limit::perMinute(5)
-                ->by(mb_strtolower($email) . '|' . $request->ip())
+                ->by(mb_strtolower($email).'|'.$request->ip())
                 ->response(function () {
                     return ApiResponse::error(
                         message: __('auth.too_many_attempts'),

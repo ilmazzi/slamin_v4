@@ -1,5 +1,7 @@
 import { Link } from 'react-router-dom'
 import { resolvePublicUrl } from '../../app/api/url.js'
+import { useI18n } from '../../app/hooks/useI18n.js'
+import SocialActions from './SocialActions.jsx'
 import styles from './SlideCard.module.css'
 
 const isInternalHref = (href) => typeof href === 'string' && href.startsWith('/') && !href.startsWith('//')
@@ -15,8 +17,11 @@ export default function SlideCard({
   openAriaLabel,
   onClick,
   className = '',
+  item = null,
 }) {
+  const { t } = useI18n()
   const resolvedImage = imageUrl ? resolvePublicUrl(imageUrl) : ''
+  const hasSocial = Boolean(item?.id)
 
   return (
     <article className={`${styles.card} ${className}`.trim()} onClick={onClick}>
@@ -33,6 +38,31 @@ export default function SlideCard({
           <h4 className={styles.title}>{title}</h4>
           <p className={styles.description}>{description}</p>
         </div>
+
+        {hasSocial ? (
+          <SocialActions
+            target={item}
+            contentType="event"
+            apiBasePath="/events"
+            publicBasePath="/events"
+            variant="list"
+            showBookmark
+            metrics={{
+              views: item?.views_count ?? 0,
+              likes: item?.likes_count ?? 0,
+              comments: item?.comments_count ?? 0,
+            }}
+            metricsOrder={['views', 'likes', 'comments']}
+            shareLabel={t('events.ui.share')}
+            reportLabel={t('events.ui.report')}
+            bookmarkLabel={item?.is_bookmarked ? t('events.unsave_event') : t('events.save_event')}
+            className={styles.social}
+            metricsClassName={styles.socialMetrics}
+            metricClassName={styles.socialMetric}
+            metricValueClassName={styles.socialMetricValue}
+            buttonsClassName={styles.socialButtons}
+          />
+        ) : null}
 
         <div className={styles.bottom}>
           <div className={styles.left}>

@@ -24,6 +24,7 @@ class ListEventQuery
             ])
             ->where('status', EventStatus::Published)
             ->where('is_public', true)
+            ->withEngagement(auth('sanctum')->id())
             ->orderByDesc('published_at')
             ->orderByDesc('created_at');
 

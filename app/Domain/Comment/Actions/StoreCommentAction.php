@@ -5,6 +5,8 @@ namespace Domain\Comment\Actions;
 use Domain\Article\Enums\ArticleStatus;
 use Domain\Article\Models\Article;
 use Domain\Comment\Models\Comment;
+use Domain\Event\Enums\EventStatus;
+use Domain\Event\Models\Event;
 use Domain\Media\Enums\MediaStatus;
 use Domain\Media\Enums\MediaVisibility;
 use Domain\Media\Models\MediaItem;
@@ -20,8 +22,7 @@ class StoreCommentAction
 {
     public function __construct(
         private readonly CreateNotificationAction $createNotificationAction,
-    ) {
-    }
+    ) {}
 
     public function execute(Model $commentable, int $userId, string $content, ?int $parentId = null): Comment
     {
@@ -92,13 +93,19 @@ class StoreCommentAction
             }
         }
 
+        if ($commentable instanceof Event) {
+            if ($commentable->status === EventStatus::Published && $commentable->is_public === true) {
+                return;
+            }
+        }
+
         if ($commentable instanceof MediaItem) {
             if ($commentable->status === MediaStatus::Ready && $commentable->visibility === MediaVisibility::Public) {
                 return;
             }
         }
 
-        throw new NotFoundHttpException();
+        throw new NotFoundHttpException;
     }
 
     private function notifyInterestedUsers(Model $commentable, Comment $comment, ?Comment $parent): void
@@ -106,6 +113,7 @@ class StoreCommentAction
         $commentableType = match (true) {
             $commentable instanceof Poem => 'poem',
             $commentable instanceof Article => 'article',
+            $commentable instanceof Event => 'event',
             default => 'media',
         };
         $slug = $commentable->slug ?? null;
@@ -117,11 +125,13 @@ class StoreCommentAction
                 title: match ($commentableType) {
                     'poem' => __('comment.notifications.poem_commented_title'),
                     'article' => __('comment.notifications.article_commented_title'),
+                    'event' => __('comment.notifications.event_commented_title'),
                     default => __('comment.notifications.media_commented_title'),
                 },
                 message: match ($commentableType) {
                     'poem' => __('comment.notifications.poem_commented_message', ['title' => $commentable->title]),
                     'article' => __('comment.notifications.article_commented_message', ['title' => $commentable->title]),
+                    'event' => __('comment.notifications.event_commented_message', ['title' => $commentable->title]),
                     default => __('comment.notifications.media_commented_message', ['title' => $commentable->title]),
                 },
                 data: [

@@ -2,8 +2,9 @@
 
 use Domain\Article\Models\Article;
 use Domain\Comment\Models\Comment;
+use Domain\Event\Models\Event;
+use Domain\Event\Models\EventCategory;
 use Domain\Media\Models\MediaItem;
-use Domain\Notification\Models\Notification;
 use Domain\Poetry\Models\Poem;
 use Domain\User\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -144,7 +145,7 @@ it('updates and deletes only own comments', function () {
 
     $comment = Comment::query()->create([
         'user_id' => $owner->id,
-        'commentable_type' => (new Article())->getMorphClass(),
+        'commentable_type' => (new Article)->getMorphClass(),
         'commentable_id' => 1,
         'content' => 'Old content',
     ]);
@@ -308,4 +309,51 @@ it('lists media comments only for ready public media', function () {
 
     $this->getJson("/api/v1/media/{$privateMedia->id}/comments")
         ->assertNotFound();
+});
+
+it('creates a comment on a published public event and notifies the organizer', function () {
+    $owner = commentUser();
+    $commenter = commentUser();
+    Sanctum::actingAs($commenter);
+
+    $category = EventCategory::query()->create([
+        'slug' => 'open-mic',
+        'is_active' => true,
+        'sort_order' => 1,
+    ]);
+
+    /** @var Event $event */
+    $event = Event::query()->create([
+        'user_id' => $owner->id,
+        'event_category_id' => $category->id,
+        'title' => 'Evento commentabile',
+        'slug' => 'evento-commentabile',
+        'description' => 'Body',
+        'schedule_mode' => 'fixed',
+        'delivery_mode' => 'online',
+        'status' => 'published',
+        'is_public' => true,
+        'published_at' => now(),
+    ]);
+
+    $this->postJson("/api/v1/events/{$event->id}/comments", [
+        'content' => 'Ci saro',
+    ])
+        ->assertOk()
+        ->assertJsonPath('data.comment.content', 'Ci saro');
+
+    $this->assertDatabaseHas('comments', [
+        'commentable_type' => $event->getMorphClass(),
+        'commentable_id' => $event->id,
+        'content' => 'Ci saro',
+    ]);
+
+    $this->assertDatabaseHas('notifications', [
+        'user_id' => $owner->id,
+        'type' => 'event_commented',
+    ]);
+
+    $this->getJson("/api/v1/events/{$event->id}/comments")
+        ->assertOk()
+        ->assertJsonCount(1, 'data');
 });

@@ -38,6 +38,8 @@ return [
         'participant_response_message' => 'An invitee has :response the invitation to the event ":title".',
         'audience_response_title' => 'Audience invitation response',
         'audience_response_message' => 'A user has :response the audience invitation to the event ":title".',
+        'updated_title' => 'Event updated',
+        'updated_message' => 'The event ":title" has been updated. Check the new details.',
     ],
     'mail' => [
         'external_participant_invite_subject' => 'Invitation to join ":title"',

@@ -5,7 +5,9 @@ namespace App\Http\Controllers\Api\V1\Home;
 use App\Http\Controllers\Controller;
 use App\Support\Responses\ApiResponse;
 use Domain\Media\Actions\ListMediaAction;
+use Domain\Media\DTOs\ListMediaData;
 use Domain\Media\Enums\MediaType;
+use Domain\Media\Models\MediaItem;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -13,8 +15,7 @@ class ShowHomeMediaController extends Controller
 {
     public function __construct(
         private readonly ListMediaAction $action,
-    ) {
-    }
+    ) {}
 
     public function __invoke(Request $request): JsonResponse
     {
@@ -23,20 +24,25 @@ class ShowHomeMediaController extends Controller
 
         // Lightweight "home" slice: we only need a handful of public-ready media cards.
         $media = $this->action->execute(
-            viewerUserId: $request->user()?->id,
-            perPage: 6,
+            auth('sanctum')->id() ?? $request->user()?->id,
+            new ListMediaData(
+                perPage: 6,
+                search: null,
+                type: null,
+                sort: 'newest',
+            ),
         );
 
         $items = collect($media->items())
             ->take(3)
             ->values()
             ->map(function ($item, int $index): array {
-                /** @var \Domain\Media\Models\MediaItem $item */
+                /** @var MediaItem $item */
                 $resolvedUrl = $item->resolvedFileUrl();
 
                 $coverUrl = null;
                 if ($item->type === MediaType::Video) {
-                    $coverUrl = $item->peertube_thumbnail_url;
+                    $coverUrl = $item->resolvedThumbnailUrl();
                 } elseif ($item->type === MediaType::Photo) {
                     $coverUrl = $resolvedUrl;
                 }
@@ -51,7 +57,7 @@ class ShowHomeMediaController extends Controller
                     'tone' => ['charcoal', 'sepia', 'graphite'][$index % 3],
                     'title' => $title !== '' ? $title : __('home.community_media.no_title'),
                     'subtitle' => $description !== '' ? $description : __('home.community_media.no_description'),
-                    'href' => null,
+                    'href' => '/media/'.$item->id,
                     'media_url' => $resolvedUrl,
                     'cover_url' => $coverUrl,
                     'stats' => [

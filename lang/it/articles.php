@@ -26,6 +26,9 @@ return [
         'prev' => 'Precedente',
         'next' => 'Successiva',
         'page' => 'Pagina :current di :last',
+        'prev_page' => 'Pagina precedente',
+        'next_page' => 'Pagina successiva',
+        'results' => 'Mostra :from-:to di :total risultati',
     ],
     'featured' => [
         'title' => 'altro dalla redazione',
@@ -54,5 +57,10 @@ return [
         'report_cancel' => 'Annulla',
         'report_confirm' => 'Invia segnalazione',
         'report_submitted' => 'Segnalazione inviata',
+        'report' => 'Segnala',
+        'save' => 'Salva',
     ],
+    'missing_slug' => 'Identificativo articolo mancante.',
+    'not_found' => 'Articolo non trovato.',
+    'no_category' => 'Senza categoria',
 ];

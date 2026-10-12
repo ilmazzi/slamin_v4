@@ -7,18 +7,21 @@ use App\Http\Requests\Api\V1\Media\ListMediaRequest;
 use App\Http\Resources\Api\V1\Media\MediaItemResource;
 use App\Support\Responses\ApiResponse;
 use Domain\Media\Actions\ListMediaAction;
+use Domain\Media\DTOs\ListMediaData;
 use Illuminate\Http\JsonResponse;
 
 class ListMediaController extends Controller
 {
     public function __construct(
         private readonly ListMediaAction $action,
-    ) {
-    }
+    ) {}
 
     public function __invoke(ListMediaRequest $request): JsonResponse
     {
-        $media = $this->action->execute($request->user()?->id, (int) $request->validated('per_page', 15));
+        $media = $this->action->execute(
+            auth('sanctum')->id() ?? $request->user()?->id,
+            ListMediaData::fromRequest($request),
+        );
 
         return ApiResponse::success(
             data: MediaItemResource::collection($media->items()),

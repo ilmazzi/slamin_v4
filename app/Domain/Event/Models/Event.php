@@ -14,6 +14,7 @@ use Domain\Moderation\Models\ModerationDecision;
 use Domain\PoetrySlam\Models\PoetrySlam;
 use Domain\Report\Models\Report;
 use Domain\User\Models\User;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
@@ -181,4 +182,24 @@ class Event extends Model
         return $this->morphMany(ModerationDecision::class, 'moderatable');
     }
 
+    public function scopeWithEngagement(Builder $query, ?int $userId): Builder
+    {
+        return $query
+            ->withCount(['likes', 'comments', 'bookmarks'])
+            ->withExists([
+                'likes as is_liked' => fn ($builder) => $builder->where('user_id', $userId ?? 0),
+                'bookmarks as is_bookmarked' => fn ($builder) => $builder->where('user_id', $userId ?? 0),
+            ]);
+    }
+
+    public function loadEngagement(?int $userId): static
+    {
+        $this->loadCount(['likes', 'comments', 'bookmarks']);
+        $this->loadExists([
+            'likes as is_liked' => fn ($builder) => $builder->where('user_id', $userId ?? 0),
+            'bookmarks as is_bookmarked' => fn ($builder) => $builder->where('user_id', $userId ?? 0),
+        ]);
+
+        return $this;
+    }
 }

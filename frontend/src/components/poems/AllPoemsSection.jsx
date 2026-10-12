@@ -1,61 +1,129 @@
-import styles from './AllPoemsSection.module.css'
-import PoemTeaserCard from '../shared/PoemTeaserCard.jsx'
+import { useMemo, useState } from 'react'
 import { useI18n } from '../../app/hooks/useI18n.js'
 import { usePaginatedApiList } from '../../app/hooks/usePaginatedApiList.js'
 import { listPoems } from '../../app/api/poems.js'
-import { useState } from 'react'
+import PoemCatalogCard from './PoemCatalogCard.jsx'
 import Pagination from '../shared/Pagination.jsx'
+import styles from './AllPoemsSection.module.css'
 
-const MAX_PER_PAGE = 5
+const SLIDE_SIZE = 9
+const FETCH_PER_PAGE = 100
+const COLUMNS = 3
 
+function chunkItems(items, size) {
+  const rows = []
+  for (let index = 0; index < items.length; index += size) {
+    rows.push(items.slice(index, index + size))
+  }
+  return rows
+}
 
-export default function AllPoemsSection() {
+function ChevronIcon({ direction }) {
+  const isPrev = direction === 'prev'
+  return (
+    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path
+        d={isPrev ? 'M15 5L8 12L15 19' : 'M9 5L16 12L9 19'}
+        stroke="currentColor"
+        strokeWidth="2.4"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  )
+}
 
+function PoemSlide({ poems, locale, t }) {
+  const rows = chunkItems(poems, COLUMNS)
 
-  const { t, locale } = useI18n()
-  const [titlePrefix = '', ...titleRest] = t('poems.all.title').split(' ')
-  const titleEmphasis = titleRest.join(' ')
-  const [page, setPage] = useState(1)
-  const {
-    items: poems,
-    isLoading,
-    error,
-    meta,
-  } = usePaginatedApiList({
+  return (
+    <div className={styles.slide}>
+      {rows.map((row, rowIndex) => (
+        <div
+          key={`row-${rowIndex}`}
+          className={`${styles.row} ${rowIndex % 2 === 1 ? styles.rowStaggered : ''}`}
+        >
+          {row.map((poem) => (
+            <div key={poem.id ?? poem.slug} className={styles.cardWrap}>
+              <PoemCatalogCard poem={poem} locale={locale} t={t} />
+            </div>
+          ))}
+        </div>
+      ))}
+    </div>
+  )
+}
+
+export default function AllPoemsSection({
+  poems: poemsProp,
+  isLoading: loadingProp,
+  error: errorProp,
+  locale: localeProp,
+  t: tProp,
+  page = 1,
+  lastPage: lastPageProp,
+  onPageChange,
+  search = '',
+  poemCategoryId = null,
+  language = '',
+  sort = 'newest',
+  showHeader = false,
+  showPagination = true,
+  perPage = SLIDE_SIZE,
+}) {
+  const i18n = useI18n()
+  const t = tProp ?? i18n.t
+  const locale = localeProp ?? i18n.locale
+  const ownsFetch = poemsProp === undefined
+  const [internalPage, setInternalPage] = useState(1)
+
+  const fetched = usePaginatedApiList({
     fetcher: listPoems,
     params: {
-      page,
-      perPage: MAX_PER_PAGE,
+      page: 1,
+      perPage: FETCH_PER_PAGE,
+      poemCategoryId,
+      search,
+      language,
+      sort,
     },
-    deps: [page],
+    enabled: ownsFetch,
+    deps: [poemCategoryId, search, language, sort, ownsFetch],
   })
-  const currentPage = meta?.current_page ?? page
-  const lastPage = meta?.last_page ?? 1
-  const allTitle = t('poems.all.title') === 'poems.all.title'
-    ? 'All Poems'
-    : t('poems.all.title')
-  const loadingLabel = t('common.loading') === 'common.loading' ? 'Loading...' : t('common.loading')
-  const pageLabelTemplate =
-    t('poems.pagination.page') === 'poems.pagination.page'
-      ? 'Pagina :current di :last'
-      : t('poems.pagination.page')
-  const paginationInfo = pageLabelTemplate
-    .replace(':current', String(currentPage))
-    .replace(':last', String(lastPage))
-  const prevPaginationLabel =
-    t('poems.pagination.prev') === 'poems.pagination.prev'
-      ? 'Pagina precedente'
-      : t('poems.pagination.prev')
-  const nextPaginationLabel =
-    t('poems.pagination.next') === 'poems.pagination.next'
-      ? 'Pagina successiva'
-      : t('poems.pagination.next')
+
+  const fetchedPoems = ownsFetch ? fetched.items : poemsProp
+  const poems = useMemo(
+    () => (Array.isArray(fetchedPoems) ? fetchedPoems : []),
+    [fetchedPoems],
+  )
+  const isLoading = ownsFetch ? fetched.isLoading : Boolean(loadingProp)
+  const error = ownsFetch ? fetched.error : errorProp
+  const slides = useMemo(() => chunkItems(poems, perPage), [poems, perPage])
+  const derivedLastPage = Math.max(1, slides.length)
+  const currentPage = ownsFetch
+    ? Math.min(internalPage, derivedLastPage)
+    : Math.min(Math.max(1, page), lastPageProp || derivedLastPage)
+  const lastPage = ownsFetch ? derivedLastPage : Math.max(1, Number(lastPageProp ?? derivedLastPage))
+  const handlePageChange = ownsFetch ? setInternalPage : onPageChange
+  const [titlePrefix = '', ...titleRest] = t('poems.all.title').split(' ')
+  const titleEmphasis = titleRest.join(' ')
+  const canGoPrev = currentPage > 1
+  const canGoNext = currentPage < lastPage
+  const total = ownsFetch ? (fetched.meta?.total ?? poems.length) : poems.length
+
+  function goTo(nextPage) {
+    if (typeof handlePageChange !== 'function') {
+      return
+    }
+    const clamped = Math.min(lastPage, Math.max(1, nextPage))
+    handlePageChange(clamped)
+  }
 
   if (isLoading) {
     return (
       <section className={styles.section}>
-        <h1 className={styles.title}>{allTitle}</h1>
-        <p>{loadingLabel}</p>
+        {showHeader ? <h2 className={styles.title}>{t('poems.all.title')}</h2> : null}
+        <p className={styles.empty}>{t('common.loading')}</p>
       </section>
     )
   }
@@ -63,23 +131,23 @@ export default function AllPoemsSection() {
   if (error) {
     return (
       <section className={styles.section}>
-        <h1 className={styles.title}>{allTitle}</h1>
-        <p>{error}</p>
+        {showHeader ? <h2 className={styles.title}>{t('poems.all.title')}</h2> : null}
+        <p className={styles.empty}>{error}</p>
       </section>
     )
   }
 
-
-
-  if (!poems?.length) {
+  if (!poems.length) {
     return (
       <section className={styles.section}>
-        <header className={styles.header}>
-          <h2 className={styles.title}>
-            <span className={styles.titlePrefix}>{titlePrefix} </span>
-            <span className={styles.titleEmphasis}>{titleEmphasis}</span>
-          </h2>
-        </header>
+        {showHeader ? (
+          <header className={styles.header}>
+            <h2 className={styles.title}>
+              <span className={styles.titlePrefix}>{titlePrefix} </span>
+              <span className={styles.titleEmphasis}>{titleEmphasis}</span>
+            </h2>
+          </header>
+        ) : null}
         <p className={styles.empty}>{t('poems.all.empty')}</p>
       </section>
     )
@@ -87,32 +155,69 @@ export default function AllPoemsSection() {
 
   return (
     <section className={styles.section}>
-      <header className={styles.header}>
-        <h2 className={styles.title}>
-          <span className={styles.titlePrefix}>{titlePrefix} </span>
-          <span className={styles.titleEmphasis}>{titleEmphasis}</span>
-        </h2>
-      </header>
+      {showHeader ? (
+        <header className={styles.header}>
+          <h2 className={styles.title}>
+            <span className={styles.titlePrefix}>{titlePrefix} </span>
+            <span className={styles.titleEmphasis}>{titleEmphasis}</span>
+          </h2>
+        </header>
+      ) : null}
 
-      <div className={styles.grid}>
-        {poems.map((poem) => (
-          <PoemTeaserCard
-            key={poem.id ?? poem.slug}
-            poem={poem}
-            locale={locale}
-            t={t}
-            href="/poems"
-          />
-        ))}
+      <div className={styles.slider}>
+        <button
+          type="button"
+          className={`${styles.navButton} ${styles.prev}`}
+          aria-label={t('poems.pagination.prev_page')}
+          onClick={() => goTo(currentPage - 1)}
+          disabled={!canGoPrev}
+        >
+          <ChevronIcon direction="prev" />
+        </button>
+
+        <div className={styles.viewport}>
+          <div
+            className={styles.track}
+            style={{ transform: `translateX(-${(currentPage - 1) * 100}%)` }}
+          >
+            {slides.map((slidePoems, slideIndex) => (
+              <PoemSlide
+                key={slidePoems[0]?.id ?? `slide-${slideIndex}`}
+                poems={slidePoems}
+                locale={locale}
+                t={t}
+              />
+            ))}
+          </div>
+        </div>
+
+        <button
+          type="button"
+          className={`${styles.navButton} ${styles.next}`}
+          aria-label={t('poems.pagination.next_page')}
+          onClick={() => goTo(currentPage + 1)}
+          disabled={!canGoNext}
+        >
+          <ChevronIcon direction="next" />
+        </button>
       </div>
-      <Pagination
-  currentPage={currentPage}
-  lastPage={lastPage}
-  onPageChange={setPage}
-  prevAriaLabel={prevPaginationLabel}
-  nextAriaLabel={nextPaginationLabel}
-  infoText={paginationInfo}
-/>
+
+      {showPagination ? (
+        <div className={styles.paginationSlot}>
+          <Pagination
+            currentPage={currentPage}
+            lastPage={lastPage}
+            onPageChange={goTo}
+            prevAriaLabel={t('poems.pagination.prev_page')}
+            nextAriaLabel={t('poems.pagination.next_page')}
+            infoText={t('poems.pagination.results', {
+              from: poems.length ? ((currentPage - 1) * perPage) + 1 : 0,
+              to: Math.min(total, currentPage * perPage),
+              total,
+            })}
+          />
+        </div>
+      ) : null}
     </section>
   )
 }

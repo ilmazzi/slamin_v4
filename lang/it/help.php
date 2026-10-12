@@ -1,0 +1,20 @@
+<?php
+
+return [
+    'errors' => [
+        'category_in_use' => 'Non puoi eliminare una categoria gia usata da una o piu guide.',
+    ],
+    'ui' => [
+        'title' => 'Guida e aiuto',
+        'subtitle' => 'Tutte le informazioni di cui hai bisogno per utilizzare la piattaforma',
+        'search' => 'Cerca',
+        'search_placeholder' => 'Cerca nella guida',
+        'category' => 'Categoria',
+        'category_all' => 'Tutte le categorie',
+        'loading' => 'Caricamento della guida...',
+        'load_error' => 'Impossibile caricare la guida.',
+        'empty' => 'Nessuna guida trovata.',
+        'open' => 'Apri',
+        'close' => 'Chiudi',
+    ],
+];

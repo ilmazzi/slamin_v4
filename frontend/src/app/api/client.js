@@ -1,5 +1,6 @@
 import { authFetch } from './authFetch.js'
 import { getApiUrl } from './url.js'
+import { localeHeaders } from '../i18n/locale.js'
 import { readApiErrorMessage, readJsonSafe } from './slaminApi.js'
 
 function normalizeMeta(payload) {
@@ -9,7 +10,7 @@ function normalizeMeta(payload) {
 export async function apiGet(path, { signal, cache = 'no-store', fallbackMessage = 'Request failed' } = {}) {
   const response = await fetch(getApiUrl(path), {
     signal,
-    headers: { Accept: 'application/json' },
+    headers: { Accept: 'application/json', ...localeHeaders() },
     cache,
   })
 
@@ -88,5 +89,41 @@ export async function authApiPost(path, data, {token, signal, cache = 'no-store'
     fallbackMessage,
     allowStatuses: [200, 201],
     body: isFormData ? data : JSON.stringify(data),
+  })
+}
+
+export async function authApiPut(path, data, { token, signal, fallbackMessage = 'Request failed' } = {}) {
+  return authApiRequest(path, {
+    token,
+    signal,
+    method: 'PUT',
+    headers: { Accept: 'application/json', 'Content-Type': 'application/json' },
+    fallbackMessage,
+    body: JSON.stringify(data),
+  })
+}
+
+export async function authApiPatch(path, data, { token, signal, fallbackMessage = 'Request failed' } = {}) {
+  const isFormData = typeof FormData !== 'undefined' && data instanceof FormData
+
+  return authApiRequest(path, {
+    token,
+    signal,
+    method: 'PATCH',
+    headers: isFormData
+      ? { Accept: 'application/json' }
+      : { Accept: 'application/json', 'Content-Type': 'application/json' },
+    fallbackMessage,
+    body: isFormData ? data : JSON.stringify(data),
+  })
+}
+
+export async function authApiDelete(path, { token, signal, fallbackMessage = 'Request failed' } = {}) {
+  return authApiRequest(path, {
+    token,
+    signal,
+    method: 'DELETE',
+    headers: { Accept: 'application/json' },
+    fallbackMessage,
   })
 }

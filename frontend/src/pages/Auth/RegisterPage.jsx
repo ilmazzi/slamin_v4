@@ -63,7 +63,7 @@ export function RegisterPage() {
         return
       }
 
-      login(data.token, data.user)
+      await login(data.token, data.user)
       navigate('/dashboard', { replace: true })
     } catch {
       setErrorMessage(t('common.no_results'))

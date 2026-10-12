@@ -9,7 +9,7 @@ export const categoryCards = [
   },
   {
     key: 'ingaggi',
-    href: '/events',
+    href: '/gigs',
     accent: '#fdae5f',
     tone: 'gigs',
     imageSrc: '/images/home/gigs.webp',
@@ -17,7 +17,7 @@ export const categoryCards = [
   },
   {
     key: 'poesie',
-    href: '/dashboard',
+    href: '/poems',
     accent: '#a553dd',
     tone: 'poems',
     imageSrc: '/images/home/poems.webp',
@@ -25,7 +25,7 @@ export const categoryCards = [
   },
   {
     key: 'notizie',
-    href: '/dashboard',
+    href: '/articles',
     accent: '#6574de',
     tone: 'news',
     imageSrc: '/images/home/articles.webp',

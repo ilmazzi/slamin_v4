@@ -10,6 +10,7 @@ class DatabaseSeeder extends Seeder
     {
         $this->call([
             RoleSeeder::class,
+            I18nSeeder::class,
             ContentPublicationSettingSeeder::class,
             PoemCategorySeeder::class,
             PoemTypeSeeder::class,
@@ -18,6 +19,7 @@ class DatabaseSeeder extends Seeder
             ArticleSeeder::class,
             EventCategorySeeder::class,
             EventSeeder::class,
+            HelpSeeder::class,
         ]);
     }
 }

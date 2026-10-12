@@ -36,21 +36,9 @@ export default function ArticleDetailPage() {
 
   const currentPage = Math.max(1, Number(meta?.current_page ?? allArticlesPage))
   const lastPage = Math.max(1, Number(meta?.last_page ?? 1))
-  const paginationInfoTemplate =
-    t('articles.pagination.page') === 'articles.pagination.page'
-      ? 'Pagina :current di :last'
-      : t('articles.pagination.page')
-  const prevPaginationLabel =
-    t('articles.pagination.prev') === 'articles.pagination.prev'
-      ? 'Pagina precedente'
-      : t('articles.pagination.prev')
-  const nextPaginationLabel =
-    t('articles.pagination.next') === 'articles.pagination.next'
-      ? 'Pagina successiva'
-      : t('articles.pagination.next')
-  const paginationInfo = paginationInfoTemplate
-    .replace(':current', String(currentPage))
-    .replace(':last', String(lastPage))
+  const prevPaginationLabel = t('articles.pagination.prev_page')
+  const nextPaginationLabel = t('articles.pagination.next_page')
+  const paginationInfo = t('articles.pagination.page', { current: currentPage, last: lastPage })
 
   useEffect(() => {
     if (location.hash !== '#comments' && !location.state?.focusComments) {
@@ -101,7 +89,7 @@ export default function ArticleDetailPage() {
           />
         </div>
         <div id="comments" ref={commentsRef} style={{ scrollMarginTop: 104 }}>
-          <CommentsThread contentType="article" contentId={articleDetail?.id ?? null} title="Commenti articolo" />
+          <CommentsThread contentType="article" contentId={articleDetail?.id ?? null} />
         </div>
         <FeaturedArticles />
         <AllArticlesSection articles={allArticles} locale={locale} t={t} />

@@ -33,6 +33,7 @@ export default function Header({
   const [mainMenuTop, setMainMenuTop] = useState(null)
   const headerRef = useRef(null)
   const canSeeAdminMenu = hasAnyRole(['admin', 'moderator'])
+  const canSeeTranslations = hasAnyRole(['admin', 'translator'])
 
   const discoverItems = useMemo(() => {
     const items = [
@@ -206,6 +207,9 @@ export default function Header({
             onMainMenuClose={handleCloseMobileMenu}
             onMenuClick={handleToggleMobileMenu}
             t={t}
+            showAdmin={canSeeTranslations || canSeeAdminMenu}
+            adminHref="/admin"
+            adminLabel={t('header.admin')}
           />
         </div>
       </div>
@@ -274,16 +278,33 @@ export default function Header({
           </div>
         </div>
 
-        {canSeeAdminMenu ? (
-          <div className={styles.mobileMenuAdminList}>
-            <Link to="/moderation/dashboard" className={`${styles.menuArrowLink} ${styles.menuArrowLinkRed} ${styles.mobileMenuAdminLink}`} onClick={handleCloseMobileMenu}>
-              <span className={styles.menuArrow}>›</span>
-              <span>{t('common.moderation_dashboard')}</span>
-            </Link>
-            <Link to="/admin/settings" className={`${styles.menuArrowLink} ${styles.menuArrowLinkRed} ${styles.mobileMenuAdminLink}`} onClick={handleCloseMobileMenu}>
-              <span className={styles.menuArrow}>›</span>
-              <span>{t('common.admin_settings')}</span>
-            </Link>
+        {canSeeTranslations || canSeeAdminMenu ? (
+          <div className={styles.menuSection}>
+            <h3 className={styles.menuSectionTitle}>{t('header.menu.admin_title')}</h3>
+            <div className={styles.menuSectionList}>
+              <Link to="/admin" className={`${styles.menuArrowLink} ${styles.menuArrowLinkRed}`} onClick={handleCloseMobileMenu}>
+                <span className={styles.menuArrow}>›</span>
+                <span>{t('header.admin')}</span>
+              </Link>
+              {canSeeTranslations ? (
+                <Link to="/admin/translations" className={`${styles.menuArrowLink} ${styles.menuArrowLinkRed}`} onClick={handleCloseMobileMenu}>
+                  <span className={styles.menuArrow}>›</span>
+                  <span>{t('i18n.panel.title')}</span>
+                </Link>
+              ) : null}
+              {canSeeAdminMenu ? (
+                <>
+                  <Link to="/moderation/dashboard" className={`${styles.menuArrowLink} ${styles.menuArrowLinkRed}`} onClick={handleCloseMobileMenu}>
+                    <span className={styles.menuArrow}>›</span>
+                    <span>{t('common.moderation_dashboard')}</span>
+                  </Link>
+                  <Link to="/admin/settings" className={`${styles.menuArrowLink} ${styles.menuArrowLinkRed}`} onClick={handleCloseMobileMenu}>
+                    <span className={styles.menuArrow}>›</span>
+                    <span>{t('common.admin_settings')}</span>
+                  </Link>
+                </>
+              ) : null}
+            </div>
           </div>
         ) : null}
 

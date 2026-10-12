@@ -16,6 +16,13 @@ class UpdateMediaSettingsAction
                 continue;
             }
 
+            if (
+                in_array($key, ResolveMediaSettingsAction::SECRET_KEYS, true)
+                && ($value === null || $value === '')
+            ) {
+                continue;
+            }
+
             MediaSetting::setValue($key, $value);
         }
     }

@@ -1,0 +1,134 @@
+import { apiGet, authApiGet, authApiPatch } from './client.js'
+
+const DEFAULT_VISIBILITY = {
+  bio: true,
+  location: true,
+  website_url: true,
+  email: false,
+}
+
+function appendIfDefined(formData, key, value) {
+  if (value === undefined) {
+    return
+  }
+  if (value === null) {
+    formData.append(key, '')
+    return
+  }
+  formData.append(key, String(value))
+}
+
+export function defaultVisibility(visibility) {
+  return {
+    ...DEFAULT_VISIBILITY,
+    ...(visibility && typeof visibility === 'object' ? visibility : {}),
+  }
+}
+
+export function ownerProfileFromUser(user) {
+  if (!user) {
+    return null
+  }
+
+  const profile = user.profile && typeof user.profile === 'object' ? user.profile : {}
+
+  return {
+    public_id: profile.public_id ?? null,
+    nickname: profile.nickname ?? user.nickname ?? '',
+    display_name: profile.display_name ?? user.display_name ?? '',
+    bio: profile.bio ?? user.bio ?? '',
+    location: profile.location ?? user.location ?? '',
+    website_url: profile.website_url ?? user.website_url ?? '',
+    preferred_locale: profile.preferred_locale ?? null,
+    is_public: profile.is_public ?? user.is_public ?? true,
+    visibility: defaultVisibility(profile.visibility ?? user.visibility),
+    avatar_url: profile.avatar_url ?? user.profile_photo_url ?? null,
+    banner_url: profile.banner_url ?? user.banner_image_url ?? null,
+    email: profile.email ?? user.email ?? null,
+    is_owner: true,
+  }
+}
+
+export function normalizeWebsiteUrl(value) {
+  const trimmed = String(value ?? '').trim()
+  if (!trimmed) {
+    return null
+  }
+  if (/^https?:\/\//i.test(trimmed)) {
+    return trimmed
+  }
+  return `https://${trimmed}`
+}
+
+export async function getPublicProfile(nickname, { token, signal } = {}) {
+  const safeNickname = String(nickname ?? '').trim()
+  if (!safeNickname) {
+    return { ok: false, status: 400, profile: null }
+  }
+
+  const path = `/api/v1/profiles/${encodeURIComponent(safeNickname)}`
+
+  if (token) {
+    const result = await authApiGet(path, {
+      token,
+      signal,
+      fallbackMessage: 'Unable to load profile.',
+      allowStatuses: [404],
+    })
+
+    return {
+      ok: result.ok,
+      status: result.status,
+      profile: result.data?.profile ?? null,
+    }
+  }
+
+  try {
+    const result = await apiGet(path, {
+      signal,
+      fallbackMessage: 'Unable to load profile.',
+    })
+    return { ok: true, status: 200, profile: result.data?.profile ?? null }
+  } catch {
+    return { ok: false, status: 404, profile: null }
+  }
+}
+
+export async function updateMyProfile(values, { token, signal } = {}) {
+  const hasAvatar = typeof File !== 'undefined' && values?.avatar instanceof File
+  const hasBanner = typeof File !== 'undefined' && values?.banner instanceof File
+  let body = values
+
+  if (hasAvatar || hasBanner || values?.remove_avatar || values?.remove_banner) {
+    const formData = new FormData()
+    Object.entries(values || {}).forEach(([key, value]) => {
+      if (key === 'avatar' || key === 'banner') {
+        return
+      }
+      if (key === 'visibility' && value && typeof value === 'object') {
+        formData.append('visibility', JSON.stringify(value))
+        return
+      }
+      if (typeof value === 'boolean') {
+        formData.append(key, value ? '1' : '0')
+        return
+      }
+      appendIfDefined(formData, key, value)
+    })
+    if (hasAvatar) {
+      formData.append('avatar', values.avatar)
+    }
+    if (hasBanner) {
+      formData.append('banner', values.banner)
+    }
+    body = formData
+  }
+
+  const result = await authApiPatch('/api/v1/me/profile', body, {
+    token,
+    signal,
+    fallbackMessage: 'Unable to update profile.',
+  })
+
+  return result.data?.profile ?? null
+}

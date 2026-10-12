@@ -1,9 +1,16 @@
+import { useI18n } from '../../app/hooks/useI18n.js'
 import MainLayout from '../../components/layout/MainLayout.jsx'
 
 export default function PlaceholderPage({
-  title = 'Pagina in preparazione',
-  description = 'Questa sezione non e ancora disponibile nel frontend corrente.',
+  titleKey = 'common.coming_soon.default_title',
+  descriptionKey = 'common.coming_soon.default_description',
+  title,
+  description,
 }) {
+  const { t } = useI18n()
+  const resolvedTitle = title ?? t(titleKey)
+  const resolvedDescription = description ?? t(descriptionKey)
+
   return (
     <MainLayout>
       <section
@@ -14,8 +21,8 @@ export default function PlaceholderPage({
           color: 'var(--color-black)',
         }}
       >
-        <h1 style={{ margin: 0, fontSize: '2rem', lineHeight: 1.2 }}>{title}</h1>
-        <p style={{ marginTop: 16, fontSize: '1.05rem', lineHeight: 1.5 }}>{description}</p>
+        <h1 style={{ margin: 0, fontSize: '2rem', lineHeight: 1.2 }}>{resolvedTitle}</h1>
+        <p style={{ marginTop: 16, fontSize: '1.05rem', lineHeight: 1.5 }}>{resolvedDescription}</p>
       </section>
     </MainLayout>
   )

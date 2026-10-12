@@ -46,7 +46,7 @@ function buildPoemPayload(poem) {
 
 
 export async function listPoems(
-    { page = 1, perPage = 10, poemCategoryId = null } = {},
+    { page = 1, perPage = 10, poemCategoryId = null, search = '', language = '', sort = 'newest' } = {},
     { signal } = {},
   ) {
     const params = new URLSearchParams()
@@ -54,6 +54,15 @@ export async function listPoems(
     params.set('page', String(page))
     if (poemCategoryId) {
       params.set('poem_category_id', String(poemCategoryId))
+    }
+    if (search) {
+      params.set('q', String(search))
+    }
+    if (language) {
+      params.set('language', String(language))
+    }
+    if (sort) {
+      params.set('sort', String(sort))
     }
 
     const { data, meta } = await apiGet(`/api/v1/poems?${params.toString()}`, { signal })

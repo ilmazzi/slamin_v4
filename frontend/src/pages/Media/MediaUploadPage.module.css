@@ -1,0 +1,164 @@
+.form {
+  width: min(100%, 820px);
+  margin: 0 auto;
+  padding: 48px var(--page-inline-padding) 72px;
+  display: grid;
+  gap: 22px;
+  color: var(--color-black);
+}
+
+.header {
+  display: grid;
+  gap: 8px;
+}
+
+.back {
+  margin: 0;
+}
+
+.back a {
+  color: var(--color-text-muted);
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.back a:hover {
+  color: var(--color-black);
+}
+
+.title {
+  margin: 0;
+  font-size: clamp(2rem, 4vw, 3rem);
+  line-height: 1.1;
+  font-weight: 800;
+}
+
+.lead,
+.limits,
+.loading {
+  margin: 0;
+  color: var(--color-text-muted);
+}
+
+.error,
+.warning {
+  margin: 0;
+  padding: 14px 16px;
+  border-radius: 12px;
+}
+
+.error {
+  border: 1px solid #d35b5b;
+  background: #fff1f1;
+  color: #8f1f1f;
+}
+
+.warning {
+  border: 1px solid #d9b36a;
+  background: #fff8ea;
+  color: #6a4b12;
+}
+
+.typeSwitch {
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.typeRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 8px;
+}
+
+.typeButton,
+.typeActive {
+  border: 1px solid var(--color-border);
+  border-radius: 999px;
+  padding: 10px 18px;
+  background: #fff;
+  color: #111;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.typeActive {
+  background: #111;
+  border-color: #111;
+  color: #fff;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px 20px;
+}
+
+.field {
+  display: grid;
+  gap: 8px;
+}
+
+.full {
+  grid-column: 1 / -1;
+}
+
+.label {
+  font-size: 0.94rem;
+  font-weight: 700;
+}
+
+.input,
+.textarea,
+.fileInput {
+  width: 100%;
+  border: 1px solid rgba(0, 0, 0, 0.18);
+  background: #fff;
+  color: #111;
+  border-radius: 10px;
+  padding: 12px 14px;
+  font: inherit;
+}
+
+.textarea {
+  resize: vertical;
+  min-height: 120px;
+}
+
+.hint {
+  color: var(--color-text-muted);
+  font-size: 0.88rem;
+}
+
+.actions {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.submit {
+  border: 0;
+  border-radius: 999px;
+  background: var(--color-red);
+  color: #fff;
+  padding: 14px 22px;
+  font: inherit;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.submit:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+@media (max-width: 768px) {
+  .form {
+    padding: 32px 24px 56px;
+  }
+
+  .grid {
+    grid-template-columns: 1fr;
+  }
+}

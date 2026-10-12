@@ -6,6 +6,12 @@ use Domain\Media\Models\MediaSetting;
 
 class ResolveMediaSettingsAction
 {
+    public const SECRET_KEYS = [
+        'peertube_admin_password',
+        'stripe_secret_key',
+        'stripe_webhook_secret',
+    ];
+
     public const DEFAULTS = [
         'photo_limit' => 50,
         'video_limit' => 3,
@@ -37,6 +43,21 @@ class ResolveMediaSettingsAction
 
         foreach (self::DEFAULTS as $key => $default) {
             $settings[$key] = MediaSetting::getValue($key, $default);
+        }
+
+        return $settings;
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    public function presentForAdmin(): array
+    {
+        $settings = $this->execute();
+
+        foreach (self::SECRET_KEYS as $key) {
+            $settings[$key.'_set'] = filled($settings[$key] ?? null);
+            $settings[$key] = null;
         }
 
         return $settings;

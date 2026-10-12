@@ -1,7 +1,8 @@
 import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import L from 'leaflet'
-import { MapContainer, Marker, TileLayer, useMapEvents } from 'react-leaflet'
-import { useParams } from 'react-router-dom'
+import { MapContainer, Marker, useMapEvents } from 'react-leaflet'
+import OsmTileLayer from '../../app/maps/OsmTileLayer.jsx'
+import { useLocation, useParams } from 'react-router-dom'
 import { formatLocaleNumber } from '../../app/formatters/number.js'
 import { useDashboardWidgets } from '../../app/hooks/useDashboardWidgets.js'
 import { getEventDetail } from '../../app/api/events.js'
@@ -10,11 +11,20 @@ import {
   buildEventDetailSections,
   buildEventLocationLines,
   buildEventMetaItems,
+  flattenEventForDetail,
   formatDisplayValue,
   hasEventCoordinates,
+  isEventOwner,
 } from '../../app/utils/eventDetail.js'
 import MainLayout from '../../components/layout/MainLayout.jsx'
 import PillButton from '../../components/shared/PillButton.jsx'
+import SocialActions from '../../components/shared/SocialActions.jsx'
+import CommentsThread from '../../components/shared/CommentsThread.jsx'
+import ContentReportModal from '../../components/shared/ContentReportModal.jsx'
+import AppToast from '../../components/shared/AppToast.jsx'
+import { useContentFeedbackUi } from '../../app/hooks/useContentFeedbackUi.js'
+import { createEventReport } from '../../app/api/reports.js'
+import { scheduleScrollToComments } from '../../app/utils/scrollToComments.js'
 import HomeDashboardPromo from '../../components/home/HomeDashboardPromo.jsx'
 import {
   ArticleIcon,
@@ -135,20 +145,15 @@ function MapWheelZoomGuard() {
 
 function EventDetailContent({ t, locale, token, user, isAuthenticated }) {
   const { eventId } = useParams()
+  const location = useLocation()
+  const commentsRef = useRef(null)
   const [viewState, setViewState] = useState({
     status: 'loading',
     message: '',
     data: null,
   })
-  const tr = useCallback(
-    (key, fallback) => {
-      const translated = t(key)
-      return translated === key ? fallback : translated
-    },
-    [t],
-  )
-  const invalidMessage = tr('events.detail_page.messages.invalid_identifier', 'Invalid event identifier.')
-  const fallbackMessage = tr('events.detail_page.messages.unable_to_load', 'Unable to load event details.')
+  const invalidMessage = t('events.detail_page.messages.invalid_identifier')
+  const fallbackMessage = t('events.detail_page.messages.unable_to_load')
 
   useEffect(() => {
     const controller = new AbortController()
@@ -247,8 +252,47 @@ function EventDetailContent({ t, locale, token, user, isAuthenticated }) {
     }
   })
 
-  const event = viewState.data?.event ?? null
-  const computed = viewState.data?.computed ?? null
+  const event = useMemo(
+    () => flattenEventForDetail(viewState.data?.event ?? null),
+    [viewState.data?.event],
+  )
+
+  useEffect(() => {
+    if (location.hash !== '#comments' && !location.state?.focusComments) {
+      return
+    }
+    if (!event?.id || !commentsRef.current) {
+      return
+    }
+
+    const cancel = scheduleScrollToComments({ behavior: 'smooth' })
+
+    return cancel
+  }, [location.hash, location.state, event?.id])
+
+  const {
+    reportModalItem,
+    toastMessage,
+    isSubmittingReport,
+    setReportModalItem,
+    setToastMessage,
+    handleReportConfirm,
+  } = useContentFeedbackUi({
+    contentType: 'event',
+    knownItems: event ? [event] : [],
+    shareCopiedMessage: t('events.ui.share_copied'),
+    shareSentMessage: t('events.ui.share_sent'),
+    shareFailedMessage: t('events.ui.share_failed'),
+    reportSubmittedMessage: t('events.ui.report_submitted'),
+    reportFailedMessage: t('common.no_results'),
+    submitReport: async (item, { reason, details }) => {
+      const target = item?.id ?? event?.id ?? null
+      if (!target) {
+        throw new Error(t('common.no_results'))
+      }
+      await createEventReport(target, { reason: reason || 'spam', details: details || null }, { token })
+    },
+  })
   const coverImageUrl = resolvePublicUrl(event?.cover_image_url || event?.cover_image_path || event?.image_url || '')
 
   const locationLines = useMemo(() => {
@@ -282,17 +326,19 @@ function EventDetailContent({ t, locale, token, user, isAuthenticated }) {
   }, [])
 
   const metaItems = useMemo(() => {
-    return buildEventMetaItems({ event, computed, locale, tr })
-  }, [computed, event, locale, tr])
+    return buildEventMetaItems({ event, locale, t })
+  }, [event, locale, t])
 
   const detailSections = useMemo(() => {
-    return buildEventDetailSections({ event, computed, locale, tr })
-  }, [computed, event, locale, tr])
+    return buildEventDetailSections({ event, locale, t })
+  }, [event, locale, t])
+
+  const isOwner = useMemo(() => isEventOwner(user, event), [event, user])
 
   return (
     <main className={styles.page}>
       <section className={styles.detailContainer}>
-        {viewState.status === 'loading' ? <p className={styles.stateMessage}>{tr('events.detail_page.messages.loading', 'Loading event details...')}</p> : null}
+        {viewState.status === 'loading' ? <p className={styles.stateMessage}>{t('events.detail_page.messages.loading')}</p> : null}
         {viewState.status === 'invalid' ? <p className={styles.stateMessage}>{viewState.message}</p> : null}
         {viewState.status === 'unauthorized' ? <p className={styles.stateMessage}>{viewState.message}</p> : null}
         {viewState.status === 'not_found' ? <p className={styles.stateMessage}>{viewState.message}</p> : null}
@@ -303,23 +349,51 @@ function EventDetailContent({ t, locale, token, user, isAuthenticated }) {
             <div className={styles.top}>
               <div className={styles.posterWrap}>
                 {coverImageUrl ? (
-                  <img src={coverImageUrl} alt={event.title || tr('events.poster_alt', 'Event poster')} className={styles.poster} />
+                  <img src={coverImageUrl} alt={event.title || t('events.poster_alt')} className={styles.poster} />
                 ) : (
-                  <div className={styles.posterFallback}>{tr('events.detail_page.messages.no_poster', 'No poster')}</div>
+                  <div className={styles.posterFallback}>{t('events.detail_page.messages.no_poster')}</div>
                 )}
               </div>
 
               <div className={styles.topContent}>
                 <div>
-                  <h1 className={styles.title}>{event.title || `${tr('events.event', 'event')} ${eventId}`}</h1>
-                  <p className={styles.description}>{event.description || tr('events.detail_page.messages.no_description', 'No description available.')}</p>
+                  <h1 className={styles.title}>{event.title || `${t('events.event')} ${eventId}`}</h1>
+                  {event.subtitle ? <p className={styles.subtitle}>{event.subtitle}</p> : null}
+                  <p className={styles.description}>{event.description || t('events.detail_page.messages.no_description')}</p>
                 </div>
 
-                <PillButton
-                  label={event.is_online && event.online_url ? tr('events.detail_page.actions.join_online', 'Join online') : tr('events.book', 'Book')}
-                  href={event.is_online && event.online_url ? event.online_url : undefined}
-                  className={styles.bookButton}
-                />
+                <div className={styles.heroActions}>
+                  <SocialActions
+                    target={event}
+                    contentType="event"
+                    apiBasePath="/events"
+                    publicBasePath="/events"
+                    variant="list"
+                    showBookmark
+                    metrics={{
+                      views: event?.views_count ?? 0,
+                      likes: event?.likes_count ?? 0,
+                      comments: event?.comments_count ?? 0,
+                    }}
+                    metricsOrder={['views', 'likes', 'comments']}
+                    shareLabel={t('events.ui.share')}
+                    reportLabel={t('events.ui.report')}
+                    bookmarkLabel={event?.is_bookmarked ? t('events.unsave_event') : t('events.save_event')}
+                    onComments={() => commentsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
+                    className={styles.social}
+                    metricsClassName={styles.socialMetrics}
+                    metricClassName={styles.socialMetric}
+                    buttonsClassName={styles.socialButtons}
+                  />
+                  {isOwner ? (
+                    <PillButton
+                      label={t('events.detail_page.actions.edit')}
+                      href={`/events/${event.slug || eventId}/edit`}
+                      className={styles.bookButton}
+                      icon="arrow"
+                    />
+                  ) : null}
+                </div>
               </div>
             </div>
 
@@ -329,10 +403,9 @@ function EventDetailContent({ t, locale, token, user, isAuthenticated }) {
                   center={[mapCenter.lat, mapCenter.lng]}
                   zoom={hasMapCoordinates ? 11 : 6}
                   className={styles.mapLeaflet}
-                  attributionControl={false}
                   scrollWheelZoom={false}
                 >
-                  <TileLayer url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png" />
+                  <OsmTileLayer />
                   <MapWheelZoomGuard />
                   {hasMapCoordinates ? (
                     <Marker position={[mapCenter.lat, mapCenter.lng]} icon={eventMarkerIcon} />
@@ -345,7 +418,7 @@ function EventDetailContent({ t, locale, token, user, isAuthenticated }) {
                   <EventLocationIcon className={styles.locationIcon} />
                 </span>
                 <div className={styles.locationText}>
-                  <p className={styles.locationHeading}>{tr('events.city', 'City')}</p>
+                  <p className={styles.locationHeading}>{t('events.city')}</p>
                   {locationLines.length > 0 ? (
                     locationLines.map((line) => (
                       <p key={line} className={styles.locationLine}>
@@ -353,7 +426,7 @@ function EventDetailContent({ t, locale, token, user, isAuthenticated }) {
                       </p>
                     ))
                   ) : (
-                    <p className={styles.locationLine}>{tr('events.detail_page.messages.location_unavailable', 'Location information not available')}</p>
+                    <p className={styles.locationLine}>{t('events.detail_page.messages.location_unavailable')}</p>
                   )}
                 </div>
               </div>
@@ -363,14 +436,17 @@ function EventDetailContent({ t, locale, token, user, isAuthenticated }) {
               {metaItems.map((item) => (
                 <article key={item.label} className={styles.metaCard}>
                   <p className={styles.metaLabel}>{item.label}</p>
-                  <p className={styles.metaValue}>{formatDisplayValue(item.value)}</p>
+                  <p className={styles.metaValue}>{formatDisplayValue(item.value, {
+                    yes: t('events.detail_page.common.yes'),
+                    no: t('events.detail_page.common.no'),
+                  })}</p>
                 </article>
               ))}
             </div>
 
             <section className={styles.extraSection}>
               <div className={styles.extraHeader}>
-                <h2 className={styles.extraTitle}>{tr('events.detail_page.details_title', 'Useful information')}</h2>
+                <h2 className={styles.extraTitle}>{t('events.detail_page.details_title')}</h2>
               </div>
 
               <div className={styles.extraSectionsFlow}>
@@ -391,7 +467,10 @@ function EventDetailContent({ t, locale, token, user, isAuthenticated }) {
                       {section.items.map((item) => (
                         <div key={`${section.id}-${item.label}`} className={styles.detailFact}>
                           <dt className={styles.detailFactLabel}>{item.label}</dt>
-                          <dd className={styles.detailFactValue}>{formatDisplayValue(item.value)}</dd>
+                          <dd className={styles.detailFactValue}>{formatDisplayValue(item.value, {
+                            yes: t('events.detail_page.common.yes'),
+                            no: t('events.detail_page.common.no'),
+                          })}</dd>
                         </div>
                       ))}
                     </dl>
@@ -400,6 +479,12 @@ function EventDetailContent({ t, locale, token, user, isAuthenticated }) {
               </div>
             </section>
           </section>
+        ) : null}
+
+        {viewState.status === 'ready' && event ? (
+          <div ref={commentsRef} id="comments" className={styles.commentsBand}>
+            <CommentsThread contentType="event" contentId={event.id} />
+          </div>
         ) : null}
       </section>
 
@@ -419,6 +504,21 @@ function EventDetailContent({ t, locale, token, user, isAuthenticated }) {
           />
         </section>
       ) : null}
+
+      <ContentReportModal
+        key={reportModalItem?.id ?? 'event-detail-report-closed'}
+        isOpen={Boolean(reportModalItem)}
+        item={reportModalItem}
+        itemTitle={reportModalItem?.title ?? event?.title ?? t('events.event_title')}
+        title={t('events.ui.report_title')}
+        description={t('events.ui.report_description')}
+        cancelLabel={t('events.ui.report_cancel')}
+        confirmLabel={t('events.ui.report_confirm')}
+        isSubmitting={isSubmittingReport}
+        onClose={() => setReportModalItem(null)}
+        onConfirm={handleReportConfirm}
+      />
+      <AppToast message={toastMessage} isVisible={Boolean(toastMessage)} onClose={() => setToastMessage('')} />
 
     </main>
   )

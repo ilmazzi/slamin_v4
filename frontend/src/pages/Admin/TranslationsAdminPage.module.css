@@ -1,0 +1,171 @@
+.page {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 48px 20px 72px;
+  color: var(--color-black);
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  gap: 24px;
+  align-items: flex-end;
+  flex-wrap: wrap;
+  margin-bottom: 28px;
+}
+
+.title {
+  margin: 0;
+  font-size: clamp(2rem, 4vw, 3rem);
+  line-height: 1.1;
+}
+
+.subtitle,
+.coverage {
+  margin: 8px 0 0;
+  color: var(--color-text-muted);
+}
+
+.back {
+  margin: 0 0 10px;
+}
+
+.back a {
+  color: var(--color-text-muted);
+  text-decoration: none;
+}
+
+.back a:hover {
+  color: var(--color-black);
+}
+
+.toolbar,
+.newLanguage {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: end;
+  margin-bottom: 20px;
+}
+
+.field,
+.fieldGrow {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 160px;
+}
+
+.fieldGrow {
+  flex: 1;
+  min-width: 220px;
+}
+
+.field span,
+.fieldGrow span {
+  font-size: 13px;
+  color: var(--color-text-muted);
+}
+
+.field select,
+.fieldGrow input,
+.newLanguage input,
+.table textarea {
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  padding: 10px 12px;
+  font: inherit;
+  background: var(--color-white);
+}
+
+.checkbox {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 42px;
+}
+
+.newLanguage {
+  padding: 16px;
+  border: 1px solid var(--color-border);
+  border-radius: 16px;
+}
+
+.formHint {
+  flex-basis: 100%;
+  margin: 0;
+  font-size: 13px;
+  color: var(--color-text-muted);
+}
+
+.newLanguage button,
+.table button,
+.pagination button {
+  border: 0;
+  border-radius: 999px;
+  background: var(--color-black);
+  color: var(--color-white);
+  padding: 10px 16px;
+  cursor: pointer;
+  font: inherit;
+}
+
+.table button:disabled,
+.pagination button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.message {
+  color: #0f7a3f;
+}
+
+.error {
+  color: #b00020;
+}
+
+.tableWrap {
+  overflow-x: auto;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.table th,
+.table td {
+  text-align: left;
+  vertical-align: top;
+  padding: 12px 10px;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.table th {
+  font-size: 13px;
+  color: var(--color-text-muted);
+}
+
+.table code {
+  font-size: 12px;
+  word-break: break-word;
+}
+
+.table textarea {
+  width: 100%;
+  min-width: 240px;
+  min-height: 72px;
+  resize: vertical;
+}
+
+.missing {
+  background: rgb(227 6 19 / 0.05);
+}
+
+.pagination {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  justify-content: center;
+  margin-top: 24px;
+}

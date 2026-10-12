@@ -1,3 +1,4 @@
+import { useI18n } from '../../app/hooks/useI18n.js'
 import styles from './Pagination.module.css'
 
 function ChevronLeftIcon({ className }) {
@@ -61,12 +62,15 @@ export default function Pagination({
   currentPage,
   lastPage,
   onPageChange,
-  prevAriaLabel = 'Previous page',
-  nextAriaLabel = 'Next page',
+  prevAriaLabel,
+  nextAriaLabel,
   infoText = '',
   maxVisiblePages = 5,
   showSinglePage = false,
 }) {
+  const { t } = useI18n()
+  const resolvedPrevAriaLabel = prevAriaLabel ?? t('articles.pagination.prev_page')
+  const resolvedNextAriaLabel = nextAriaLabel ?? t('articles.pagination.next_page')
   if (lastPage <= 1 && !showSinglePage) {
     return null
   }
@@ -81,7 +85,7 @@ export default function Pagination({
           <button
             type="button"
             className={styles.pageArrow}
-            aria-label={prevAriaLabel}
+            aria-label={resolvedPrevAriaLabel}
             onClick={() => onPageChange(Math.max(1, currentPage - 1))}
             disabled={currentPage <= 1}
           >
@@ -108,7 +112,7 @@ export default function Pagination({
           <button
             type="button"
             className={styles.pageArrow}
-            aria-label={nextAriaLabel}
+            aria-label={resolvedNextAriaLabel}
             onClick={() => onPageChange(Math.min(lastPage, currentPage + 1))}
             disabled={currentPage >= lastPage}
           >

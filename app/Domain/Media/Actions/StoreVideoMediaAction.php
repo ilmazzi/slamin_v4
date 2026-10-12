@@ -5,7 +5,6 @@ namespace Domain\Media\Actions;
 use Domain\Media\DTOs\StoreVideoMediaData;
 use Domain\Media\Enums\MediaStatus;
 use Domain\Media\Enums\MediaType;
-use Domain\Media\Enums\MediaVisibility;
 use Domain\Media\Models\MediaItem;
 use Domain\Media\Services\PeerTubeService;
 use Illuminate\Support\Facades\DB;
@@ -18,8 +17,7 @@ class StoreVideoMediaAction
         private readonly ResolveMediaSettingsAction $resolveMediaSettingsAction,
         private readonly ResolveUserMediaLimitsAction $resolveUserMediaLimitsAction,
         private readonly PeerTubeService $peerTubeService,
-    ) {
-    }
+    ) {}
 
     public function execute(StoreVideoMediaData $data): MediaItem
     {
@@ -84,10 +82,8 @@ class StoreVideoMediaAction
                     'peertube_short_uuid' => $video['shortUUID'] ?? null,
                     'peertube_url' => $this->peerTubeService->buildWatchUrl($video['shortUUID'] ?? null, $video['uuid'] ?? null),
                     'peertube_embed_url' => $this->peerTubeService->buildEmbedUrl($video['shortUUID'] ?? null, $video['uuid'] ?? null),
-                    'peertube_thumbnail_url' => $details && ! empty($details['thumbnailPath'])
-                        ? rtrim($this->peerTubeService->getBaseUrl(), '/') . $details['thumbnailPath']
-                        : null,
-                    'duration_seconds' => $details['duration'] ?? null,
+                    'peertube_thumbnail_url' => $this->peerTubeService->resolveThumbnailUrl($details),
+                    'duration_seconds' => is_array($details) ? ($details['duration'] ?? null) : null,
                     'processing_status' => 'processing',
                 ]);
 

@@ -105,7 +105,7 @@ export default function PoemForm() {
     }
   }
 
-  const loadingLabel = t('common.loading') === 'common.loading' ? 'Loading...' : t('common.loading')
+  const loadingLabel = t('common.loading')
 
   return (
     <>

@@ -7,11 +7,11 @@ use Domain\Event\DTOs\UpdateEventData;
 use Domain\Event\Enums\EventScheduleMode;
 use Domain\Event\Enums\EventStatus;
 use Domain\Event\Models\Event;
+use Domain\Event\Models\EventCategory;
 use Domain\Shared\Enums\ContentType;
 use Domain\Shared\Enums\PublicationFlow;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
-use Domain\Event\Models\EventCategory;
 use Illuminate\Validation\ValidationException;
 
 class UpdateEventAction
@@ -21,12 +21,12 @@ class UpdateEventAction
         private readonly UpsertRecentEventPlaceAction $upsertRecentEventPlaceAction,
         private readonly BuildEventInviteNotificationsAction $buildEventInviteNotificationsAction,
         private readonly NotifyEventInvitesAction $notifyEventInvitesAction,
-    ) {
-    }
+        private readonly NotifyEventUpdatedAction $notifyEventUpdatedAction,
+    ) {}
 
     public function execute(Event $event, UpdateEventData $data): Event
     {
-       
+
         return DB::transaction(function () use ($event, $data) {
             $previousParticipantUserIds = $event->participantInvites()
                 ->whereNotNull('user_id')
@@ -41,8 +41,9 @@ class UpdateEventAction
                 ->where('invite_type', 'external')
                 ->whereNotNull('email')
                 ->get()
-                ->map(fn ($invite) => strtolower((string) $invite->email) . '|' . strtolower((string) $invite->role))
+                ->map(fn ($invite) => strtolower((string) $invite->email).'|'.strtolower((string) $invite->role))
                 ->all();
+            $updateRecipientUserIds = $this->notifyEventUpdatedAction->recipientUserIds($event);
 
             $oldValues = [
                 'title' => $event->title,
@@ -84,7 +85,7 @@ class UpdateEventAction
                 : null;
 
             $hasChildFestivalEvents = $event->childFestivalEvents()->exists();
-          
+
             if (
                 $hasChildFestivalEvents &&
                 $currentCategorySlug === 'festival' &&
@@ -152,6 +153,19 @@ class UpdateEventAction
                 $notifyPayload['participantInvites'],
                 $notifyPayload['externalParticipantInvites'],
                 $notifyPayload['audienceInvites'],
+            );
+
+            $newlyInvitedUserIds = $notifyPayload['participantInvites']
+                ->pluck('user_id')
+                ->concat($notifyPayload['audienceInvites']->pluck('user_id'))
+                ->map(fn ($id) => (int) $id)
+                ->filter()
+                ->all();
+
+            $this->notifyEventUpdatedAction->execute(
+                $event,
+                $updateRecipientUserIds,
+                $newlyInvitedUserIds,
             );
 
             return $this->loadFullEvent($event);

@@ -1,21 +1,25 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useAuth } from '../../app/hooks/useAuth.js'
+import { useI18n } from '../../app/hooks/useI18n.js'
 import {
   createMediaComment,
   createArticleComment,
   createPoemComment,
+  createEventComment,
   deleteComment,
   listMediaComments,
   listArticleComments,
   listPoemComments,
+  listEventComments,
   updateComment,
 } from '../../app/api/comments.js'
+import { formatShortPublishedDate } from '../../app/formatters/date.js'
 import styles from './CommentsThread.module.css'
 
 const PAGE_SIZE = 10
 
-function authorLabel(comment) {
-  return comment?.author?.display_name || comment?.author?.nickname || 'User'
+function authorLabel(comment, fallback) {
+  return comment?.author?.display_name || comment?.author?.nickname || fallback
 }
 
 function canManage(comment, user) {
@@ -27,8 +31,9 @@ function canManage(comment, user) {
 export default function CommentsThread({
   contentType,
   contentId,
-  title = 'Commenti',
+  title,
 }) {
+  const { t, locale } = useI18n()
   const { isAuthenticated, token, user } = useAuth()
   const [comments, setComments] = useState([])
   const [meta, setMeta] = useState({ current_page: 1, last_page: 1 })
@@ -44,13 +49,18 @@ export default function CommentsThread({
 
   const isPoem = contentType === 'poem'
   const isMedia = contentType === 'media'
+  const isEvent = contentType === 'event'
+  const resolvedTitle = title ?? t(
+    isPoem ? 'comment.ui.title_poem' : isMedia ? 'comment.ui.title_media' : isEvent ? 'comment.ui.title_event' : contentType === 'article' ? 'comment.ui.title_article' : 'comment.ui.title',
+  )
+  const unknownUserLabel = t('common.unknown_user')
   const listFn = useMemo(
-    () => (isPoem ? listPoemComments : isMedia ? listMediaComments : listArticleComments),
-    [isMedia, isPoem],
+    () => (isPoem ? listPoemComments : isMedia ? listMediaComments : isEvent ? listEventComments : listArticleComments),
+    [isEvent, isMedia, isPoem],
   )
   const createFn = useMemo(
-    () => (isPoem ? createPoemComment : isMedia ? createMediaComment : createArticleComment),
-    [isMedia, isPoem],
+    () => (isPoem ? createPoemComment : isMedia ? createMediaComment : isEvent ? createEventComment : createArticleComment),
+    [isEvent, isMedia, isPoem],
   )
 
   async function loadComments() {
@@ -69,7 +79,7 @@ export default function CommentsThread({
     } catch (nextError) {
       setComments([])
       setMeta({ current_page: 1, last_page: 1 })
-      setError(nextError?.message || 'Unable to load comments')
+      setError(nextError?.message || t('comment.ui.load_error'))
     } finally {
       setIsLoading(false)
     }
@@ -92,7 +102,7 @@ export default function CommentsThread({
       setPage(1)
       await loadComments()
     } catch (nextError) {
-      setError(nextError?.message || 'Unable to post comment')
+      setError(nextError?.message || t('comment.ui.post_error'))
     } finally {
       setIsSubmitting(false)
     }
@@ -111,7 +121,7 @@ export default function CommentsThread({
       setReplyParentId(null)
       await loadComments()
     } catch (nextError) {
-      setError(nextError?.message || 'Unable to post reply')
+      setError(nextError?.message || t('comment.ui.reply_error'))
     } finally {
       setIsSubmitting(false)
     }
@@ -129,7 +139,7 @@ export default function CommentsThread({
       setEditDraft('')
       await loadComments()
     } catch (nextError) {
-      setError(nextError?.message || 'Unable to update comment')
+      setError(nextError?.message || t('comment.ui.update_error'))
     } finally {
       setIsSubmitting(false)
     }
@@ -143,7 +153,7 @@ export default function CommentsThread({
       await deleteComment(commentId, { token })
       await loadComments()
     } catch (nextError) {
-      setError(nextError?.message || 'Unable to delete comment')
+      setError(nextError?.message || t('comment.ui.delete_error'))
     } finally {
       setIsSubmitting(false)
     }
@@ -151,7 +161,7 @@ export default function CommentsThread({
 
   return (
     <section className={styles.section}>
-      <h3 className={styles.title}>{title}</h3>
+      <h3 className={styles.title}>{resolvedTitle}</h3>
 
       {isAuthenticated ? (
         <form className={styles.form} onSubmit={handleCreate}>
@@ -159,34 +169,37 @@ export default function CommentsThread({
             className={styles.textarea}
             value={draft}
             onChange={(event) => setDraft(event.target.value)}
-            placeholder="Scrivi un commento..."
+            placeholder={t('comment.ui.placeholder')}
             maxLength={5000}
             disabled={isSubmitting}
           />
           <div className={styles.actions}>
             <button type="submit" className={`${styles.btn} ${styles.btnPrimary}`} disabled={isSubmitting}>
-              {isSubmitting ? 'Invio...' : 'Pubblica commento'}
+              {isSubmitting ? t('common.submitting') : t('comment.ui.publish')}
             </button>
           </div>
         </form>
       ) : (
-        <p className={styles.muted}>Accedi e verifica l'email per commentare.</p>
+        <p className={styles.muted}>{t('comment.ui.login_to_comment')}</p>
       )}
 
       {error ? <p className={styles.error}>{error}</p> : null}
-      {isLoading ? <p className={styles.muted}>Caricamento commenti...</p> : null}
+      {isLoading ? <p className={styles.muted}>{t('comment.ui.loading')}</p> : null}
 
       {!isLoading && comments.length === 0 ? (
-        <p className={styles.muted}>Nessun commento per ora.</p>
+        <p className={styles.muted}>{t('comment.ui.empty')}</p>
       ) : null}
 
       <div className={styles.list}>
         {comments.map((comment) => (
           <article key={comment.id} className={styles.item}>
-            <div>
-              <span className={styles.author}>{authorLabel(comment)}</span>
+            <div className={styles.itemHeader}>
+              <div className={styles.authorRow}>
+                <span className={styles.authorDot} aria-hidden="true" />
+                <span className={styles.author}>{authorLabel(comment, unknownUserLabel)}</span>
+              </div>
               <span className={styles.meta}>
-                {comment.created_at ? new Date(comment.created_at).toLocaleString() : ''}
+                {formatShortPublishedDate(comment.created_at, locale, '')}
               </span>
             </div>
 
@@ -206,10 +219,10 @@ export default function CommentsThread({
                     disabled={isSubmitting}
                     onClick={() => handleUpdate(comment.id)}
                   >
-                    Salva
+                    {t('common.save')}
                   </button>
                   <button type="button" className={styles.btn} onClick={() => setEditingId(null)} disabled={isSubmitting}>
-                    Annulla
+                    {t('common.cancel')}
                   </button>
                 </div>
               </div>
@@ -228,7 +241,7 @@ export default function CommentsThread({
                   }}
                   disabled={isSubmitting}
                 >
-                  Rispondi
+                  {t('comment.ui.reply')}
                 </button>
               ) : null}
               {canManage(comment, user) ? (
@@ -242,7 +255,7 @@ export default function CommentsThread({
                       setEditDraft(comment.content || '')
                     }}
                   >
-                    Modifica
+                    {t('comment.ui.edit')}
                   </button>
                   <button
                     type="button"
@@ -250,7 +263,7 @@ export default function CommentsThread({
                     disabled={isSubmitting}
                     onClick={() => handleDelete(comment.id)}
                   >
-                    Elimina
+                    {t('comment.ui.delete')}
                   </button>
                 </>
               ) : null}
@@ -262,13 +275,13 @@ export default function CommentsThread({
                   className={styles.textarea}
                   value={replyDraft}
                   onChange={(event) => setReplyDraft(event.target.value)}
-                  placeholder="Scrivi una risposta..."
+                  placeholder={t('comment.ui.reply_placeholder')}
                   maxLength={5000}
                   disabled={isSubmitting}
                 />
                 <div className={styles.inlineActions}>
                   <button type="submit" className={`${styles.btn} ${styles.btnPrimary}`} disabled={isSubmitting}>
-                    {isSubmitting ? 'Invio...' : 'Invia risposta'}
+                    {isSubmitting ? t('common.submitting') : t('comment.ui.send_reply')}
                   </button>
                   <button
                     type="button"
@@ -279,7 +292,7 @@ export default function CommentsThread({
                     }}
                     disabled={isSubmitting}
                   >
-                    Annulla
+                    {t('common.cancel')}
                   </button>
                 </div>
               </form>
@@ -289,10 +302,13 @@ export default function CommentsThread({
               <div className={styles.replies}>
                 {comment.replies.map((reply) => (
                   <div key={reply.id}>
-                    <div>
-                      <span className={styles.author}>{authorLabel(reply)}</span>
+                    <div className={styles.itemHeader}>
+                      <div className={styles.authorRow}>
+                        <span className={styles.authorDot} aria-hidden="true" />
+                        <span className={styles.author}>{authorLabel(reply, unknownUserLabel)}</span>
+                      </div>
                       <span className={styles.meta}>
-                        {reply.created_at ? new Date(reply.created_at).toLocaleString() : ''}
+                        {formatShortPublishedDate(reply.created_at, locale, '')}
                       </span>
                     </div>
                     <p className={styles.content}>{reply.content}</p>
@@ -304,27 +320,29 @@ export default function CommentsThread({
         ))}
       </div>
 
-      <div className={styles.pager}>
-        <button
-          type="button"
-          className={styles.btn}
-          onClick={() => setPage((current) => Math.max(1, current - 1))}
-          disabled={isLoading || page <= 1}
-        >
-          Precedente
-        </button>
-        <span className={styles.meta}>
-          Pagina {meta?.current_page || page} / {meta?.last_page || 1}
-        </span>
-        <button
-          type="button"
-          className={styles.btn}
-          onClick={() => setPage((current) => Math.min(meta?.last_page || 1, current + 1))}
-          disabled={isLoading || page >= (meta?.last_page || 1)}
-        >
-          Successiva
-        </button>
-      </div>
+      {(meta?.last_page || 1) > 1 ? (
+        <div className={styles.pager}>
+          <button
+            type="button"
+            className={styles.btn}
+            onClick={() => setPage((current) => Math.max(1, current - 1))}
+            disabled={isLoading || page <= 1}
+          >
+            {t('comment.ui.prev')}
+          </button>
+          <span className={styles.meta}>
+            {t('comment.ui.page', { current: meta?.current_page || page, last: meta?.last_page || 1 })}
+          </span>
+          <button
+            type="button"
+            className={styles.btn}
+            onClick={() => setPage((current) => Math.min(meta?.last_page || 1, current + 1))}
+            disabled={isLoading || page >= (meta?.last_page || 1)}
+          >
+            {t('comment.ui.next')}
+          </button>
+        </div>
+      ) : null}
     </section>
   )
 }

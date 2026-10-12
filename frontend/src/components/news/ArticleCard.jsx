@@ -6,7 +6,7 @@ import styles from './ArticleCard.module.css'
 import { useEffect } from 'react'
 
 export default function ArticleCard({ slug, onComments, onLoaded }) {
-  const { t } = useI18n()
+  const { t, locale } = useI18n()
   const { data: article, isLoading, error } = useArticleDetail(slug)
 
   useEffect(() => {
@@ -16,11 +16,11 @@ export default function ArticleCard({ slug, onComments, onLoaded }) {
   }, [article, onLoaded])
 
   if (!slug) {
-    return <div className={styles.article}>Missing article slug.</div>
+    return <div className={styles.article}>{t('articles.missing_slug')}</div>
   }
 
   if (isLoading) {
-    return <div className={styles.article}>Loading...</div>
+    return <div className={styles.article}>{t('common.loading')}</div>
   }
 
   if (error) {
@@ -28,12 +28,12 @@ export default function ArticleCard({ slug, onComments, onLoaded }) {
   }
 
   if (!article) {
-    return <div className={styles.article}>Article not found.</div>
+    return <div className={styles.article}>{t('articles.not_found')}</div>
   }
 
   const authorLabel = article?.author?.display_name || article?.author?.nickname || 'Slamin'
-  const publishedDate = formatShortPublishedDate(article?.published_at, 'it-IT', '')
-  const categoryLabel = article?.category?.name || 'Senza categoria'
+  const publishedDate = formatShortPublishedDate(article?.published_at, locale, '')
+  const categoryLabel = article?.category?.name || t('articles.no_category')
   const coverUrl = article?.cover_image_url || ''
   const viewsCount = Number.isFinite(Number(article?.views_count)) ? Number(article.views_count) : 0
   const likesCount = Number.isFinite(Number(article?.likes_count)) ? Number(article.likes_count) : 0
@@ -55,8 +55,8 @@ export default function ArticleCard({ slug, onComments, onLoaded }) {
             apiBasePath="/articles"
             publicBasePath="/articles"
             metrics={{ views: viewsCount, likes: likesCount, comments: commentsCount }}
-            shareLabel={t('articles.featured.share') === 'articles.featured.share' ? 'Condividi' : t('articles.featured.share')}
-            reportLabel={t('articles.featured.save') === 'articles.featured.save' ? 'Salva' : t('articles.featured.save')}
+            shareLabel={t('articles.featured.share')}
+            reportLabel={t('articles.actions.report')}
             variant="list"
             className={styles.socialActions}
             metricsClassName={styles.metrics}

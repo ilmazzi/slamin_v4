@@ -26,6 +26,9 @@ return [
         'prev' => 'Previous',
         'next' => 'Next',
         'page' => 'Page :current of :last',
+        'prev_page' => 'Previous page',
+        'next_page' => 'Next page',
+        'results' => 'Showing :from-:to of :total results',
     ],
     'featured' => [
         'author_name' => 'Sladmin',
@@ -51,5 +54,10 @@ return [
         'report_cancel' => 'Cancel',
         'report_confirm' => 'Send report',
         'report_submitted' => 'Report sent',
+        'report' => 'Report',
+        'save' => 'Save',
     ],
+    'missing_slug' => 'Missing article identifier.',
+    'not_found' => 'Article not found.',
+    'no_category' => 'Uncategorized',
 ];

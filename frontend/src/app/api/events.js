@@ -1,4 +1,4 @@
-import { apiGet, authApiGet, authApiPost } from './client.js'
+import { apiGet, authApiGet, authApiPatch, authApiPost } from './client.js'
 
 const MAX_PER_PAGE = 50
 const MAX_FETCH_PAGES = 20
@@ -18,15 +18,24 @@ async function collectPaginatedItems(fetchPage, { signal, maxPages, perPage }) {
   return all
 }
 
-export async function listEvents({ page = 1, perPage = 10 } = {}, { signal } = {}) {
+export async function listEvents({ page = 1, perPage = 10, token: paramsToken } = {}, { token: optionToken, signal } = {}) {
+  const token = optionToken ?? paramsToken
   const params = new URLSearchParams()
   params.set('per_page', String(perPage))
   params.set('page', String(page))
 
-  const { data, meta } = await apiGet(`/api/v1/events?${params.toString()}`, {
-    signal,
-    fallbackMessage: 'Failed to fetch events',
-  })
+  const path = `/api/v1/events?${params.toString()}`
+  const fetcher = token ? authApiGet : apiGet
+  const { data, meta } = await fetcher(path, token
+    ? {
+        token,
+        signal,
+        fallbackMessage: 'Failed to fetch events',
+      }
+    : {
+        signal,
+        fallbackMessage: 'Failed to fetch events',
+      })
 
   const items = Array.isArray(data) ? data : []
   return { items, meta }
@@ -94,10 +103,20 @@ export async function getEventDetail(slug, { token, signal } = {}) {
     })
   }
 
-  return apiGet(`/api/v1/events/${encodeURIComponent(safeSlug)}`, {
-    signal,
-    fallbackMessage: 'Unable to load event details.',
-  })
+  try {
+    const result = await apiGet(`/api/v1/events/${encodeURIComponent(safeSlug)}`, {
+      signal,
+      fallbackMessage: 'Unable to load event details.',
+    })
+    return { ok: true, status: 200, ...result }
+  } catch (error) {
+    return {
+      ok: false,
+      status: 500,
+      data: null,
+      payload: { message: error?.message || 'Unable to load event details.' },
+    }
+  }
 }
 
 export async function listEventCategories({ signal } = {}) {
@@ -115,6 +134,16 @@ export async function listEventCategories({ signal } = {}) {
 export async function createEvent(eventData, { token, signal } = {}) {
   const payload = buildEventPayload(eventData)
   const { data } = await authApiPost('/api/v1/events', payload, { token, signal })
+  return data?.event ?? null
+}
+
+export async function updateEvent(eventId, eventData, { token, signal } = {}) {
+  const payload = buildEventPayload(eventData)
+  const { data } = await authApiPatch(`/api/v1/events/${eventId}`, payload, {
+    token,
+    signal,
+    fallbackMessage: 'Unable to update event.',
+  })
   return data?.event ?? null
 }
 
