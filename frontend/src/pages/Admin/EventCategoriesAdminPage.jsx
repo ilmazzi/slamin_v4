@@ -6,6 +6,7 @@ import {
   adminStoreEventCategory,
   adminUpdateEventCategory,
 } from '../../app/api/events.js'
+import { listI18nLanguages } from '../../app/api/i18n.js'
 import { useAuth } from '../../app/hooks/useAuth.js'
 import { useI18n } from '../../app/hooks/useI18n.js'
 import MainLayout from '../../components/layout/MainLayout.jsx'
@@ -18,8 +19,7 @@ const emptyCategory = {
   slug: '',
   sort_order: 0,
   is_active: true,
-  name_it: '',
-  name_en: '',
+  translations: {},
 }
 
 function slugify(value) {
@@ -32,29 +32,36 @@ function slugify(value) {
     .slice(0, 120)
 }
 
-function translationValue(translations, locale) {
-  return (translations || []).find((item) => item.locale === locale)?.name || ''
-}
+function categoryFromItem(item, languages) {
+  const existingTranslations = Object.fromEntries(
+    (item.translations || []).map((translation) => [translation.locale, translation.name || '']),
+  )
 
-function categoryFromItem(item) {
   return {
     id: item.id,
     slug: item.slug || '',
     sort_order: item.sort_order ?? 0,
     is_active: item.is_active !== false,
-    name_it: translationValue(item.translations, 'it') || item.name || '',
-    name_en: translationValue(item.translations, 'en'),
+    translations: Object.fromEntries(
+      languages.map((language) => [language.code, existingTranslations[language.code] || '']),
+    ),
   }
 }
 
-function categoryPayload(form) {
-  const translations = [
-    form.name_it.trim() ? { locale: 'it', name: form.name_it.trim() } : null,
-    form.name_en.trim() ? { locale: 'en', name: form.name_en.trim() } : null,
-  ].filter(Boolean)
+function categoryPayload(form, languages) {
+  const translations = languages
+    .map((language) => ({
+      locale: language.code,
+      name: String(form.translations[language.code] || '').trim(),
+    }))
+    .filter((translation) => translation.name)
+  const defaultLanguage = languages.find((language) => language.is_default)
+  const slugSource = form.translations[defaultLanguage?.code]
+    || translations[0]?.name
+    || ''
 
   return {
-    slug: form.slug.trim() || slugify(form.name_it || form.name_en),
+    slug: form.slug.trim() || slugify(slugSource),
     is_active: Boolean(form.is_active),
     sort_order: Number(form.sort_order) || 0,
     translations,
@@ -65,6 +72,7 @@ export default function EventCategoriesAdminPage() {
   const { t } = useI18n()
   const { token } = useAuth()
   const [categories, setCategories] = useState([])
+  const [languages, setLanguages] = useState([])
   const [form, setForm] = useState(emptyCategory)
   const [isLoading, setIsLoading] = useState(true)
   const [isSaving, setIsSaving] = useState(false)
@@ -72,7 +80,12 @@ export default function EventCategoriesAdminPage() {
   const [error, setError] = useState('')
 
   const load = useCallback(async ({ signal } = {}) => {
-    setCategories(await adminListEventCategories({ token, signal }))
+    const [nextCategories, nextLanguages] = await Promise.all([
+      adminListEventCategories({ token, signal }),
+      listI18nLanguages(token, { signal }),
+    ])
+    setCategories(nextCategories)
+    setLanguages(nextLanguages)
   }, [token])
 
   useEffect(() => {
@@ -99,7 +112,7 @@ export default function EventCategoriesAdminPage() {
 
   const handleSave = async (event) => {
     event.preventDefault()
-    const payload = categoryPayload(form)
+    const payload = categoryPayload(form, languages)
     if (!payload.slug || payload.translations.length === 0) {
       setError(t('admin.event_categories.save_error'))
       return
@@ -167,7 +180,11 @@ export default function EventCategoriesAdminPage() {
                   const system = SYSTEM_SLUGS.has(item.slug)
                   return (
                     <li key={item.id}>
-                      <button type="button" className={styles.row} onClick={() => setForm(categoryFromItem(item))}>
+                      <button
+                        type="button"
+                        className={styles.row}
+                        onClick={() => setForm(categoryFromItem(item, languages))}
+                      >
                         <strong>{item.name || item.slug}</strong>
                         <span>{item.slug}</span>
                         <span>
@@ -222,20 +239,25 @@ export default function EventCategoriesAdminPage() {
                   onChange={(event) => setForm((current) => ({ ...current, sort_order: event.target.value }))}
                 />
               </label>
-              <label>
-                <span>{t('admin.event_categories.name_it')}</span>
-                <input
-                  value={form.name_it}
-                  onChange={(event) => setForm((current) => ({ ...current, name_it: event.target.value }))}
-                />
-              </label>
-              <label>
-                <span>{t('admin.event_categories.name_en')}</span>
-                <input
-                  value={form.name_en}
-                  onChange={(event) => setForm((current) => ({ ...current, name_en: event.target.value }))}
-                />
-              </label>
+              {languages.map((language) => (
+                <label key={language.code}>
+                  <span>
+                    {language.flag} {language.name} ({language.code})
+                    {language.is_default ? ' *' : ''}
+                  </span>
+                  <input
+                    value={form.translations[language.code] || ''}
+                    required={language.is_default}
+                    onChange={(event) => setForm((current) => ({
+                      ...current,
+                      translations: {
+                        ...current.translations,
+                        [language.code]: event.target.value,
+                      },
+                    }))}
+                  />
+                </label>
+              ))}
               <label className={styles.check}>
                 <input
                   type="checkbox"
