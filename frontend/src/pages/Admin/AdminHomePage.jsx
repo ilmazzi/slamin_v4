@@ -34,6 +34,13 @@ export default function AdminHomePage() {
       ready: true,
     } : null,
     canManageSettings ? {
+      id: 'users',
+      href: '/admin/users',
+      title: t('admin.hub.users_title'),
+      description: t('admin.hub.users_description'),
+      ready: true,
+    } : null,
+    canManageSettings ? {
       id: 'help',
       href: '/admin/help',
       title: t('admin.hub.help_title'),

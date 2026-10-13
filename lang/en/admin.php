@@ -14,6 +14,8 @@ return [
         'moderation_description' => 'Review poems, articles, events and reports.',
         'settings_title' => 'Settings',
         'settings_description' => 'PeerTube, upload limits and publication flow.',
+        'users_title' => 'Users',
+        'users_description' => 'Manage email verification, status, account type and user roles.',
         'help_title' => 'Guide and help',
         'help_description' => 'Categories and articles for the public Help page accordions.',
     ],

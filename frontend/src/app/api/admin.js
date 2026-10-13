@@ -23,3 +23,34 @@ export async function updateContentPublicationSetting(settingId, payload, { toke
 
   return data?.setting ?? null
 }
+
+export async function listAdminUsers(filters = {}, { token, signal } = {}) {
+  const params = new URLSearchParams()
+  Object.entries(filters).forEach(([key, value]) => {
+    if (value !== '' && value !== null && value !== undefined) {
+      params.set(key, String(value))
+    }
+  })
+
+  const { data, meta } = await authApiGet(`/api/v1/admin/users?${params.toString()}`, {
+    token,
+    signal,
+    fallbackMessage: 'Impossibile caricare gli utenti',
+  })
+
+  return {
+    users: Array.isArray(data?.users) ? data.users : [],
+    roles: Array.isArray(data?.roles) ? data.roles : [],
+    meta,
+  }
+}
+
+export async function updateAdminUser(userId, payload, { token, signal } = {}) {
+  const { data } = await authApiPatch(`/api/v1/admin/users/${encodeURIComponent(userId)}`, payload, {
+    token,
+    signal,
+    fallbackMessage: 'Impossibile aggiornare l’utente',
+  })
+
+  return data?.user ?? null
+}

@@ -14,6 +14,8 @@ return [
         'moderation_description' => 'Revisione di poesie, articoli, eventi e segnalazioni.',
         'settings_title' => 'Impostazioni',
         'settings_description' => 'PeerTube, limiti di upload e flusso di pubblicazione.',
+        'users_title' => 'Utenti',
+        'users_description' => 'Verifica email, stato, tipo account e ruoli degli utenti.',
         'help_title' => 'Guida e aiuto',
         'help_description' => 'Categorie e articoli della pagina Guida, visibili come accordion.',
     ],
