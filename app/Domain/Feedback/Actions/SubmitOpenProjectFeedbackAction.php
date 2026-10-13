@@ -17,24 +17,18 @@ class SubmitOpenProjectFeedbackAction
         $baseUrl = rtrim((string) config('services.openproject.base_url'), '/');
         $token = (string) config('services.openproject.api_token');
         $project = trim((string) config('services.openproject.project'));
-        $typeId = (int) config('services.openproject.type_id');
 
-        if ($baseUrl === '' || $token === '' || $project === '' || $typeId < 1) {
+        if ($baseUrl === '' || $token === '' || $project === '') {
             throw new RuntimeException('openproject_not_configured');
         }
 
         $payload = [
             'subject' => $subject,
+            'scheduleManually' => true,
             'dueDate' => now()->addWeek()->toDateString(),
-            'date' => now()->addWeek()->toDateString(),
             'description' => [
                 'format' => 'markdown',
                 'raw' => $this->description($user, $description, $url),
-            ],
-            '_links' => [
-                'type' => [
-                    'href' => '/api/v3/types/'.$typeId,
-                ],
             ],
         ];
 
@@ -179,11 +173,13 @@ class SubmitOpenProjectFeedbackAction
     {
         $messages = [];
 
-        array_walk_recursive($errors, function (mixed $value, string|int $key) use (&$messages): void {
-            if ($key === 'message' && is_string($value) && trim($value) !== '') {
-                $messages[] = trim($value);
+        foreach ($errors as $field => $error) {
+            $message = is_array($error) ? ($error['message'] ?? null) : null;
+
+            if (is_string($message) && trim($message) !== '') {
+                $messages[] = $field.': '.trim($message);
             }
-        });
+        }
 
         $messages = array_values(array_unique($messages));
 
