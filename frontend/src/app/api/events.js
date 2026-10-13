@@ -218,3 +218,14 @@ export async function listRecentEventPlaces({ token, signal } = {}) {
   })
   return { places: Array.isArray(data) ? data : [] }
 }
+
+export async function searchEventInviteUsers(query, { token, signal } = {}) {
+  const params = new URLSearchParams({ q: String(query ?? '').trim() })
+  const { data } = await authApiGet(`/api/v1/events/invite-users?${params.toString()}`, {
+    token,
+    signal,
+    fallbackMessage: 'Failed to search users',
+  })
+
+  return { users: Array.isArray(data) ? data : [] }
+}

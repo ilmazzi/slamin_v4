@@ -112,7 +112,16 @@ class EventResource extends JsonResource
             'audience_invites' => $this->audienceInvites->map(fn ($invite) => [
                 'id' => $invite->id,
                 'user_id' => $invite->user_id,
+                'name' => $invite->name,
+                'email' => $invite->email,
+                'invite_type' => $invite->invite_type,
                 'status' => $invite->status,
+                'invited_user' => $invite->user ? [
+                    'id' => $invite->user->id,
+                    'public_id' => $invite->user->public_id,
+                    'nickname' => $invite->user->profile?->nickname,
+                    'display_name' => $invite->user->profile?->display_name,
+                ] : null,
             ])->values(),
             'author' => [
                 'id' => $this->user?->id,

@@ -2,10 +2,11 @@
 
 namespace App\Http\Resources\Api\V1\Event;
 
+use Domain\Event\Models\EventAudienceInvite;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
-/** @mixin \Domain\Event\Models\EventAudienceInvite */
+/** @mixin EventAudienceInvite */
 class EventAudienceInviteResource extends JsonResource
 {
     public function toArray(Request $request): array
@@ -13,6 +14,10 @@ class EventAudienceInviteResource extends JsonResource
         return [
             'id' => $this->id,
             'status' => $this->status,
+            'user_id' => $this->user_id,
+            'name' => $this->name,
+            'email' => $this->email,
+            'invite_type' => $this->invite_type,
             'event' => $this->event ? [
                 'id' => $this->event->id,
                 'title' => $this->event->title,

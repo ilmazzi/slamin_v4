@@ -35,7 +35,7 @@ class StoreEventData
         public readonly ?string $publishedAt,
         public readonly array $groupIds,
         public readonly array $participantInvites,
-        public readonly array $audienceInviteUserIds,
+        public readonly array $audienceInvites,
         public readonly array $gigs,
         public readonly ?array $occurrence,
         public readonly ?array $recurrence,
@@ -43,8 +43,7 @@ class StoreEventData
         public readonly array $availabilityOptions,
         public readonly ?array $venue,
         public readonly ?array $online,
-    ) {
-    }
+    ) {}
 
     public static function fromRequest(StoreEventRequest $request): self
     {
@@ -75,7 +74,10 @@ class StoreEventData
             publishedAt: $request->validated('published_at'),
             groupIds: $request->validated('group_ids', []),
             participantInvites: $request->validated('participant_invites', []),
-            audienceInviteUserIds: $request->validated('audience_invite_user_ids', []),
+            audienceInvites: self::normalizeAudienceInvites(
+                $request->validated('audience_invites', []),
+                $request->validated('audience_invite_user_ids', []),
+            ),
             gigs: $request->validated('gigs', []),
             occurrence: $request->validated('occurrence'),
             recurrence: $request->validated('recurrence'),
@@ -84,5 +86,34 @@ class StoreEventData
             venue: $request->validated('venue'),
             online: $request->validated('online'),
         );
+    }
+
+    private static function normalizeAudienceInvites(array $invites, array $legacyUserIds): array
+    {
+        $normalized = collect($invites)
+            ->map(fn (array $invite): array => [
+                'user_id' => $invite['invite_type'] === 'internal' ? (int) $invite['user_id'] : null,
+                'name' => $invite['invite_type'] === 'external' ? $invite['name'] : null,
+                'email' => $invite['invite_type'] === 'external' ? mb_strtolower($invite['email']) : null,
+                'invite_type' => $invite['invite_type'],
+                'status' => $invite['status'] ?? 'pending',
+            ]);
+
+        $legacy = collect($legacyUserIds)
+            ->map(fn (int|string $userId): array => [
+                'user_id' => (int) $userId,
+                'name' => null,
+                'email' => null,
+                'invite_type' => 'internal',
+                'status' => 'pending',
+            ]);
+
+        return $normalized
+            ->concat($legacy)
+            ->unique(fn (array $invite): string => $invite['invite_type'] === 'internal'
+                ? 'user:'.$invite['user_id']
+                : 'email:'.$invite['email'])
+            ->values()
+            ->all();
     }
 }

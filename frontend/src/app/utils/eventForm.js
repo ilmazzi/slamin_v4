@@ -89,10 +89,14 @@ export function mapEventToFormValues(event) {
       timezone: online?.timezone || occurrence?.timezone || 'Europe/Rome',
     },
     group_ids_text: groupIds.filter(Boolean).join(', '),
-    audience_invite_user_ids_text: audienceInvites
-      .map((invite) => invite?.user_id)
-      .filter(Boolean)
-      .join(', '),
+    audience_invites: audienceInvites.map((invite) => ({
+      invite_type: invite?.invite_type || (invite?.user_id ? 'internal' : 'external'),
+      user_id: invite?.user_id ? Number(invite.user_id) : null,
+      name: invite?.name ?? invite?.invited_user?.display_name ?? invite?.invited_user?.nickname ?? '',
+      nickname: invite?.invited_user?.nickname ?? '',
+      email: invite?.email ?? '',
+      status: invite?.status || 'pending',
+    })),
     participant_invites: invites.length
       ? invites.map((invite) => ({
           invite_type: invite?.invite_type || (invite?.user_id ? 'internal' : 'external'),

@@ -19,6 +19,7 @@ use App\Http\Controllers\Api\V1\Event\RemoveBookmarkEventController;
 use App\Http\Controllers\Api\V1\Event\RemoveEventAvailabilityVoteController;
 use App\Http\Controllers\Api\V1\Event\RespondToAudienceInviteController;
 use App\Http\Controllers\Api\V1\Event\RespondToParticipantInviteController;
+use App\Http\Controllers\Api\V1\Event\SearchEventInviteUsersController;
 use App\Http\Controllers\Api\V1\Event\ShowEventController;
 use App\Http\Controllers\Api\V1\Event\StoreEventController;
 use App\Http\Controllers\Api\V1\Event\UnlikeEventController;
@@ -64,6 +65,7 @@ Route::middleware([
     'account.type:poet_organizer',
 ])->group(function () {
     Route::post('/events', StoreEventController::class)->name('events.store');
+    Route::get('/events/invite-users', SearchEventInviteUsersController::class)->name('events.invite-users');
     Route::patch('/events/{event}', UpdateEventController::class)->name('events.update');
     Route::delete('/events/{event}', DeleteEventController::class)->name('events.delete');
     Route::get('/events/{event}/gigs', ListEventGigsController::class)->name('api.v1.events.gigs.index');

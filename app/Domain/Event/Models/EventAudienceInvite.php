@@ -11,6 +11,9 @@ class EventAudienceInvite extends Model
     protected $fillable = [
         'event_id',
         'user_id',
+        'name',
+        'email',
+        'invite_type',
         'status',
     ];
 

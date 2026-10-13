@@ -43,6 +43,12 @@ class UpdateEventAction
                 ->get()
                 ->map(fn ($invite) => strtolower((string) $invite->email).'|'.strtolower((string) $invite->role))
                 ->all();
+            $previousExternalAudienceEmails = $event->audienceInvites()
+                ->where('invite_type', 'external')
+                ->whereNotNull('email')
+                ->pluck('email')
+                ->map(fn ($email) => strtolower((string) $email))
+                ->all();
             $updateRecipientUserIds = $this->notifyEventUpdatedAction->recipientUserIds($event);
 
             $oldValues = [
@@ -126,6 +132,7 @@ class UpdateEventAction
                 $previousParticipantUserIds,
                 $previousAudienceUserIds,
                 $previousExternalParticipantKeys,
+                $previousExternalAudienceEmails,
             );
 
             audit()->log(
@@ -153,6 +160,7 @@ class UpdateEventAction
                 $notifyPayload['participantInvites'],
                 $notifyPayload['externalParticipantInvites'],
                 $notifyPayload['audienceInvites'],
+                $notifyPayload['externalAudienceInvites'],
             );
 
             $newlyInvitedUserIds = $notifyPayload['participantInvites']
@@ -246,12 +254,8 @@ class UpdateEventAction
             );
         }
 
-        if ($data->audienceInviteUserIds !== []) {
-            $event->audienceInvites()->createMany(
-                collect($data->audienceInviteUserIds)
-                    ->map(fn ($userId) => ['user_id' => $userId, 'status' => 'pending'])
-                    ->all()
-            );
+        if ($data->audienceInvites !== []) {
+            $event->audienceInvites()->createMany($data->audienceInvites);
         }
     }
 

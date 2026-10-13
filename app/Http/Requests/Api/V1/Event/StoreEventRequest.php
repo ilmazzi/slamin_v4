@@ -7,6 +7,7 @@ use Domain\Event\Enums\EventRecurrenceFrequency;
 use Domain\Event\Enums\EventScheduleMode;
 use Domain\Event\Enums\EventStatus;
 use Domain\Event\Models\Event;
+use Domain\Event\Models\EventCategory;
 use Domain\Gig\Enums\GigStatus;
 use Domain\Gig\Enums\GigType;
 use Domain\Group\Enums\GroupMemberRole;
@@ -39,6 +40,7 @@ class StoreEventRequest extends FormRequest
             'venue',
             'online',
             'participant_invites',
+            'audience_invites',
             'gigs',
             'group_ids',
             'audience_invite_user_ids',
@@ -154,6 +156,12 @@ class StoreEventRequest extends FormRequest
             'participant_invites.*.status' => ['nullable', Rule::in(['pending', 'sent', 'accepted', 'declined'])],
             'audience_invite_user_ids' => ['nullable', 'array'],
             'audience_invite_user_ids.*' => ['integer', 'distinct', 'exists:users,id'],
+            'audience_invites' => ['nullable', 'array'],
+            'audience_invites.*.user_id' => ['nullable', 'integer', 'exists:users,id'],
+            'audience_invites.*.name' => ['nullable', 'string', 'max:255'],
+            'audience_invites.*.email' => ['nullable', 'email', 'max:255'],
+            'audience_invites.*.invite_type' => ['required_with:audience_invites', Rule::in(['internal', 'external'])],
+            'audience_invites.*.status' => ['nullable', Rule::in(['pending', 'sent', 'accepted', 'declined'])],
             'gigs' => ['nullable', 'array'],
             'gigs.*.type' => ['required_with:gigs', 'string', Rule::in([
                 GigType::PoetArtist->value,
@@ -303,6 +311,38 @@ class StoreEventRequest extends FormRequest
                 }
             }
 
+            $audienceInvites = $this->input('audience_invites', []);
+            if (! is_array($audienceInvites)) {
+                $audienceInvites = [];
+            }
+
+            foreach ($audienceInvites as $index => $invite) {
+                $inviteType = $invite['invite_type'] ?? null;
+
+                if ($inviteType === 'internal' && empty($invite['user_id'])) {
+                    $validator->errors()->add(
+                        "audience_invites.{$index}.user_id",
+                        __('event.validation.internal_audience_user_required')
+                    );
+                }
+
+                if ($inviteType === 'external') {
+                    if (empty($invite['email'])) {
+                        $validator->errors()->add(
+                            "audience_invites.{$index}.email",
+                            __('event.validation.external_audience_email_required')
+                        );
+                    }
+
+                    if (empty($invite['name'])) {
+                        $validator->errors()->add(
+                            "audience_invites.{$index}.name",
+                            __('event.validation.external_audience_name_required')
+                        );
+                    }
+                }
+            }
+
             if ($this->filled('group_ids')) {
                 $groupIds = $this->input('group_ids', []);
                 if (! is_array($groupIds)) {
@@ -328,24 +368,24 @@ class StoreEventRequest extends FormRequest
                     $validator->errors()->add('group_ids', __('event.validation.group_management_required'));
                 }
             }
-            
+
             $festivalEventId = $this->input('festival_event_id');
             $currentEventId = $this->route('event')?->id;
-            
+
             if ($festivalEventId && $currentEventId && (int) $festivalEventId === (int) $currentEventId) {
                 $validator->errors()->add(
                     'festival_event_id',
                     __('event.validation.festival_self_link_not_allowed')
                 );
-            
+
                 return;
             }
-            
+
             if ($festivalEventId !== null && $festivalEventId !== '') {
                 $festivalEvent = Event::query()
                     ->with('category')
                     ->find($festivalEventId);
-            
+
                 if (! $festivalEvent || $festivalEvent->category?->slug !== self::FESTIVAL_CATEGORY_SLUG) {
                     $validator->errors()->add(
                         'festival_event_id',
@@ -356,19 +396,19 @@ class StoreEventRequest extends FormRequest
 
             $eventCategoryId = $this->input('event_category_id');
 
-if ($festivalEventId !== null && $festivalEventId !== '' && $eventCategoryId !== null && $eventCategoryId !== '') {
-    $selectedCategory = \Domain\Event\Models\EventCategory::query()->find($eventCategoryId);
+            if ($festivalEventId !== null && $festivalEventId !== '' && $eventCategoryId !== null && $eventCategoryId !== '') {
+                $selectedCategory = EventCategory::query()->find($eventCategoryId);
 
-    if ($selectedCategory && $selectedCategory->slug === self::FESTIVAL_CATEGORY_SLUG) {
-        $validator->errors()->add(
-            'festival_event_id',
-            __('event.validation.festival_cannot_have_parent_festival')
-        );
+                if ($selectedCategory && $selectedCategory->slug === self::FESTIVAL_CATEGORY_SLUG) {
+                    $validator->errors()->add(
+                        'festival_event_id',
+                        __('event.validation.festival_cannot_have_parent_festival')
+                    );
 
-        return;
-    }
-}
-            
+                    return;
+                }
+            }
+
         });
     }
 }

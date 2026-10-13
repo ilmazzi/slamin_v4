@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import L from 'leaflet'
 import { MapContainer, Marker, useMap } from 'react-leaflet'
 import OsmTileLayer from '../../app/maps/OsmTileLayer.jsx'
-import { createEvent, getEventDetail, listEventCategories, listRecentEventPlaces, updateEvent } from '../../app/api/events.js'
+import { createEvent, getEventDetail, listEventCategories, listRecentEventPlaces, searchEventInviteUsers, updateEvent } from '../../app/api/events.js'
 import { useAuth } from '../../app/hooks/useAuth.js'
 import { useI18n } from '../../app/hooks/useI18n.js'
 import { mapEventToFormValues } from '../../app/utils/eventForm.js'
@@ -143,6 +143,14 @@ export default function EventCreateForm({ eventSlug = null }) {
   const [saving, setSaving] = useState(false)
   const [loadingEvent, setLoadingEvent] = useState(isEdit)
   const [geoStatus, setGeoStatus] = useState({ loading: false, error: '' })
+  const [showPlaceSuggestions, setShowPlaceSuggestions] = useState(false)
+  const [showEmailInvites, setShowEmailInvites] = useState(false)
+  const [showAudienceEmailInvites, setShowAudienceEmailInvites] = useState(false)
+  const [audienceUserQuery, setAudienceUserQuery] = useState('')
+  const [audienceUserResults, setAudienceUserResults] = useState([])
+  const [audienceSearchLoading, setAudienceSearchLoading] = useState(false)
+  const [showGigs, setShowGigs] = useState(false)
+  const [registrationDeadlineEnabled, setRegistrationDeadlineEnabled] = useState(false)
   const [openSections, setOpenSections] = useState(() => new Set(['basic']))
   const lastGeocodeKeyRef = useRef('')
   const geocodeTimerRef = useRef(null)
@@ -156,7 +164,7 @@ export default function EventCreateForm({ eventSlug = null }) {
     festival_event_id: '',
     schedule_mode: 'fixed',
     delivery_mode: 'in_person',
-    has_cost: true,
+    has_cost: false,
     price: '',
     currency: 'EUR',
     promo_video_url: '',
@@ -182,7 +190,7 @@ export default function EventCreateForm({ eventSlug = null }) {
     },
     online: { meeting_url: '', timezone: 'Europe/Rome' },
     group_ids_text: '',
-    audience_invite_user_ids_text: '',
+    audience_invites: [],
     participant_invites: [emptyInvite],
     gigs: [emptyGig],
     cover_image: null,
@@ -210,6 +218,33 @@ export default function EventCreateForm({ eventSlug = null }) {
     if (!token) return
     listRecentEventPlaces({ token }).then((r) => setRecentPlaces(r.places)).catch(() => {})
   }, [token])
+
+  useEffect(() => {
+    const query = audienceUserQuery.trim()
+    if (!token || query.length < 2) {
+      setAudienceUserResults([])
+      setAudienceSearchLoading(false)
+      return undefined
+    }
+
+    const controller = new AbortController()
+    const timer = window.setTimeout(async () => {
+      setAudienceSearchLoading(true)
+      try {
+        const result = await searchEventInviteUsers(query, { token, signal: controller.signal })
+        setAudienceUserResults(result.users)
+      } catch (searchError) {
+        if (searchError?.name !== 'AbortError') setAudienceUserResults([])
+      } finally {
+        if (!controller.signal.aborted) setAudienceSearchLoading(false)
+      }
+    }, 300)
+
+    return () => {
+      window.clearTimeout(timer)
+      controller.abort()
+    }
+  }, [audienceUserQuery, token])
 
   useEffect(() => {
     if (!isEdit || !eventSlug) {
@@ -244,8 +279,16 @@ export default function EventCreateForm({ eventSlug = null }) {
           return
         }
 
+        const formValues = mapEventToFormValues(loaded)
         setEventRecordId(loaded.id)
-        setV(mapEventToFormValues(loaded))
+        setV(formValues)
+        setRegistrationDeadlineEnabled(Boolean(formValues.registration_deadline))
+        setShowEmailInvites(
+          (formValues.participant_invites || []).some((invite) => invite.name || invite.email || invite.user_id),
+        )
+        setShowAudienceEmailInvites(
+          (formValues.audience_invites || []).some((invite) => invite.invite_type === 'external'),
+        )
       } catch (loadError) {
         if (loadError?.name === 'AbortError' || cancelled) {
           return
@@ -269,6 +312,13 @@ export default function EventCreateForm({ eventSlug = null }) {
   const isAvailability = v.schedule_mode === 'availability'
   const isInPerson = v.delivery_mode === 'in_person'
   const isOnline = v.delivery_mode === 'online'
+  const placeQuery = String(v.venue.place_name || '').trim().toLowerCase()
+  const matchingRecentPlaces = placeQuery
+    ? recentPlaces
+        .filter((place) => [place.place_name, place.city, place.address_line]
+          .some((value) => String(value || '').toLowerCase().includes(placeQuery)))
+        .slice(0, 6)
+    : []
   const latRaw = String(v.venue.latitude ?? '').trim()
   const lonRaw = String(v.venue.longitude ?? '').trim()
   const latNum = latRaw ? Number(latRaw) : NaN
@@ -471,9 +521,8 @@ export default function EventCreateForm({ eventSlug = null }) {
       .filter((item) => Number.isInteger(item) && item > 0)
   }
 
-  function applyRecentPlace(raw) {
-    if (!raw) return
-    const place = JSON.parse(raw)
+  function applyRecentPlace(place) {
+    if (!place) return
     setV((prev) => ({
       ...prev,
       venue: {
@@ -487,6 +536,7 @@ export default function EventCreateForm({ eventSlug = null }) {
         longitude: place.longitude ?? '',
       },
     }))
+    setShowPlaceSuggestions(false)
   }
 
   function normalizeCountryCode(raw) {
@@ -499,6 +549,50 @@ export default function EventCreateForm({ eventSlug = null }) {
     return 'IT'
   }
 
+  function selectAudienceUser(selectedUser) {
+    setV((prev) => {
+      const alreadySelected = prev.audience_invites.some(
+        (invite) => invite.invite_type === 'internal' && Number(invite.user_id) === Number(selectedUser.id),
+      )
+      if (alreadySelected) return prev
+
+      return {
+        ...prev,
+        audience_invites: [
+          ...prev.audience_invites,
+          {
+            invite_type: 'internal',
+            user_id: selectedUser.id,
+            name: selectedUser.display_name || selectedUser.nickname,
+            nickname: selectedUser.nickname,
+            avatar_url: selectedUser.avatar_url,
+            email: null,
+            status: 'pending',
+          },
+        ],
+      }
+    })
+    setAudienceUserQuery('')
+    setAudienceUserResults([])
+  }
+
+  function removeAudienceInvite(index) {
+    setV((prev) => ({
+      ...prev,
+      audience_invites: prev.audience_invites.filter((_, inviteIndex) => inviteIndex !== index),
+    }))
+  }
+
+  function addAudienceEmailInvite() {
+    setV((prev) => ({
+      ...prev,
+      audience_invites: [
+        ...prev.audience_invites,
+        { invite_type: 'external', user_id: null, name: '', email: '', status: 'pending' },
+      ],
+    }))
+  }
+
   const payload = useMemo(
     () => ({
       ...v,
@@ -508,6 +602,7 @@ export default function EventCreateForm({ eventSlug = null }) {
       },
       event_category_id: v.event_category_id || null,
       festival_event_id: v.festival_event_id || null,
+      registration_deadline: registrationDeadlineEnabled ? v.registration_deadline || null : null,
       price: v.has_cost ? Number(v.price || 0) : null,
       audience_capacity: v.audience_capacity_enabled ? Number(v.audience_capacity || 0) : null,
       recurrence: isRecurring
@@ -529,7 +624,18 @@ export default function EventCreateForm({ eventSlug = null }) {
         : null,
       online: isOnline ? v.online : null,
       group_ids: parseIdList(v.group_ids_text),
-      audience_invite_user_ids: parseIdList(v.audience_invite_user_ids_text),
+      audience_invites: v.audience_invites
+        .filter((invite) => invite.invite_type === 'internal' || showAudienceEmailInvites)
+        .filter((invite) => invite.invite_type === 'internal'
+          ? Boolean(invite.user_id)
+          : Boolean(String(invite.name || '').trim() && String(invite.email || '').trim()))
+        .map((invite) => ({
+          invite_type: invite.invite_type,
+          user_id: invite.invite_type === 'internal' ? Number(invite.user_id) : null,
+          name: invite.invite_type === 'external' ? invite.name : null,
+          email: invite.invite_type === 'external' ? invite.email : null,
+          status: invite.status || 'pending',
+        })),
       participant_invites: v.participant_invites
         .filter((invite) => {
           if (!invite) return false
@@ -550,7 +656,7 @@ export default function EventCreateForm({ eventSlug = null }) {
           email: invite.invite_type === 'external' ? invite.email : null,
           status: invite.status || 'pending',
         })),
-      gigs: isEdit
+      gigs: isEdit || !showGigs
         ? []
         : v.gigs.map((gig) => ({
             ...gig,
@@ -558,7 +664,7 @@ export default function EventCreateForm({ eventSlug = null }) {
             deadline: gig?.deadline ? gig.deadline : null,
           })),
     }),
-    [v, isEdit, isRecurring, isAvailability, isInPerson, isOnline],
+    [v, isEdit, isRecurring, isAvailability, isInPerson, isOnline, showGigs, showAudienceEmailInvites, registrationDeadlineEnabled],
   )
 
   async function submit(event) {
@@ -712,7 +818,7 @@ export default function EventCreateForm({ eventSlug = null }) {
               <Field label={t('events.create_page.ui.starts_at')}>
                 <input className={styles.input} type="datetime-local" name="starts_at" value={v.occurrence.starts_at} onChange={(event) => setNested('occurrence', event)} required />
               </Field>
-              <Field label={t('events.create_page.ui.ends_at')}>
+              <Field label={t('events.create_page.ui.ends_at').replace(/\s*\*+\s*$/, '')}>
                 <input className={styles.input} type="datetime-local" name="ends_at" value={v.occurrence.ends_at} onChange={(event) => setNested('occurrence', event)} />
               </Field>
             </div>
@@ -810,32 +916,54 @@ export default function EventCreateForm({ eventSlug = null }) {
           </div>
         ) : null}
 
-        <div className={styles.twoColsTight}>
-          <div className={styles.choiceGroup}>
-            <ChoiceButton active={isInPerson} onClick={() => setV((prev) => ({ ...prev, delivery_mode: 'in_person' }))}>
-              {t('events.create_page.delivery_modes.in_person')}
-            </ChoiceButton>
-            <ChoiceButton active={isOnline} onClick={() => setV((prev) => ({ ...prev, delivery_mode: 'online' }))}>
-              {t('events.create_page.delivery_modes.online')}
-            </ChoiceButton>
-          </div>
-          <Field label={t('events.create_page.ui.recent_places')}>
-            <select className={styles.input} onChange={(event) => applyRecentPlace(event.target.value)} defaultValue="">
-              <option value="">{t('events.create_page.ui.select_recent_place')}</option>
-              {recentPlaces.map((place, index) => (
-                <option key={`${place.place_name}-${index}`} value={JSON.stringify(place)}>
-                  {[place.place_name, place.city].filter(Boolean).join(' - ')}
-                </option>
-              ))}
-            </select>
-          </Field>
+        <div className={styles.choiceGroup}>
+          <ChoiceButton active={isInPerson} onClick={() => setV((prev) => ({ ...prev, delivery_mode: 'in_person' }))}>
+            {t('events.create_page.delivery_modes.in_person')}
+          </ChoiceButton>
+          <ChoiceButton active={isOnline} onClick={() => setV((prev) => ({ ...prev, delivery_mode: 'online' }))}>
+            {t('events.create_page.delivery_modes.online')}
+          </ChoiceButton>
         </div>
 
         {isInPerson ? (
           <>
             <div className={styles.threeColsPlace}>
               <Field label={t('events.create_page.ui.place_name')}>
-                <input className={styles.input} name="place_name" placeholder={t('events.create_page.ui.place_name_placeholder')} value={v.venue.place_name} onChange={(event) => setNested('venue', event)} required />
+                <div className={styles.placeCombobox}>
+                  <input
+                    className={styles.input}
+                    name="place_name"
+                    placeholder={t('events.create_page.ui.place_name_placeholder')}
+                    value={v.venue.place_name}
+                    onChange={(event) => {
+                      setNested('venue', event)
+                      setShowPlaceSuggestions(true)
+                    }}
+                    onFocus={() => setShowPlaceSuggestions(true)}
+                    onBlur={() => setShowPlaceSuggestions(false)}
+                    autoComplete="off"
+                    aria-autocomplete="list"
+                    aria-expanded={showPlaceSuggestions && matchingRecentPlaces.length > 0}
+                    required
+                  />
+                  {showPlaceSuggestions && matchingRecentPlaces.length > 0 ? (
+                    <div className={styles.placeSuggestions} role="listbox">
+                      {matchingRecentPlaces.map((place, index) => (
+                        <button
+                          type="button"
+                          role="option"
+                          className={styles.placeSuggestion}
+                          key={`${place.place_name}-${place.city}-${index}`}
+                          onMouseDown={(event) => event.preventDefault()}
+                          onClick={() => applyRecentPlace(place)}
+                        >
+                          <strong>{place.place_name}</strong>
+                          <span>{[place.address_line, place.city].filter(Boolean).join(' · ')}</span>
+                        </button>
+                      ))}
+                    </div>
+                  ) : null}
+                </div>
               </Field>
               <Field label={t('events.create_page.ui.country_required')}>
                 <input className={styles.input} name="country_code" placeholder="IT" value={v.venue.country_code} onChange={(event) => setNested('venue', event)} required />
@@ -919,11 +1047,11 @@ export default function EventCreateForm({ eventSlug = null }) {
           <div>
             <div className={styles.fieldLabel}>{t('events.create_page.ui.tickets')}</div>
             <div className={styles.choiceGroup}>
-              <ChoiceButton active={v.has_cost} onClick={() => setV((prev) => ({ ...prev, has_cost: true }))}>
-                {t('events.create_page.ui.paid_event')}
-              </ChoiceButton>
               <ChoiceButton active={!v.has_cost} onClick={() => setV((prev) => ({ ...prev, has_cost: false }))}>
                 {t('events.create_page.ui.free_event')}
+              </ChoiceButton>
+              <ChoiceButton active={v.has_cost} onClick={() => setV((prev) => ({ ...prev, has_cost: true }))}>
+                {t('events.create_page.ui.paid_event')}
               </ChoiceButton>
             </div>
             {v.has_cost ? (
@@ -960,51 +1088,71 @@ export default function EventCreateForm({ eventSlug = null }) {
           <input className={styles.input} placeholder={t('events.create_page.ui.invite_search_placeholder')} readOnly />
         </Field>
 
-        <div className={styles.inviteTitle}>{t('events.create_page.ui.invite_by_email_title')}</div>
-        <p className={styles.microCopy}>{t('events.create_page.ui.invite_by_email_copy')}</p>
-
-        {v.participant_invites.map((invite, index) => (
-          <div key={`invite-${index}`} className={styles.inviteRow}>
-            <input className={styles.input} placeholder={t('events.create_page.ui.name_optional')} value={invite.name} onChange={(event) => setRow('participant_invites', index, 'name', event.target.value)} />
-            <input className={styles.input} placeholder={t('events.create_page.ui.email_required')} value={invite.email} onChange={(event) => setRow('participant_invites', index, 'email', event.target.value)} />
-            <select className={styles.input} value={invite.role} onChange={(event) => setRow('participant_invites', index, 'role', event.target.value)}>
-              <option value="artist">{t('events.create_page.ui.role_artist')}</option>
-              <option value="organizer">{t('events.create_page.ui.role_organizer')}</option>
-              <option value="host">{t('events.create_page.ui.role_host')}</option>
-              <option value="technical_support">{t('events.create_page.ui.role_technical_support')}</option>
-            </select>
+        <div>
+          <div className={styles.toggleRow}>
+            <span>{t('events.create_page.ui.invite_by_email_toggle')}</span>
+            <Toggle checked={showEmailInvites} onChange={setShowEmailInvites} />
           </div>
-        ))}
+          <p className={styles.microCopy}>{t('events.create_page.ui.invite_by_email_copy')}</p>
+        </div>
 
-        <button type="button" className={styles.mailButton} onClick={() => setV((prev) => ({ ...prev, participant_invites: [...prev.participant_invites, { ...emptyInvite }] }))}>
-          {t('events.create_page.ui.invite_via_email')}
-        </button>
+        {showEmailInvites ? (
+          <div className={styles.conditionalPanel}>
+            <div className={styles.inviteTitle}>{t('events.create_page.ui.invite_by_email_title')}</div>
+            {v.participant_invites.map((invite, index) => (
+              <div key={`invite-${index}`} className={styles.inviteRow}>
+                <input className={styles.input} placeholder={t('events.create_page.ui.name_optional')} value={invite.name} onChange={(event) => setRow('participant_invites', index, 'name', event.target.value)} />
+                <input className={styles.input} placeholder={t('events.create_page.ui.email_required')} value={invite.email} onChange={(event) => setRow('participant_invites', index, 'email', event.target.value)} />
+                <select className={styles.input} value={invite.role} onChange={(event) => setRow('participant_invites', index, 'role', event.target.value)}>
+                  <option value="artist">{t('events.create_page.ui.role_artist')}</option>
+                  <option value="organizer">{t('events.create_page.ui.role_organizer')}</option>
+                  <option value="host">{t('events.create_page.ui.role_host')}</option>
+                  <option value="technical_support">{t('events.create_page.ui.role_technical_support')}</option>
+                </select>
+              </div>
+            ))}
+
+            <button type="button" className={styles.mailButton} onClick={() => setV((prev) => ({ ...prev, participant_invites: [...prev.participant_invites, { ...emptyInvite }] }))}>
+              {t('events.create_page.ui.invite_via_email')}
+            </button>
+          </div>
+        ) : null}
 
         {isEdit ? null : (
-          <>
-        <div className={styles.gigHeader}>
-          <div className={styles.fieldLabel}>{t('events.create_page.ui.add_gigs')}</div>
-        </div>
-        {v.gigs.map((gig, index) => (
-          <div key={`gig-${index}`} className={styles.gigCard}>
-            <div className={styles.gigTopRow}>
-              <div className={styles.gigRowTitle}>{t('events.create_page.ui.gig_n', { n: index + 1 })}</div>
-              <div className={styles.gigRowActions}>
-                <button type="button" className={styles.bigPlus} onClick={addGigRow} aria-label={t('events.create_page.ui.add_gig')}>
-                  +
-                </button>
-                <button
-                  type="button"
-                  className={styles.removeCircle}
-                  onClick={() => removeGigRow(index)}
-                  disabled={v.gigs.length === 1}
-                  aria-label={t('events.create_page.ui.remove_gig')}
-                  title={v.gigs.length === 1 ? t('events.create_page.ui.cannot_remove_last') : t('events.create_page.ui.remove_gig')}
-                >
-                  ×
-                </button>
-              </div>
+          <div>
+            <div className={styles.toggleRow}>
+              <span>{t('events.create_page.ui.add_gigs')}</span>
+              <Toggle checked={showGigs} onChange={setShowGigs} />
             </div>
+            <p className={styles.microCopy}>{t('events.create_page.ui.add_gigs_hint')}</p>
+          </div>
+        )}
+
+        {!isEdit && showGigs ? (
+          <div className={styles.conditionalPanel}>
+            <div className={styles.gigHeader}>
+              <div className={styles.fieldLabel}>{t('events.create_page.ui.add_gigs')}</div>
+            </div>
+            {v.gigs.map((gig, index) => (
+              <div key={`gig-${index}`} className={styles.gigCard}>
+                <div className={styles.gigTopRow}>
+                  <div className={styles.gigRowTitle}>{t('events.create_page.ui.gig_n', { n: index + 1 })}</div>
+                  <div className={styles.gigRowActions}>
+                    <button type="button" className={styles.bigPlus} onClick={addGigRow} aria-label={t('events.create_page.ui.add_gig')}>
+                      +
+                    </button>
+                    <button
+                      type="button"
+                      className={styles.removeCircle}
+                      onClick={() => removeGigRow(index)}
+                      disabled={v.gigs.length === 1}
+                      aria-label={t('events.create_page.ui.remove_gig')}
+                      title={v.gigs.length === 1 ? t('events.create_page.ui.cannot_remove_last') : t('events.create_page.ui.remove_gig')}
+                    >
+                      ×
+                    </button>
+                  </div>
+                </div>
 
             <div className={styles.gigFields}>
               <select
@@ -1125,29 +1273,32 @@ export default function EventCreateForm({ eventSlug = null }) {
                 />
               ) : null}
             </div>
+              </div>
+            ))}
           </div>
-        ))}
-          </>
-        )}
+        ) : null}
 
         <div className={styles.toggleRow}>
           <span>{t('events.create_page.ui.registration_deadline')}</span>
           <Toggle
-            checked={Boolean(v.registration_deadline)}
-            onChange={(checked) => setV((prev) => ({
-              ...prev,
-              registration_deadline: checked
-                ? prev.registration_deadline
-                  || prev.occurrence.starts_at
-                  || prev.availability_poll.response_deadline
-                  || currentLocalDateTime()
-                : '',
-            }))}
+            checked={registrationDeadlineEnabled}
+            onChange={(checked) => {
+              setRegistrationDeadlineEnabled(checked)
+              if (checked) {
+                setV((prev) => ({
+                  ...prev,
+                  registration_deadline: prev.registration_deadline
+                    || prev.occurrence.starts_at
+                    || prev.availability_poll.response_deadline
+                    || currentLocalDateTime(),
+                }))
+              }
+            }}
           />
         </div>
         <p className={styles.microCopy}>{t('events.create_page.ui.registration_deadline_hint')}</p>
 
-        {v.registration_deadline ? (
+        {registrationDeadlineEnabled ? (
           <div className={styles.twoCols}>
             <input className={styles.input} type="date" value={registrationParts.date} onChange={(event) => setRegistrationDate(event.target.value)} />
             <input className={styles.input} type="time" value={registrationParts.time} onChange={(event) => setRegistrationTime(event.target.value)} placeholder={t('events.create_page.ui.time')} />
@@ -1155,7 +1306,74 @@ export default function EventCreateForm({ eventSlug = null }) {
         ) : null}
 
         <Field label={t('events.create_page.ui.invite_audience')} full>
-          <input className={styles.input} name="audience_capacity" placeholder={t('events.create_page.ui.capacity_limit')} value={v.audience_capacity} onChange={setField} />
+          <div className={styles.userCombobox}>
+            <input
+              className={styles.input}
+              value={audienceUserQuery}
+              onChange={(event) => setAudienceUserQuery(event.target.value)}
+              placeholder={t('events.create_page.ui.audience_search_placeholder')}
+              autoComplete="off"
+            />
+            {audienceUserQuery.trim().length >= 2 ? (
+              <div className={styles.userSuggestions}>
+                {audienceSearchLoading ? (
+                  <div className={styles.userSuggestionStatus}>{t('events.create_page.ui.searching_users')}</div>
+                ) : audienceUserResults.length ? (
+                  audienceUserResults.map((result) => (
+                    <button
+                      type="button"
+                      key={result.id}
+                      className={styles.userSuggestion}
+                      onClick={() => selectAudienceUser(result)}
+                    >
+                      <span>{result.display_name || result.nickname}</span>
+                      {result.display_name && result.nickname ? <small>@{result.nickname}</small> : null}
+                    </button>
+                  ))
+                ) : (
+                  <div className={styles.userSuggestionStatus}>{t('events.create_page.ui.no_users_found')}</div>
+                )}
+              </div>
+            ) : null}
+          </div>
+        </Field>
+
+        {v.audience_invites.some((invite) => invite.invite_type === 'internal') ? (
+          <div className={styles.selectedUsers}>
+            {v.audience_invites.map((invite, index) => invite.invite_type === 'internal' ? (
+              <div className={styles.selectedUser} key={`audience-user-${invite.user_id}`}>
+                <span>{invite.name || invite.nickname || `#${invite.user_id}`}</span>
+                <button type="button" onClick={() => removeAudienceInvite(index)} aria-label={t('events.create_page.ui.remove_invitee')}>×</button>
+              </div>
+            ) : null)}
+          </div>
+        ) : null}
+
+        <div>
+          <div className={styles.toggleRow}>
+            <span>{t('events.create_page.ui.invite_audience_by_email')}</span>
+            <Toggle checked={showAudienceEmailInvites} onChange={setShowAudienceEmailInvites} />
+          </div>
+          <p className={styles.microCopy}>{t('events.create_page.ui.invite_audience_by_email_copy')}</p>
+        </div>
+
+        {showAudienceEmailInvites ? (
+          <div className={styles.conditionalPanel}>
+            {v.audience_invites.map((invite, index) => invite.invite_type === 'external' ? (
+              <div key={`audience-email-${index}`} className={styles.inviteRowWithRemove}>
+                <input className={styles.input} placeholder={t('events.create_page.ui.name_required')} value={invite.name || ''} onChange={(event) => setRow('audience_invites', index, 'name', event.target.value)} />
+                <input className={styles.input} placeholder={t('events.create_page.ui.email_required')} value={invite.email || ''} onChange={(event) => setRow('audience_invites', index, 'email', event.target.value)} />
+                <button type="button" className={styles.removeCircle} onClick={() => removeAudienceInvite(index)} aria-label={t('events.create_page.ui.remove_invitee')}>×</button>
+              </div>
+            ) : null)}
+            <button type="button" className={styles.mailButton} onClick={addAudienceEmailInvite}>
+              {t('events.create_page.ui.add_audience_email')}
+            </button>
+          </div>
+        ) : null}
+
+        <Field label={t('events.create_page.ui.capacity_limit')} full>
+          <input className={styles.input} type="number" min="1" name="audience_capacity" value={v.audience_capacity} onChange={setField} />
         </Field>
 
         <div className={styles.fieldLabel}>{t('events.create_page.ui.publication_status')}</div>

@@ -2,6 +2,7 @@
 
 namespace Domain\Event\Actions;
 
+use App\Mail\EventExternalAudienceInviteMail;
 use App\Mail\EventExternalParticipantInviteMail;
 use Domain\Event\Models\Event;
 use Domain\Event\Models\EventAudienceInvite;
@@ -14,19 +15,20 @@ class NotifyEventInvitesAction
 {
     public function __construct(
         private readonly CreateNotificationAction $createNotificationAction,
-    ) {
-    }
+    ) {}
 
     /**
-     * @param Collection<int, EventParticipantInvite> $participantInvites
-     * @param Collection<int, EventParticipantInvite> $externalParticipantInvites
-     * @param Collection<int, EventAudienceInvite> $audienceInvites
+     * @param  Collection<int, EventParticipantInvite>  $participantInvites
+     * @param  Collection<int, EventParticipantInvite>  $externalParticipantInvites
+     * @param  Collection<int, EventAudienceInvite>  $audienceInvites
+     * @param  Collection<int, EventAudienceInvite>  $externalAudienceInvites
      */
     public function execute(
         Event $event,
         Collection $participantInvites,
         Collection $externalParticipantInvites,
-        Collection $audienceInvites
+        Collection $audienceInvites,
+        Collection $externalAudienceInvites,
     ): void {
         foreach ($participantInvites as $invite) {
             if (! $invite->user_id) {
@@ -83,6 +85,21 @@ class NotifyEventInvitesAction
                     'status' => $invite->status,
                 ],
             );
+        }
+
+        foreach ($externalAudienceInvites as $invite) {
+            if (! $invite->email) {
+                continue;
+            }
+
+            Mail::to($invite->email)->send(new EventExternalAudienceInviteMail(
+                event: $event->loadMissing(['occurrences', 'venueDetail', 'onlineDetail']),
+                invite: $invite,
+            ));
+
+            if ($invite->status !== 'sent') {
+                $invite->update(['status' => 'sent']);
+            }
         }
     }
 }

@@ -1,5 +1,6 @@
 <?php
 
+use App\Mail\EventExternalAudienceInviteMail;
 use App\Mail\EventExternalParticipantInviteMail;
 use Domain\Engagement\Models\Bookmark;
 use Domain\Engagement\Models\Like;
@@ -362,6 +363,65 @@ it('sends external participant invite mail and marks invite as sent', function (
         'invite_type' => 'external',
         'status' => 'sent',
     ]);
+});
+
+it('sends external audience invite mail and marks invite as sent', function () {
+    Mail::fake();
+
+    $owner = eventWorkflowOrganizer();
+    $category = eventWorkflowCategory();
+    Sanctum::actingAs($owner);
+
+    $this->postJson('/api/v1/events', [
+        'title' => 'Evento con pubblico esterno',
+        'description' => 'Descrizione',
+        'event_category_id' => $category->id,
+        'schedule_mode' => 'fixed',
+        'delivery_mode' => 'online',
+        'status' => 'draft',
+        'is_public' => true,
+        'occurrence' => [
+            'starts_at' => now()->addDay()->toISOString(),
+            'timezone' => 'Europe/Rome',
+        ],
+        'online' => [
+            'meeting_url' => 'https://meet.example.com/audience',
+            'timezone' => 'Europe/Rome',
+        ],
+        'audience_invites' => [
+            [
+                'invite_type' => 'external',
+                'email' => 'audience@example.com',
+                'name' => 'Guest Audience',
+                'status' => 'pending',
+            ],
+        ],
+    ])->assertOk();
+
+    Mail::assertSent(EventExternalAudienceInviteMail::class);
+    $this->assertDatabaseHas('event_audience_invites', [
+        'email' => 'audience@example.com',
+        'invite_type' => 'external',
+        'status' => 'sent',
+    ]);
+});
+
+it('searches verified platform users for event invitations without exposing email', function () {
+    $owner = eventWorkflowOrganizer();
+    $matching = eventWorkflowUser();
+    $matching->profile()->update([
+        'display_name' => 'Ada Test',
+        'nickname' => 'ada-test',
+        'is_public' => true,
+    ]);
+
+    Sanctum::actingAs($owner);
+
+    $this->getJson('/api/v1/events/invite-users?q=Ada')
+        ->assertOk()
+        ->assertJsonPath('data.0.id', $matching->id)
+        ->assertJsonPath('data.0.display_name', 'Ada Test')
+        ->assertJsonMissing(['email' => $matching->email]);
 });
 
 it('lists my events for the authenticated organizer only', function () {

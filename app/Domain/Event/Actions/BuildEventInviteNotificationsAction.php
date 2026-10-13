@@ -11,10 +11,11 @@ use Illuminate\Support\Collection;
 class BuildEventInviteNotificationsAction
 {
     /**
-     * @param array<int> $previousParticipantUserIds
-     * @param array<int> $previousAudienceUserIds
-     * @param array<int, string> $previousExternalParticipantKeys
-     * @return array{participantInvites: Collection<int, EventParticipantInvite>, externalParticipantInvites: Collection<int, EventParticipantInvite>, audienceInvites: Collection<int, EventAudienceInvite>}
+     * @param  array<int>  $previousParticipantUserIds
+     * @param  array<int>  $previousAudienceUserIds
+     * @param  array<int, string>  $previousExternalParticipantKeys
+     * @param  array<int, string>  $previousExternalAudienceEmails
+     * @return array{participantInvites: Collection<int, EventParticipantInvite>, externalParticipantInvites: Collection<int, EventParticipantInvite>, audienceInvites: Collection<int, EventAudienceInvite>, externalAudienceInvites: Collection<int, EventAudienceInvite>}
      */
     public function execute(
         Event $event,
@@ -22,6 +23,7 @@ class BuildEventInviteNotificationsAction
         array $previousParticipantUserIds = [],
         array $previousAudienceUserIds = [],
         array $previousExternalParticipantKeys = [],
+        array $previousExternalAudienceEmails = [],
     ): array {
         $participantInvites = $event->participantInvites()
             ->whereNotNull('user_id')
@@ -33,20 +35,33 @@ class BuildEventInviteNotificationsAction
             ->whereNotNull('email')
             ->get()
             ->filter(function (EventParticipantInvite $invite) use ($previousExternalParticipantKeys): bool {
-                $key = strtolower((string) $invite->email) . '|' . strtolower((string) $invite->role);
+                $key = strtolower((string) $invite->email).'|'.strtolower((string) $invite->role);
 
                 return ! in_array($key, $previousExternalParticipantKeys, true);
             })
             ->values();
 
         $audienceInvites = $event->audienceInvites()
+            ->whereNotNull('user_id')
             ->whereNotIn('user_id', $previousAudienceUserIds)
             ->get();
+
+        $externalAudienceInvites = $event->audienceInvites()
+            ->where('invite_type', 'external')
+            ->whereNotNull('email')
+            ->get()
+            ->reject(fn (EventAudienceInvite $invite): bool => in_array(
+                strtolower((string) $invite->email),
+                $previousExternalAudienceEmails,
+                true,
+            ))
+            ->values();
 
         return [
             'participantInvites' => $participantInvites,
             'externalParticipantInvites' => $externalParticipantInvites,
             'audienceInvites' => $audienceInvites,
+            'externalAudienceInvites' => $externalAudienceInvites,
         ];
     }
 }
