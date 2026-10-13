@@ -1,9 +1,10 @@
 import { apiGet } from './client.js'
 
-export async function getHomeMedia(locale, { signal } = {}) {
+export async function getHomeMedia(locale, { signal, token } = {}) {
   const path = `/api/v1/home/media?locale=${encodeURIComponent(locale)}`
   const { data } = await apiGet(path, {
     signal,
+    token,
     fallbackMessage: 'Unable to load home media',
   })
 

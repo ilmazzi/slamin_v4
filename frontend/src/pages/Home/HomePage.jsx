@@ -1,7 +1,12 @@
 import { useEffect, useState } from 'react'
 import { formatLocaleNumber } from '../../app/formatters/number.js'
 import { getHomeMedia, getHomeStats } from '../../app/api/home.js'
+import { createMediaReport } from '../../app/api/reports.js'
+import { useAuth } from '../../app/hooks/useAuth.js'
+import { useContentFeedbackUi } from '../../app/hooks/useContentFeedbackUi.js'
 import MainLayout from '../../components/layout/MainLayout.jsx'
+import AppToast from '../../components/shared/AppToast.jsx'
+import ContentReportModal from '../../components/shared/ContentReportModal.jsx'
 import {
   categoryCards,
   forumPromo,
@@ -20,6 +25,7 @@ import styles from './HomePage.module.css'
 
 export function HomePage({ variant = 'guest', user = null }) {
   const { t, locale } = useI18n()
+  const { token } = useAuth()
   const [communityMediaItems, setCommunityMediaItems] = useState(mediaItems)
   const [communityStatsSection, setCommunityStatsSection] = useState(null)
 
@@ -49,7 +55,7 @@ export function HomePage({ variant = 'guest', user = null }) {
 
     async function loadHomeMedia() {
       try {
-        const nextItems = await getHomeMedia(locale, { signal: controller.signal })
+        const nextItems = await getHomeMedia(locale, { signal: controller.signal, token })
         if (Array.isArray(nextItems) && nextItems.length > 0) {
           setCommunityMediaItems(nextItems)
         }
@@ -65,7 +71,31 @@ export function HomePage({ variant = 'guest', user = null }) {
     loadHomeMedia()
 
     return () => controller.abort()
-  }, [locale])
+  }, [locale, token])
+
+  const {
+    reportModalItem,
+    toastMessage,
+    isSubmittingReport,
+    setReportModalItem,
+    setToastMessage,
+    handleReportConfirm,
+  } = useContentFeedbackUi({
+    contentType: 'media',
+    knownItems: communityMediaItems,
+    shareCopiedMessage: t('media.ui.share_copied'),
+    shareSentMessage: t('media.ui.share_sent'),
+    shareFailedMessage: t('media.ui.share_failed'),
+    reportSubmittedMessage: t('media.ui.report_submitted'),
+    reportFailedMessage: t('common.no_results'),
+    submitReport: async (item, { reason, details }) => {
+      const target = item?.id ?? null
+      if (!target) {
+        throw new Error(t('common.no_results'))
+      }
+      await createMediaReport(target, { reason: reason || 'spam', details: details || null }, { token })
+    },
+  })
 
   useEffect(() => {
     const controller = new AbortController()
@@ -122,6 +152,8 @@ export function HomePage({ variant = 'guest', user = null }) {
           subtitle={t('home.community_media.placeholder_subtitle')}
           playAria={t('home.community_media.play_aria')}
           openAria={t('home.community_media.open_aria')}
+          shareLabel={t('media.ui.share')}
+          reportLabel={t('media.ui.report')}
           prevAria={t('home.community_media.prev_aria')}
           nextAria={t('home.community_media.next_aria')}
         />
@@ -149,6 +181,21 @@ export function HomePage({ variant = 'guest', user = null }) {
           subtitle={t('home.publish_cta.subtitle')}
           ctaLabel={t('home.publish_cta.button_label')}
         />
+
+        <ContentReportModal
+          key={reportModalItem?.id ?? 'home-media-report-closed'}
+          isOpen={Boolean(reportModalItem)}
+          item={reportModalItem}
+          itemTitle={reportModalItem?.title ?? t('media.ui.untitled')}
+          title={t('media.ui.report_title')}
+          description={t('media.ui.report_description')}
+          cancelLabel={t('media.ui.report_cancel')}
+          confirmLabel={t('media.ui.report_confirm')}
+          isSubmitting={isSubmittingReport}
+          onClose={() => setReportModalItem(null)}
+          onConfirm={handleReportConfirm}
+        />
+        <AppToast message={toastMessage} isVisible={Boolean(toastMessage)} onClose={() => setToastMessage('')} />
     </MainLayout>
   )
 }

@@ -7,10 +7,14 @@ function normalizeMeta(payload) {
   return payload?.meta && typeof payload.meta === 'object' ? payload.meta : {}
 }
 
-export async function apiGet(path, { signal, cache = 'no-store', fallbackMessage = 'Request failed' } = {}) {
+export async function apiGet(path, { signal, cache = 'no-store', fallbackMessage = 'Request failed', token } = {}) {
   const response = await fetch(getApiUrl(path), {
     signal,
-    headers: { Accept: 'application/json', ...localeHeaders() },
+    headers: {
+      Accept: 'application/json',
+      ...localeHeaders(),
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    },
     cache,
   })
 

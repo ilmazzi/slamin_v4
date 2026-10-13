@@ -14,6 +14,8 @@ export default function HomeMedia({
   subtitle,
   playAria,
   openAria,
+  shareLabel,
+  reportLabel,
   prevAria,
   nextAria,
 }) {
@@ -217,6 +219,9 @@ export default function HomeMedia({
               comments={item.stats?.comments ?? item.comments ?? 0}
               playAria={playAria}
               openAria={openAria}
+              shareLabel={shareLabel}
+              reportLabel={reportLabel}
+              item={Number.isFinite(Number(item.id)) ? item : null}
             />
           ))}
         </div>

@@ -60,6 +60,7 @@ class ShowHomeMediaController extends Controller
                     'href' => '/media/'.$item->id,
                     'media_url' => $resolvedUrl,
                     'cover_url' => $coverUrl,
+                    'is_liked' => (bool) ($item->is_liked ?? false),
                     'stats' => [
                         'views' => (int) ($item->views_count ?? 0),
                         'likes' => (int) ($item->likes_count ?? 0),
