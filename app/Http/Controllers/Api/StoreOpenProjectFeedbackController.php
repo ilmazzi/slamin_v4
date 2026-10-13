@@ -40,10 +40,15 @@ class StoreOpenProjectFeedbackController extends Controller
                 );
             }
 
-            return ApiResponse::error(
-                message: $exception->getMessage(),
-                status: 502,
-            );
+            return response()->json([
+                'message' => $exception->getMessage(),
+                'data' => null,
+                'meta' => [],
+                'errors' => [
+                    'message' => $exception->getMessage(),
+                    'fields' => [],
+                ],
+            ], 502);
         }
 
         return ApiResponse::success([

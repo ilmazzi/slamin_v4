@@ -76,7 +76,7 @@ export default function OpenProjectFeedbackWidget() {
 
           if (contentType.includes('application/json')) {
             const payload = await response.json()
-            details = payload?.message || JSON.stringify(payload?.errors || {})
+            details = payload?.errors?.message || payload?.message || JSON.stringify(payload?.errors || {})
           } else {
             details = (await response.text())?.slice(0, 300)
           }
