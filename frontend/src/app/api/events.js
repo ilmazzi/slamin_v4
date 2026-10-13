@@ -1,4 +1,4 @@
-import { apiGet, authApiGet, authApiPatch, authApiPost } from './client.js'
+import { apiGet, authApiDelete, authApiGet, authApiPatch, authApiPost } from './client.js'
 
 const MAX_PER_PAGE = 50
 const MAX_FETCH_PAGES = 20
@@ -129,6 +129,45 @@ export async function listEventCategories({ signal } = {}) {
   const nested = Array.isArray(data?.categories) ? data.categories : []
   const payloadNested = Array.isArray(payload?.data?.categories) ? payload.data.categories : []
   return { categories: direct.length ? direct : nested.length ? nested : payloadNested }
+}
+
+export async function adminListEventCategories({ token, signal } = {}) {
+  const { data } = await authApiGet('/api/v1/admin/event-categories', {
+    token,
+    signal,
+    fallbackMessage: 'Unable to load event categories',
+  })
+
+  return Array.isArray(data?.categories) ? data.categories : []
+}
+
+export async function adminStoreEventCategory(payload, { token } = {}) {
+  const { data } = await authApiPost('/api/v1/admin/event-categories', payload, {
+    token,
+    fallbackMessage: 'Unable to save event category',
+  })
+
+  return data?.category ?? null
+}
+
+export async function adminUpdateEventCategory(id, payload, { token } = {}) {
+  const { data } = await authApiPatch(
+    `/api/v1/admin/event-categories/${encodeURIComponent(id)}`,
+    payload,
+    {
+      token,
+      fallbackMessage: 'Unable to save event category',
+    },
+  )
+
+  return data?.category ?? null
+}
+
+export async function adminDeleteEventCategory(id, { token } = {}) {
+  await authApiDelete(`/api/v1/admin/event-categories/${encodeURIComponent(id)}`, {
+    token,
+    fallbackMessage: 'Unable to delete event category',
+  })
 }
 
 export async function createEvent(eventData, { token, signal } = {}) {

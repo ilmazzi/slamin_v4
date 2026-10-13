@@ -47,6 +47,13 @@ export default function AdminHomePage() {
       description: t('admin.hub.help_description'),
       ready: true,
     } : null,
+    canManageSettings ? {
+      id: 'event-categories',
+      href: '/admin/event-categories',
+      title: t('admin.hub.event_categories_title'),
+      description: t('admin.hub.event_categories_description'),
+      ready: true,
+    } : null,
   ].filter(Boolean)
 
   return (

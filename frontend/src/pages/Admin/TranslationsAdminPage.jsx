@@ -12,7 +12,7 @@ export default function TranslationsAdminPage() {
   const isAdmin = hasRole('admin')
 
   const [languages, setLanguages] = useState([])
-  const [locale, setLocale] = useState(uiLocale || 'it')
+  const [locale, setLocale] = useState('')
   const [group, setGroup] = useState('')
   const [search, setSearch] = useState('')
   const [missingOnly, setMissingOnly] = useState(false)
@@ -36,13 +36,19 @@ export default function TranslationsAdminPage() {
   const loadLanguages = useCallback(async () => {
     const nextLanguages = await listI18nLanguages(token)
     setLanguages(nextLanguages)
+    if (nextLanguages.length === 0) {
+      setIsLoading(false)
+    }
     setLocale((current) => {
       if (nextLanguages.some((language) => language.code === current)) {
         return current
       }
-      return nextLanguages.find((language) => language.is_default)?.code || nextLanguages[0]?.code || current
+      return nextLanguages.find((language) => language.is_default)?.code
+        || nextLanguages.find((language) => language.code === uiLocale)?.code
+        || nextLanguages[0]?.code
+        || ''
     })
-  }, [token])
+  }, [token, uiLocale])
 
   const loadKeys = useCallback(async () => {
     if (!locale) {
@@ -190,6 +196,7 @@ export default function TranslationsAdminPage() {
           <label className={styles.field}>
             <span>{t('i18n.panel.language')}</span>
             <select value={locale} onChange={(event) => { setPage(1); setLocale(event.target.value) }}>
+              {languages.length === 0 ? <option value="">Nessuna lingua configurata</option> : null}
               {languages.map((language) => (
                 <option key={language.code} value={language.code}>
                   {language.flag} {language.name} ({language.code})
@@ -265,7 +272,7 @@ export default function TranslationsAdminPage() {
               onChange={(event) => setNewKey((current) => ({ ...current, value: event.target.value }))}
               placeholder={t('i18n.panel.value')}
             />
-            <button type="submit">{t('i18n.panel.create_key')}</button>
+            <button type="submit" disabled={!locale}>{t('i18n.panel.create_key')}</button>
             <p className={styles.formHint}>{t('i18n.panel.key_hint')}</p>
           </form>
         ) : null}

@@ -6,6 +6,7 @@ return [
         'availability_poll_closed' => 'The availability poll is closed and cannot accept new votes.',
         'availability_already_finalized' => 'Availability has already been finalized for this event.',
         'category_in_use' => 'You cannot delete a category already used by one or more events.',
+        'system_category' => 'This category is used by system features and cannot be deleted.',
     ],
     'validation' => [
         'occurrence_required' => 'Start date and timezone are required for fixed or recurring events.',

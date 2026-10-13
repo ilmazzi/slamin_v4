@@ -17,15 +17,20 @@ class UpdateEventCategoryRequest extends FormRequest
     {
         /** @var EventCategory $eventCategory */
         $eventCategory = $this->route('eventCategory');
+        $slugRules = [
+            'required',
+            'string',
+            'max:120',
+            'alpha_dash',
+            Rule::unique('event_categories', 'slug')->ignore($eventCategory->id),
+        ];
+
+        if ($eventCategory->isSystemCategory()) {
+            $slugRules[] = Rule::in([$eventCategory->slug]);
+        }
 
         return [
-            'slug' => [
-                'required',
-                'string',
-                'max:120',
-                'alpha_dash',
-                Rule::unique('event_categories', 'slug')->ignore($eventCategory->id),
-            ],
+            'slug' => $slugRules,
             'is_active' => ['nullable', 'boolean'],
             'sort_order' => ['nullable', 'integer', 'min:0'],
             'translations' => ['required', 'array', 'min:1'],

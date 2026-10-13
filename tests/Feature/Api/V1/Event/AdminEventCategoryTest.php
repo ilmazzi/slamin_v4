@@ -135,3 +135,35 @@ it('prevents deleting an event category that is already used by an event', funct
         ->assertStatus(422)
         ->assertJsonPath('errors.message', __('event.errors.category_in_use'));
 });
+
+it('protects system event category slugs and deletion', function () {
+    Sanctum::actingAs(adminEventUser());
+
+    $category = EventCategory::query()->create([
+        'slug' => 'poetry-slam',
+        'is_active' => true,
+        'sort_order' => 1,
+    ]);
+    $category->translations()->create([
+        'locale' => 'it',
+        'name' => 'Poetry Slam',
+    ]);
+
+    $this->patchJson("/api/v1/admin/event-categories/{$category->id}", [
+        'slug' => 'slam',
+        'is_active' => true,
+        'sort_order' => 1,
+        'translations' => [
+            ['locale' => 'it', 'name' => 'Poetry Slam'],
+        ],
+    ])->assertUnprocessable()->assertJsonPath('errors.fields.slug.0', 'The selected slug is invalid.');
+
+    $this->deleteJson("/api/v1/admin/event-categories/{$category->id}")
+        ->assertUnprocessable()
+        ->assertJsonPath('errors.message', __('event.errors.system_category'));
+
+    $this->assertDatabaseHas('event_categories', [
+        'id' => $category->id,
+        'slug' => 'poetry-slam',
+    ]);
+});

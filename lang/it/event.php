@@ -6,6 +6,7 @@ return [
         'availability_poll_closed' => 'Il sondaggio disponibilita e chiuso e non accetta nuovi voti.',
         'availability_already_finalized' => 'La disponibilita e gia stata finalizzata per questo evento.',
         'category_in_use' => 'Non puoi eliminare una categoria gia usata da uno o piu eventi.',
+        'system_category' => 'Questa categoria è usata da funzioni di sistema e non può essere eliminata.',
     ],
     'validation' => [
         'occurrence_required' => 'Data di inizio e fuso orario sono obbligatori per eventi fissi o ricorrenti.',
