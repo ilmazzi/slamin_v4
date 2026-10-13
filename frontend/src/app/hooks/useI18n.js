@@ -1,4 +1,4 @@
-import { createContext, createElement, useContext, useEffect, useState } from 'react'
+import { createContext, createElement, useContext, useEffect, useRef, useState } from 'react'
 import { getApiUrl } from '../api/url'
 import { getClientLocale, localeHeaders, LOCALE_STORAGE_KEY } from '../i18n/locale.js'
 
@@ -38,6 +38,7 @@ function useI18nState() {
   const [locale, setLocale] = useState(getClientLocale)
   const [translations, setTranslations] = useState({})
   const [fallbackLocale, setFallbackLocale] = useState('en')
+  const fallbackLocaleRef = useRef('en')
   const [availableLocales, setAvailableLocales] = useState([])
 
   const getLocaleCode = (entry) => (typeof entry === 'string' ? entry : entry?.code)
@@ -54,8 +55,8 @@ function useI18nState() {
         })
 
         if (!response.ok) {
-          if (locale !== fallbackLocale) {
-            setLocale(fallbackLocale)
+          if (locale !== fallbackLocaleRef.current) {
+            setLocale(fallbackLocaleRef.current)
           }
           return
         }
@@ -63,7 +64,8 @@ function useI18nState() {
         const payload = await response.json()
         const bundle = payload?.data != null ? payload.data : payload
         setTranslations(bundle.translations || {})
-        const nextFallbackLocale = bundle.default_locale || fallbackLocale
+        const nextFallbackLocale = bundle.default_locale || fallbackLocaleRef.current
+        fallbackLocaleRef.current = nextFallbackLocale
         setFallbackLocale(nextFallbackLocale)
 
         const nextAvailableLocales = bundle.available_languages?.length
@@ -85,7 +87,7 @@ function useI18nState() {
     loadTranslations()
 
     return () => controller.abort()
-  }, [locale, fallbackLocale])
+  }, [locale])
 
   useEffect(() => {
     if (typeof document !== 'undefined') {
