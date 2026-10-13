@@ -11,13 +11,12 @@ class ListMediaSettingsController extends Controller
 {
     public function __construct(
         private readonly ResolveMediaSettingsAction $action,
-    ) {
-    }
+    ) {}
 
     public function __invoke(): JsonResponse
     {
         return ApiResponse::success([
-            'settings' => $this->action->execute(),
+            'settings' => $this->action->presentForAdmin(),
         ]);
     }
 }

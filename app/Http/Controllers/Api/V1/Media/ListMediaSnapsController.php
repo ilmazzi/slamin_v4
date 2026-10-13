@@ -15,12 +15,15 @@ class ListMediaSnapsController extends Controller
 {
     public function __construct(
         private readonly ListMediaSnapsAction $action,
-    ) {
-    }
+    ) {}
 
     public function __invoke(Request $request, MediaItem $media): JsonResponse
     {
-        $this->authorize('view', [MediaSnap::class, $media]);
+        $this->authorizeForUser(
+            auth('sanctum')->user() ?? $request->user(),
+            'view',
+            [MediaSnap::class, $media],
+        );
 
         return ApiResponse::success(
             data: MediaSnapResource::collection($this->action->execute($media))

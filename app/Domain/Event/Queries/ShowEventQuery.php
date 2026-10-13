@@ -24,6 +24,7 @@ class ShowEventQuery
                 'participantInvites.user.profile',
                 'audienceInvites.user.profile',
             ])
+            ->withEngagement($authUserId)
             ->where('slug', $slug)
             ->where(function ($query) use ($authUserId) {
                 if ($authUserId) {

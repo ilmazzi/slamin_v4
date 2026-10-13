@@ -1,0 +1,140 @@
+.card {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 18px;
+  min-height: 280px;
+  height: 100%;
+  padding: 22px 22px 18px;
+  background: #fff;
+  box-sizing: border-box;
+}
+
+.top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.authorRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.authorDot {
+  width: 12px;
+  height: 12px;
+  border-radius: 999px;
+  background: #000;
+  flex: 0 0 auto;
+}
+
+.authorName {
+  font-family: 'Switzer', sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.2;
+  color: #000;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.date {
+  font-family: 'Switzer', sans-serif;
+  font-size: 12px;
+  font-weight: 300;
+  color: rgb(0 0 0 / 0.55);
+  white-space: nowrap;
+}
+
+.body {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+.title {
+  margin: 0;
+  font-family: 'Switzer', sans-serif;
+  font-style: italic;
+  font-weight: 800;
+  font-size: clamp(18px, 1.25vw, 22px);
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+  color: #000;
+}
+
+.excerpt {
+  margin: 0;
+  font-family: 'Switzer', sans-serif;
+  font-size: 13px;
+  font-weight: 300;
+  line-height: 1.5;
+  color: #000;
+  display: -webkit-box;
+  -webkit-line-clamp: 4;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.footer {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.readLink {
+  background: var(--color-poems);
+  color: #fff;
+  flex: 0 0 auto;
+}
+
+.social {
+  gap: 10px;
+}
+
+.metrics {
+  gap: 8px;
+}
+
+.metric {
+  gap: 3px;
+}
+
+.metricValue {
+  font-size: 11px;
+  line-height: 1;
+}
+
+.metricIcon,
+.actionIcon {
+  width: 14px;
+  height: 14px;
+}
+
+.actionButtons {
+  gap: 8px;
+}
+
+.actionButtons button {
+  width: 14px;
+  height: 14px;
+}
+
+@media (max-width: 768px) {
+  .card {
+    min-height: 240px;
+    padding: 18px;
+  }
+
+  .footer {
+    flex-wrap: wrap;
+  }
+}

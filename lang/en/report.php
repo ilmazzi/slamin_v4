@@ -17,6 +17,18 @@ return [
         'article' => 'article',
         'comment' => 'comment',
         'media' => 'media',
+        'event' => 'event',
         'content' => 'content',
+    ],
+    'ui' => [
+        'reason' => 'Reason',
+        'details' => 'Details (optional)',
+        'details_placeholder' => 'Add useful details',
+        'reasons' => [
+            'spam' => 'Spam',
+            'abuse' => 'Abuse',
+            'harassment' => 'Harassment',
+            'other' => 'Other',
+        ],
     ],
 ];

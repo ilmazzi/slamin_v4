@@ -20,7 +20,12 @@ class ListMyEventQuery
                 'venueDetail',
                 'onlineDetail',
             ])
-            ->where('user_id', $userId)
+            ->withEngagement($userId)
+            ->where(function ($query) use ($userId): void {
+                $query
+                    ->where('user_id', $userId)
+                    ->orWhereHas('bookmarks', fn ($bookmarks) => $bookmarks->where('user_id', $userId));
+            })
             ->orderByDesc('created_at')
             ->paginate($perPage);
     }

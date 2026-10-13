@@ -1,13 +1,15 @@
 <?php
 
 use App\Mail\EventExternalParticipantInviteMail;
+use Domain\Engagement\Models\Bookmark;
+use Domain\Engagement\Models\Like;
 use Domain\Event\Models\Event;
 use Domain\Event\Models\EventAudienceInvite;
 use Domain\Event\Models\EventAvailabilityOption;
 use Domain\Event\Models\EventCategory;
 use Domain\Event\Models\EventParticipantInvite;
-use Domain\User\Models\User;
 use Domain\User\Models\Role;
+use Domain\User\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Mail;
 use Laravel\Sanctum\Sanctum;
@@ -149,7 +151,8 @@ it('lists only published public events and supports owner-only draft view on sho
     Sanctum::actingAs($owner);
     $this->getJson('/api/v1/events/evento-privato')
         ->assertOk()
-        ->assertJsonPath('data.event.slug', 'evento-privato');
+        ->assertJsonPath('data.event.slug', 'evento-privato')
+        ->assertJsonPath('data.event.is_owner', true);
 });
 
 it('allows invited users to vote and unvote availability options', function () {
@@ -494,4 +497,97 @@ it('prevents deleting a festival event that has child events', function () {
     $this->deleteJson("/api/v1/events/{$festival->id}")
         ->assertStatus(422)
         ->assertJsonPath('errors.fields.event.0', __('event.validation.festival_with_children_cannot_be_deleted'));
+});
+
+it('lets a verified audience user like, bookmark and list a published event in my events', function () {
+    $owner = eventWorkflowOrganizer();
+    $reader = eventWorkflowUser();
+    $category = eventWorkflowCategory();
+
+    /** @var Event $event */
+    $event = Event::query()->create([
+        'user_id' => $owner->id,
+        'event_category_id' => $category->id,
+        'title' => 'Evento pubblico',
+        'slug' => 'evento-pubblico-bookmark',
+        'description' => 'Salvalo in calendario',
+        'schedule_mode' => 'fixed',
+        'delivery_mode' => 'online',
+        'status' => 'published',
+        'is_public' => true,
+        'published_at' => now(),
+    ]);
+
+    $event->occurrences()->create([
+        'starts_at' => now()->addDays(3),
+        'timezone' => 'Europe/Rome',
+        'is_primary' => true,
+    ]);
+
+    Sanctum::actingAs($reader);
+
+    $this->postJson("/api/v1/events/{$event->id}/like")
+        ->assertOk()
+        ->assertJsonPath('data.event.id', $event->id)
+        ->assertJsonPath('data.event.is_liked', true);
+
+    $this->assertDatabaseHas('likes', [
+        'user_id' => $reader->id,
+        'likeable_id' => $event->id,
+        'likeable_type' => $event->getMorphClass(),
+    ]);
+
+    $this->deleteJson("/api/v1/events/{$event->id}/like")->assertOk();
+
+    expect(Like::query()
+        ->where('user_id', $reader->id)
+        ->where('likeable_id', $event->id)
+        ->exists())->toBeFalse();
+
+    $this->postJson("/api/v1/events/{$event->id}/bookmark")
+        ->assertOk()
+        ->assertJsonPath('data.event.is_bookmarked', true);
+
+    $this->assertDatabaseHas('bookmarks', [
+        'user_id' => $reader->id,
+        'bookmarkable_id' => $event->id,
+        'bookmarkable_type' => $event->getMorphClass(),
+    ]);
+
+    $this->getJson('/api/v1/my/events')
+        ->assertOk()
+        ->assertJsonCount(1, 'data')
+        ->assertJsonPath('data.0.slug', 'evento-pubblico-bookmark')
+        ->assertJsonPath('data.0.is_bookmarked', true)
+        ->assertJsonPath('data.0.is_owner', false);
+
+    $this->deleteJson("/api/v1/events/{$event->id}/bookmark")->assertOk();
+
+    expect(Bookmark::query()
+        ->where('user_id', $reader->id)
+        ->where('bookmarkable_id', $event->id)
+        ->exists())->toBeFalse();
+});
+
+it('forbids liking and bookmarking unpublished events for other users', function () {
+    $owner = eventWorkflowOrganizer();
+    $reader = eventWorkflowUser();
+    $category = eventWorkflowCategory();
+
+    /** @var Event $event */
+    $event = Event::query()->create([
+        'user_id' => $owner->id,
+        'event_category_id' => $category->id,
+        'title' => 'Bozza nascosta',
+        'slug' => 'bozza-nascosta',
+        'description' => 'non pubblica',
+        'schedule_mode' => 'fixed',
+        'delivery_mode' => 'online',
+        'status' => 'draft',
+        'is_public' => true,
+    ]);
+
+    Sanctum::actingAs($reader);
+    $this->postJson("/api/v1/events/{$event->id}/like")->assertForbidden();
+    $this->postJson("/api/v1/events/{$event->id}/bookmark")->assertForbidden();
 });

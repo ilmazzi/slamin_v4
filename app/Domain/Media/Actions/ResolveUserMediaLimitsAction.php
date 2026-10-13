@@ -5,13 +5,14 @@ namespace Domain\Media\Actions;
 use Domain\Media\Enums\MediaType;
 use Domain\Media\Models\MediaItem;
 use Domain\Media\Models\UserMediaEntitlement;
+use Domain\Media\Services\PeerTubeService;
 
 class ResolveUserMediaLimitsAction
 {
     public function __construct(
         private readonly ResolveMediaSettingsAction $resolveMediaSettingsAction,
-    ) {
-    }
+        private readonly PeerTubeService $peerTubeService,
+    ) {}
 
     public function execute(int $userId): array
     {
@@ -39,6 +40,11 @@ class ResolveUserMediaLimitsAction
             'current_video_count' => $videoCount,
             'remaining_photo_uploads' => max(0, ((int) $settings['photo_limit'] + $bonuses['photo_limit_bonus']) - $photoCount),
             'remaining_video_uploads' => max(0, ((int) $settings['video_limit'] + $bonuses['video_limit_bonus']) - $videoCount),
+            'photo_max_size_kb' => (int) $settings['photo_max_size_kb'],
+            'video_max_size_kb' => (int) $settings['video_max_size_kb'],
+            'photo_allowed_mimes' => array_values((array) $settings['photo_allowed_mimes']),
+            'video_allowed_mimes' => array_values((array) $settings['video_allowed_mimes']),
+            'peertube_configured' => $this->peerTubeService->isConfigured(),
         ];
     }
 

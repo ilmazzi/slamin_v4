@@ -1,0 +1,36 @@
+<?php
+
+namespace App\Http\Requests\Api\V1\Help;
+
+use Domain\Help\Models\HelpCategory;
+use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
+
+class UpdateHelpCategoryRequest extends FormRequest
+{
+    public function authorize(): bool
+    {
+        return true;
+    }
+
+    public function rules(): array
+    {
+        /** @var HelpCategory $helpCategory */
+        $helpCategory = $this->route('helpCategory');
+
+        return [
+            'slug' => [
+                'required',
+                'string',
+                'max:120',
+                'alpha_dash',
+                Rule::unique('help_categories', 'slug')->ignore($helpCategory->id),
+            ],
+            'is_active' => ['nullable', 'boolean'],
+            'sort_order' => ['nullable', 'integer', 'min:0', 'max:9999'],
+            'translations' => ['required', 'array', 'min:1'],
+            'translations.*.locale' => ['required', 'string', 'max:10', 'distinct'],
+            'translations.*.name' => ['required', 'string', 'max:100'],
+        ];
+    }
+}

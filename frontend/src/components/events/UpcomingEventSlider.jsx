@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { listEvents } from '../../app/api/events.js'
 import { normalizeEventsForUi } from '../../app/normalizers/event.js'
+import { useAuth } from '../../app/hooks/useAuth.js'
 import { useI18n } from '../../app/hooks/useI18n.js'
 import SlideCard from '../shared/SlideCard.jsx'
 import styles from './UpcomingSlider.module.css'
@@ -10,6 +11,7 @@ const UPCOMING_PER_PAGE = 9
 
 export default function UpcomingEventSlider() {
   const { t, locale } = useI18n()
+  const { token } = useAuth()
   const [events, setEvents] = useState([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState('')
@@ -35,7 +37,7 @@ export default function UpcomingEventSlider() {
 
       try {
         const { items: raw } = await listEvents(
-          { perPage: UPCOMING_PER_PAGE, page: 1 },
+          { perPage: UPCOMING_PER_PAGE, page: 1, token },
           { signal: controller.signal },
         )
         const normalized = normalizeEventsForUi(raw)
@@ -54,7 +56,7 @@ export default function UpcomingEventSlider() {
 
     loadUpcoming()
     return () => controller.abort()
-  }, [t])
+  }, [t, token])
 
   const cardsPerView = isDesktop ? 3 : 1
   const maxSlideStart = Math.max(0, events.length - cardsPerView)
@@ -94,6 +96,7 @@ export default function UpcomingEventSlider() {
         city: item.city || '—',
         dateLabel,
         imageUrl: item.image_url,
+        item,
       }
     })
   }, [events, locale, t])
@@ -146,6 +149,8 @@ export default function UpcomingEventSlider() {
                     dateLabel={item.dateLabel}
                     imageUrl={item.imageUrl}
                     href={item.slug ? `/events/${encodeURIComponent(item.slug)}` : '/events'}
+                    openAriaLabel={t('events.ui.open')}
+                    item={item.item}
                   />
                 </div>
               ))}

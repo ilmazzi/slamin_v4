@@ -4,6 +4,8 @@ namespace Domain\Report\Actions;
 
 use Domain\Article\Models\Article;
 use Domain\Comment\Models\Comment;
+use Domain\Event\Models\Event;
+use Domain\Media\Models\MediaItem;
 use Domain\Poetry\Models\Poem;
 use Domain\Report\DTOs\ListReportsData;
 use Domain\Report\Models\Report;
@@ -22,11 +24,13 @@ class ListReportsAction
                         Poem::class => [],
                         Article::class => [],
                         Comment::class => [],
+                        Event::class => [],
+                        MediaItem::class => [],
                     ]);
                 },
             ])
             ->orderByRaw(
-                "case when status = ? then 0 when status = ? then 1 else 2 end",
+                'case when status = ? then 0 when status = ? then 1 else 2 end',
                 ['open', 'in_review']
             )
             ->orderByDesc('created_at');
@@ -37,9 +41,11 @@ class ListReportsAction
 
         if ($data->reportableType) {
             $morphClass = match ($data->reportableType) {
-                'poem' => (new Poem())->getMorphClass(),
-                'article' => (new Article())->getMorphClass(),
-                'comment' => (new Comment())->getMorphClass(),
+                'poem' => (new Poem)->getMorphClass(),
+                'article' => (new Article)->getMorphClass(),
+                'comment' => (new Comment)->getMorphClass(),
+                'event' => (new Event)->getMorphClass(),
+                'media' => (new MediaItem)->getMorphClass(),
             };
 
             $query->where('reportable_type', $morphClass);

@@ -5,6 +5,7 @@ return [
     'menu_aria' => 'Menu',
     'language_aria' => 'Language',
     'dashboard' => 'Dashboard',
+    'admin' => 'Administration',
     'notifications_aria' => 'Notifications',
     'quick_actions' => [
         'title' => 'Quick actions',
@@ -16,12 +17,14 @@ return [
     'profile_menu' => [
         'profile' => 'My profile',
         'edit' => 'Edit profile',
+        'admin' => 'Administration',
         'logout' => 'Logout',
     ],
     'menu' => [
         'discover_title' => 'Discover',
         'community_title' => 'Community',
         'info_title' => 'Info',
+        'admin_title' => 'Administration',
         'community' => [
             'faq' => 'FAQ',
             'help' => 'Help',

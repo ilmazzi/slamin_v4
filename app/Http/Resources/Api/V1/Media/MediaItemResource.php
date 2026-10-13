@@ -2,10 +2,11 @@
 
 namespace App\Http\Resources\Api\V1\Media;
 
+use Domain\Media\Models\MediaItem;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
-/** @mixin \Domain\Media\Models\MediaItem */
+/** @mixin MediaItem */
 class MediaItemResource extends JsonResource
 {
     public function toArray(Request $request): array
@@ -30,7 +31,7 @@ class MediaItemResource extends JsonResource
             'peertube_short_uuid' => $this->peertube_short_uuid,
             'peertube_url' => $this->peertube_url,
             'peertube_embed_url' => $this->peertube_embed_url,
-            'peertube_thumbnail_url' => $this->peertube_thumbnail_url,
+            'peertube_thumbnail_url' => $this->resolvedThumbnailUrl(),
             'duration_seconds' => $this->duration_seconds,
             'processing_status' => $this->processing_status,
             'upload_error' => $this->upload_error,

@@ -4,12 +4,14 @@ namespace App\Http\Resources\Api\V1\Report;
 
 use Domain\Article\Models\Article;
 use Domain\Comment\Models\Comment;
+use Domain\Event\Models\Event;
 use Domain\Media\Models\MediaItem;
 use Domain\Poetry\Models\Poem;
+use Domain\Report\Models\Report;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
-/** @mixin \Domain\Report\Models\Report */
+/** @mixin Report */
 class ReportResource extends JsonResource
 {
     public function toArray(Request $request): array
@@ -63,6 +65,13 @@ class ReportResource extends JsonResource
                 'id' => $reportable->id,
                 'content' => $reportable->content,
                 'parent_id' => $reportable->parent_id,
+            ],
+            $reportable instanceof Event => [
+                'type' => 'event',
+                'id' => $reportable->id,
+                'slug' => $reportable->slug,
+                'title' => $reportable->title,
+                'status' => $reportable->status?->value,
             ],
             $reportable instanceof MediaItem => [
                 'type' => 'media',

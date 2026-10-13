@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { useLocation, useParams } from 'react-router-dom'
 import MainLayout from '../../components/layout/MainLayout.jsx'
-import { getMediaById } from '../../app/api/media.js'
+import { getMediaById, syncMediaVideoStatus } from '../../app/api/media.js'
 import { useAuth } from '../../app/hooks/useAuth.js'
 import { useI18n } from '../../app/hooks/useI18n.js'
 import SocialActions from '../../components/shared/SocialActions.jsx'
@@ -11,6 +11,7 @@ import AppToast from '../../components/shared/AppToast.jsx'
 import { useContentFeedbackUi } from '../../app/hooks/useContentFeedbackUi.js'
 import { createMediaReport } from '../../app/api/reports.js'
 import { scheduleScrollToComments } from '../../app/utils/scrollToComments.js'
+import pageStyles from '../shared/ContentPageShell.module.css'
 import styles from './MediaDetailPage.module.css'
 
 export default function MediaDetailPage() {
@@ -57,7 +58,7 @@ export default function MediaDetailPage() {
       } catch (nextError) {
         if (!cancelled && nextError?.name !== 'AbortError') {
           setMedia(null)
-          setError(nextError?.message || 'Unable to load media item')
+          setError(nextError?.message || t('media.ui.load_error'))
         }
       } finally {
         if (!cancelled) {
@@ -71,7 +72,32 @@ export default function MediaDetailPage() {
       cancelled = true
       controller.abort()
     }
-  }, [mediaId, token])
+  }, [mediaId, token, t])
+
+  useEffect(() => {
+    if (!mediaId || media?.type !== 'video' || media?.status !== 'processing') {
+      return undefined
+    }
+
+    const controller = new AbortController()
+    const timer = window.setInterval(async () => {
+      try {
+        const next = await syncMediaVideoStatus(mediaId, { token, signal: controller.signal })
+        if (next) {
+          setMedia(next)
+        }
+      } catch (error) {
+        if (error?.name !== 'AbortError') {
+          window.clearInterval(timer)
+        }
+      }
+    }, 5000)
+
+    return () => {
+      controller.abort()
+      window.clearInterval(timer)
+    }
+  }, [mediaId, media?.type, media?.status, token])
 
   const {
     reportModalItem,
@@ -83,10 +109,10 @@ export default function MediaDetailPage() {
   } = useContentFeedbackUi({
     contentType: 'media',
     knownItems: media ? [media] : [],
-    shareCopiedMessage: t('poems.actions.share_copied'),
-    shareSentMessage: t('poems.actions.share_sent'),
-    shareFailedMessage: t('poems.actions.share_failed'),
-    reportSubmittedMessage: t('poems.actions.report_submitted'),
+    shareCopiedMessage: t('media.ui.share_copied'),
+    shareSentMessage: t('media.ui.share_sent'),
+    shareFailedMessage: t('media.ui.share_failed'),
+    reportSubmittedMessage: t('media.ui.report_submitted'),
     reportFailedMessage: t('common.no_results'),
     submitReport: async (item, { reason, details }) => {
       const target = item?.id ?? media?.id ?? null
@@ -98,26 +124,27 @@ export default function MediaDetailPage() {
   })
 
   return (
-    <MainLayout themeTone="media">
+    <MainLayout themeTone="media" syncHeaderWithTheme={false}>
+      <div className={pageStyles.mediaPage}>
       <div className={styles.page}>
         {isLoading ? <p>{t('common.loading')}</p> : null}
-        {!isLoading && error ? <p>{error}</p> : null}
+        {!isLoading && error ? <p className={styles.error}>{error}</p> : null}
         {!isLoading && !error && !media ? <p>{t('common.no_results')}</p> : null}
 
         {!isLoading && media ? (
           <>
             <article className={styles.card}>
-              <h1 className={styles.title}>{media?.title || 'Media'}</h1>
-              <p className={styles.author}>{media?.author?.display_name || media?.author?.nickname || 'User'}</p>
+              <h1 className={styles.title}>{media?.title || t('media.ui.untitled')}</h1>
+              <p className={styles.author}>{media?.author?.display_name || media?.author?.nickname || t('common.unknown_user')}</p>
               {media?.description ? <p className={styles.description}>{media.description}</p> : null}
 
               <div className={styles.player}>
                 {media?.type === 'video' && media?.peertube_embed_url ? (
-                  <iframe src={media.peertube_embed_url} title={media?.title || 'Media video'} allowFullScreen />
+                  <iframe src={media.peertube_embed_url} title={media?.title || t('media.ui.video_title')} allowFullScreen />
                 ) : media?.type === 'video' && media?.file_url ? (
                   <video src={media.file_url} controls />
                 ) : media?.file_url ? (
-                  <img src={media.file_url} alt={media?.title || 'Media'} />
+                  <img src={media.file_url} alt={media?.title || t('media.ui.untitled')} />
                 ) : (
                   <div className={styles.placeholder} aria-hidden="true" />
                 )}
@@ -134,28 +161,29 @@ export default function MediaDetailPage() {
                   likes: media?.likes_count ?? 0,
                   comments: media?.comments_count ?? 0,
                 }}
-                shareLabel="Share media"
-                reportLabel="Report media"
+                shareLabel={t('media.ui.share')}
+                reportLabel={t('media.ui.report')}
                 onComments={() => commentsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
               />
             </article>
 
             <div ref={commentsRef} id="comments" style={{ scrollMarginTop: 104 }}>
-              <CommentsThread contentType="media" contentId={media.id} title="Commenti media" />
+              <CommentsThread contentType="media" contentId={media.id} />
             </div>
           </>
         ) : null}
+      </div>
       </div>
 
       <ContentReportModal
         key={reportModalItem?.id ?? 'media-detail-report-closed'}
         isOpen={Boolean(reportModalItem)}
         item={reportModalItem}
-        itemTitle={reportModalItem?.title ?? 'Media'}
-        title="Report media"
-        description="Do you want to report this media?"
-        cancelLabel="Cancel"
-        confirmLabel="Send report"
+        itemTitle={reportModalItem?.title ?? t('media.ui.untitled')}
+        title={t('media.ui.report_title')}
+        description={t('media.ui.report_description')}
+        cancelLabel={t('media.ui.report_cancel')}
+        confirmLabel={t('media.ui.report_confirm')}
         isSubmitting={isSubmittingReport}
         onClose={() => setReportModalItem(null)}
         onConfirm={handleReportConfirm}

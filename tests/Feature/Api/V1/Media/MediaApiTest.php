@@ -1,9 +1,9 @@
 <?php
 
-use Domain\Comment\Models\Comment;
+use Domain\Media\Models\MediaCheckoutOrder;
 use Domain\Media\Models\MediaFeaturePack;
 use Domain\Media\Models\MediaItem;
-use Domain\Media\Models\MediaCheckoutOrder;
+use Domain\Media\Models\MediaSnap;
 use Domain\Notification\Models\Notification;
 use Domain\User\Models\Role;
 use Domain\User\Models\User;
@@ -47,7 +47,24 @@ it('allows admin to update media settings and test peertube connection', functio
     ])
         ->assertOk()
         ->assertJsonPath('data.settings.photo_limit', 12)
-        ->assertJsonPath('data.settings.video_limit', 7);
+        ->assertJsonPath('data.settings.video_limit', 7)
+        ->assertJsonPath('data.settings.peertube_admin_password', null)
+        ->assertJsonPath('data.settings.peertube_admin_password_set', true);
+
+    $this->getJson('/api/v1/admin/media/settings')
+        ->assertOk()
+        ->assertJsonPath('data.settings.peertube_base_url', 'https://video.example.test')
+        ->assertJsonPath('data.settings.peertube_admin_username', 'admin')
+        ->assertJsonPath('data.settings.peertube_admin_password', null)
+        ->assertJsonPath('data.settings.peertube_admin_password_set', true);
+
+    $this->patchJson('/api/v1/admin/media/settings', [
+        'peertube_admin_password' => '',
+        'peertube_admin_username' => 'admin-updated',
+    ])
+        ->assertOk()
+        ->assertJsonPath('data.settings.peertube_admin_username', 'admin-updated')
+        ->assertJsonPath('data.settings.peertube_admin_password_set', true);
 
     Http::fake([
         'https://video.example.test/api/v1/oauth-clients/local' => Http::response([
@@ -109,7 +126,8 @@ it('allows admin to create feature packs and grant media entitlements that incre
         ->assertJsonPath('data.limits.base_video_limit', 3)
         ->assertJsonPath('data.limits.video_limit_bonus', 7)
         ->assertJsonPath('data.limits.video_limit', 10)
-        ->assertJsonPath('data.limits.remaining_video_uploads', 10);
+        ->assertJsonPath('data.limits.remaining_video_uploads', 10)
+        ->assertJsonPath('data.limits.peertube_configured', false);
 });
 
 it('allows users to create and list pending media checkout orders from active feature packs', function () {
@@ -249,7 +267,7 @@ it('handles a stripe webhook and completes the checkout order with an entitlemen
     ], JSON_THROW_ON_ERROR);
 
     $timestamp = time();
-    $signature = hash_hmac('sha256', $timestamp . '.' . $payload, 'whsec_test_123');
+    $signature = hash_hmac('sha256', $timestamp.'.'.$payload, 'whsec_test_123');
 
     $this->call(
         'POST',
@@ -383,7 +401,31 @@ it('uploads a video media item through peertube using admin settings', function 
         ->assertJsonPath('data.media.status', 'processing')
         ->assertJsonPath('data.media.peertube_video_id', '77')
         ->assertJsonPath('data.media.peertube_short_uuid', 'short-77')
+        ->assertJsonPath('data.media.peertube_thumbnail_url', 'https://video.example.test/static/thumbnails/77.jpg')
         ->assertJsonPath('data.media.duration_seconds', 123);
+});
+
+it('allows the owner to view a processing video with a bearer token', function () {
+    $user = mediaPoetOrganizer();
+    $token = $user->createToken('auth_token')->plainTextToken;
+
+    $media = MediaItem::query()->create([
+        'user_id' => $user->id,
+        'type' => 'video',
+        'title' => 'Processing video',
+        'visibility' => 'public',
+        'status' => 'processing',
+        'processing_status' => 'processing',
+        'mime_type' => 'video/mp4',
+        'file_size' => 1024,
+        'uploaded_at' => now(),
+    ]);
+
+    $this->withHeader('Authorization', "Bearer {$token}")
+        ->getJson("/api/v1/media/{$media->id}")
+        ->assertOk()
+        ->assertJsonPath('data.media.title', 'Processing video')
+        ->assertJsonPath('data.media.status', 'processing');
 });
 
 it('syncs a processing video to ready when peertube exposes files', function () {
@@ -494,6 +536,83 @@ it('syncs a processing video to failed when peertube returns an explicit error s
     ]);
 });
 
+it('promotes published peertube videos into the public media list', function () {
+    $admin = mediaAdmin();
+    Sanctum::actingAs($admin);
+    $this->patchJson('/api/v1/admin/media/settings', [
+        'peertube_base_url' => 'https://video.example.test',
+        'peertube_admin_username' => 'admin',
+        'peertube_admin_password' => 'secret',
+        'peertube_upload_channel_id' => '12',
+    ])->assertOk();
+
+    $owner = mediaPoetOrganizer();
+    $media = MediaItem::query()->create([
+        'user_id' => $owner->id,
+        'type' => 'video',
+        'title' => 'Live on PeerTube',
+        'visibility' => 'public',
+        'status' => 'processing',
+        'processing_status' => 'processing',
+        'peertube_video_id' => '99',
+        'peertube_uuid' => 'uuid-99',
+        'uploaded_at' => now(),
+    ]);
+
+    Http::fake([
+        'https://video.example.test/api/v1/videos/99' => Http::response([
+            'uuid' => 'uuid-99',
+            'shortUUID' => 'short-99',
+            'thumbnailPath' => '/static/thumbnails/99.jpg',
+            'duration' => 42,
+            'waitTranscoding' => false,
+            'state' => ['id' => 1, 'label' => 'Published'],
+            'streamingPlaylists' => [['playlistUrl' => 'https://video.example.test/static/master.m3u8']],
+        ]),
+    ]);
+
+    $this->getJson('/api/v1/media?type=video')
+        ->assertOk()
+        ->assertJsonPath('data.0.title', 'Live on PeerTube')
+        ->assertJsonPath('data.0.status', 'ready')
+        ->assertJsonPath('data.0.peertube_thumbnail_url', 'https://video.example.test/static/thumbnails/99.jpg');
+
+    $this->assertDatabaseHas('media_items', [
+        'id' => $media->id,
+        'status' => 'ready',
+        'processing_status' => 'ready',
+    ]);
+});
+
+it('exposes stored relative peertube thumbnail paths as absolute urls', function () {
+    $admin = mediaAdmin();
+    Sanctum::actingAs($admin);
+    $this->patchJson('/api/v1/admin/media/settings', [
+        'peertube_base_url' => 'http://localhost:9000',
+        'peertube_admin_username' => 'admin',
+        'peertube_admin_password' => 'secret',
+        'peertube_upload_channel_id' => '12',
+    ])->assertOk();
+
+    $owner = mediaPoetOrganizer();
+    MediaItem::query()->create([
+        'user_id' => $owner->id,
+        'type' => 'video',
+        'title' => 'Relative thumb',
+        'visibility' => 'public',
+        'status' => 'ready',
+        'processing_status' => 'ready',
+        'peertube_thumbnail_url' => '/lazy-static/previews/abc.jpg',
+        'uploaded_at' => now(),
+        'published_at' => now(),
+    ]);
+
+    $this->getJson('/api/v1/media?type=video')
+        ->assertOk()
+        ->assertJsonPath('data.0.title', 'Relative thumb')
+        ->assertJsonPath('data.0.peertube_thumbnail_url', 'http://localhost:9000/lazy-static/previews/abc.jpg');
+});
+
 it('lists and shows only ready public media', function () {
     $owner = mediaPoetOrganizer();
 
@@ -528,6 +647,48 @@ it('lists and shows only ready public media', function () {
     $this->getJson("/api/v1/media/{$publicMedia->id}")
         ->assertOk()
         ->assertJsonPath('data.media.title', 'Public media');
+});
+
+it('filters public media by type search and sort', function () {
+    $owner = mediaPoetOrganizer();
+
+    MediaItem::query()->create([
+        'user_id' => $owner->id,
+        'type' => 'video',
+        'title' => 'Night slam',
+        'description' => 'Live set',
+        'visibility' => 'public',
+        'status' => 'ready',
+        'published_at' => now()->subDay(),
+        'uploaded_at' => now()->subDay(),
+    ]);
+
+    MediaItem::query()->create([
+        'user_id' => $owner->id,
+        'type' => 'photo',
+        'title' => 'Street gallery',
+        'description' => 'Ritratto',
+        'visibility' => 'public',
+        'status' => 'ready',
+        'file_path' => 'media/photos/street.jpg',
+        'published_at' => now(),
+        'uploaded_at' => now(),
+    ]);
+
+    $this->getJson('/api/v1/media?type=video')
+        ->assertOk()
+        ->assertJsonCount(1, 'data')
+        ->assertJsonPath('data.0.title', 'Night slam');
+
+    $this->getJson('/api/v1/media?q=Street')
+        ->assertOk()
+        ->assertJsonCount(1, 'data')
+        ->assertJsonPath('data.0.title', 'Street gallery');
+
+    $this->getJson('/api/v1/media?sort=oldest')
+        ->assertOk()
+        ->assertJsonPath('data.0.title', 'Night slam')
+        ->assertJsonPath('data.1.title', 'Street gallery');
 });
 
 it('allows media owner to clear description with null on update', function () {
@@ -630,7 +791,7 @@ it('allows authenticated users to create, update, list and delete snaps on publi
         'title' => __('media.notifications.snap_created_title'),
     ]);
 
-    $snapId = \Domain\Media\Models\MediaSnap::query()->value('id');
+    $snapId = MediaSnap::query()->value('id');
 
     $this->patchJson("/api/v1/media/{$media->id}/snaps/{$snapId}", [
         'kind' => 'warning',

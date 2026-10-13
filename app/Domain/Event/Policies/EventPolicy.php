@@ -28,6 +28,11 @@ class EventPolicy
         return $this->canInteract($user, $event);
     }
 
+    public function comment(User $user, Event $event): bool
+    {
+        return $this->canInteract($user, $event);
+    }
+
     public function voteAvailability(User $user, Event $event): bool
     {
         if ($event->user_id === $user->id) {

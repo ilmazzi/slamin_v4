@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import L from 'leaflet'
-import { MapContainer, Marker, TileLayer, useMapEvents } from 'react-leaflet'
+import { MapContainer, Marker, useMapEvents } from 'react-leaflet'
+import OsmTileLayer from '../../app/maps/OsmTileLayer.jsx'
 import {
   listAllPublicEvents,
 } from '../../app/api/events.js'
@@ -373,12 +374,11 @@ export default function EventMap() {
           zoom={6}
           scrollWheelZoom={false}
           className={styles.mapCanvas}
-          attributionControl={false}
           whenReady={(event) => {
             mapRef.current = event.target
           }}
         >
-          <TileLayer url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png" />
+          <OsmTileLayer />
 
           <MapClickReset onReset={handleResetSelection} />
           <MapWheelZoomGuard />

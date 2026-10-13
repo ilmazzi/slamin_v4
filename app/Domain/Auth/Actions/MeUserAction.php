@@ -8,6 +8,6 @@ class MeUserAction
 {
     public function execute(User $user): User
     {
-        return $user->fresh()->load('profile');
+        return $user->fresh()->load(['profile', 'roles']);
     }
 }

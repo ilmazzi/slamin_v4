@@ -40,6 +40,13 @@ export function normalizeEventForUi(apiEvent) {
     image_url: apiEvent.cover_image_url || null,
     has_cost: hasCost,
     entry_fee: hasCost && price != null && !Number.isNaN(price) ? price : null,
+    views_count: Number(apiEvent.views_count ?? 0),
+    likes_count: Number(apiEvent.likes_count ?? 0),
+    comments_count: Number(apiEvent.comments_count ?? 0),
+    bookmarks_count: Number(apiEvent.bookmarks_count ?? 0),
+    is_liked: Boolean(apiEvent.is_liked),
+    is_bookmarked: Boolean(apiEvent.is_bookmarked),
+    is_owner: Boolean(apiEvent.is_owner),
   }
 }
 

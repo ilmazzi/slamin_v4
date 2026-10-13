@@ -71,6 +71,29 @@ export async function createMediaComment(mediaId, payload, { token, signal } = {
   })
 }
 
+export async function listEventComments(
+  eventId,
+  { page = 1, perPage = DEFAULT_PER_PAGE, signal } = {},
+) {
+  const params = new URLSearchParams()
+  params.set('page', String(page))
+  params.set('per_page', String(perPage))
+  const { data, meta } = await apiGet(`/api/v1/events/${encodeURIComponent(eventId)}/comments?${params.toString()}`, {
+    signal,
+    fallbackMessage: 'Unable to load event comments',
+  })
+
+  return { data, meta }
+}
+
+export async function createEventComment(eventId, payload, { token, signal } = {}) {
+  return authApiPost(`/api/v1/events/${encodeURIComponent(eventId)}/comments`, payload, {
+    token,
+    signal,
+    fallbackMessage: 'Unable to post event comment',
+  })
+}
+
 export async function updateComment(commentId, payload, { token, signal } = {}) {
   return authApiRequest(`/api/v1/comments/${encodeURIComponent(commentId)}`, {
     token,

@@ -4,7 +4,6 @@ namespace Domain\Media\Services;
 
 use Domain\Media\Actions\ResolveMediaSettingsAction;
 use Illuminate\Http\Client\PendingRequest;
-use Illuminate\Http\Client\RequestException;
 use Illuminate\Support\Facades\Http;
 use RuntimeException;
 
@@ -14,8 +13,7 @@ class PeerTubeService
 
     public function __construct(
         private readonly ResolveMediaSettingsAction $resolveMediaSettingsAction,
-    ) {
-    }
+    ) {}
 
     public function isConfigured(): bool
     {
@@ -84,7 +82,7 @@ class PeerTubeService
             }
         }
 
-        $response = $request->post($this->getBaseUrl() . '/api/v1/videos/upload', $payload);
+        $response = $request->post($this->getBaseUrl().'/api/v1/videos/upload', $payload);
 
         if (! $response->successful()) {
             throw new RuntimeException($response->body() ?: __('media.validation.peertube_upload_failed'));
@@ -104,7 +102,7 @@ class PeerTubeService
             return null;
         }
 
-        $response = $this->baseRequest()->get($this->getBaseUrl() . '/api/v1/videos/' . $videoIdOrUuid);
+        $response = $this->baseRequest()->get($this->getBaseUrl().'/api/v1/videos/'.$videoIdOrUuid);
 
         if (! $response->successful()) {
             return null;
@@ -118,7 +116,7 @@ class PeerTubeService
         $identifier = $shortUuid ?: $uuid;
 
         return $identifier
-            ? $this->getBaseUrl() . '/videos/watch/' . $identifier
+            ? $this->getBaseUrl().'/videos/watch/'.$identifier
             : null;
     }
 
@@ -127,8 +125,35 @@ class PeerTubeService
         $identifier = $shortUuid ?: $uuid;
 
         return $identifier
-            ? $this->getBaseUrl() . '/videos/embed/' . $identifier
+            ? $this->getBaseUrl().'/videos/embed/'.$identifier
             : null;
+    }
+
+    public function resolveAssetUrl(?string $path): ?string
+    {
+        if (! filled($path)) {
+            return null;
+        }
+
+        if (str_starts_with($path, 'http://') || str_starts_with($path, 'https://')) {
+            return $path;
+        }
+
+        return rtrim($this->getBaseUrl(), '/').'/'.ltrim($path, '/');
+    }
+
+    /**
+     * @param  array<string, mixed>|null  $details
+     */
+    public function resolveThumbnailUrl(?array $details): ?string
+    {
+        if (! is_array($details)) {
+            return null;
+        }
+
+        return $this->resolveAssetUrl(
+            $details['previewPath'] ?? $details['thumbnailPath'] ?? null
+        );
     }
 
     private function getAdminToken(): ?string
@@ -138,7 +163,7 @@ class PeerTubeService
         }
 
         $settings = $this->resolveMediaSettingsAction->execute();
-        $clientResponse = $this->baseRequest()->get($this->getBaseUrl() . '/api/v1/oauth-clients/local');
+        $clientResponse = $this->baseRequest()->get($this->getBaseUrl().'/api/v1/oauth-clients/local');
 
         if (! $clientResponse->successful()) {
             throw new RuntimeException($clientResponse->body() ?: 'Unable to resolve PeerTube OAuth client.');
@@ -148,7 +173,7 @@ class PeerTubeService
 
         $tokenResponse = $this->baseRequest()
             ->asForm()
-            ->post($this->getBaseUrl() . '/api/v1/users/token', [
+            ->post($this->getBaseUrl().'/api/v1/users/token', [
                 'client_id' => $client['client_id'] ?? null,
                 'client_secret' => $client['client_secret'] ?? null,
                 'grant_type' => 'password',

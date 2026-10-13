@@ -10,6 +10,17 @@
   scroll-snap-align: start;
 }
 
+.fluid {
+  width: 100%;
+  max-width: 473px;
+  flex: 0 0 auto;
+}
+
+.fluid .previewImage {
+  height: auto;
+  aspect-ratio: 473 / 512;
+}
+
 .preview {
   display: flex;
   flex-direction: column;
@@ -77,6 +88,11 @@
   margin: 0;
 }
 
+.title a {
+  color: inherit;
+  text-decoration: none;
+}
+
 .title {
   color: #e30613;
   font-size: 30px;
@@ -102,6 +118,12 @@
   height: 512px;
   background: #1a1a1a;
   overflow: hidden;
+}
+
+.coverLink {
+  display: block;
+  width: 100%;
+  height: 100%;
 }
 
 .desktopPreviewAsset,
@@ -151,18 +173,19 @@
   pointer-events: none;
 }
 
-.desktopInteractionStrip {
+.desktopInteractionStrip,
+.desktopSocial {
   position: absolute;
   left: 35px;
   top: 0;
   display: flex;
-  flex: 0 0 321.737px;
   width: 321.737px;
   gap: 20px;
   align-items: center;
   height: 72.873px;
   padding-bottom: 3px;
   box-sizing: border-box;
+  z-index: 2;
 }
 
 .desktopFooterIcons {
@@ -184,6 +207,32 @@
   height: 69.873px;
   padding-top: 1px;
   box-sizing: border-box;
+}
+
+.desktopSocial .desktopFooterActions button {
+  width: 25px;
+  height: 27px;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.desktopSocial .desktopFooterActions img {
+  width: 100%;
+  height: 100%;
+  max-width: 25px;
+  max-height: 27px;
+  object-fit: contain;
+}
+
+.desktopSocial .desktopFooterIcons img {
+  width: auto;
+  max-width: 22px;
+  height: 21px;
+  object-fit: contain;
+}
+
+.desktopSocial .desktopFooterIcons .statPill:first-child img {
+  height: 19px;
 }
 
 .desktopFooterIcons .statPill:first-child {
@@ -292,6 +341,14 @@
   display: none;
 }
 
+.mobileSocial {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  gap: 8px;
+}
+
 @media (max-width: 768px) {
   .card {
     width: 188px;
@@ -301,6 +358,12 @@
     background: #fff;
     border: 1px solid #000;
     box-sizing: border-box;
+  }
+
+  .fluid {
+    width: 100%;
+    max-width: none;
+    flex: 1 1 auto;
   }
 
   .preview {
@@ -400,6 +463,29 @@
     width: 76.5px;
     height: 27.663px;
     justify-content: flex-end;
+  }
+
+  .mobileSocial .mobileFooterActions button {
+    width: 21px;
+    height: 21px;
+    overflow: hidden;
+    flex-shrink: 0;
+  }
+
+  .mobileSocial .mobileFooterActions img {
+    width: 100%;
+    height: 100%;
+    max-width: 21px;
+    max-height: 21px;
+    object-fit: contain;
+  }
+
+  .mobileSocial .mobileFooterIcons img {
+    display: block;
+    width: auto;
+    max-width: 16px;
+    height: 10.663px;
+    object-fit: contain;
   }
 
   .statPill {

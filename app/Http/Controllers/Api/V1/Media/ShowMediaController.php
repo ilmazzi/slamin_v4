@@ -14,14 +14,15 @@ class ShowMediaController extends Controller
 {
     public function __construct(
         private readonly ShowMediaAction $action,
-    ) {
-    }
+    ) {}
 
     public function __invoke(Request $request, MediaItem $media): JsonResponse
     {
-        $this->authorize('view', $media);
+        $user = auth('sanctum')->user() ?? $request->user();
 
-        $authUserId = auth('sanctum')->id();
+        $this->authorizeForUser($user, 'view', $media);
+
+        $authUserId = $user?->id;
 
         $media = $this->action->execute($media, $authUserId);
 

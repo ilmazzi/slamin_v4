@@ -24,6 +24,7 @@ export default function PersonalEventsCalendar({ tone = 'default',showVisibility
     const [events, setEvents] = useState([])
     const [isLoadingEvents, setIsLoadingEvents] = useState(false)
     const [selectedDayKey, setSelectedDayKey] = useState(null)
+    const [calendarTick, setCalendarTick] = useState(0)
     const dayDetailsRef = useRef(null)
 
 
@@ -64,7 +65,18 @@ export default function PersonalEventsCalendar({ tone = 'default',showVisibility
       async function loadCalendarEvents() {
         try {
           const raw = await listMyEvents({ token, signal: controller.signal })
-          const rows = raw.flatMap((e) => expandEventOccurrencesForCalendar(e, { relations: ['owned'] }))
+          const rows = raw.flatMap((event) => {
+            const relations = []
+            if (event.is_owner) {
+              relations.push('owned')
+            }
+            if (event.is_bookmarked) {
+              relations.push('wishlist')
+            }
+            return expandEventOccurrencesForCalendar(event, {
+              relations: relations.length ? relations : ['owned'],
+            })
+          })
           setEvents(rows)
         } catch (error) {
           if (error?.name !== 'AbortError') {
@@ -81,7 +93,13 @@ export default function PersonalEventsCalendar({ tone = 'default',showVisibility
       loadCalendarEvents()
 
       return () => controller.abort()
-    }, [token])
+    }, [token, calendarTick])
+
+    useEffect(() => {
+      const handleBookmarkChanged = () => setCalendarTick((value) => value + 1)
+      window.addEventListener('event:bookmark-changed', handleBookmarkChanged)
+      return () => window.removeEventListener('event:bookmark-changed', handleBookmarkChanged)
+    }, [])
 
     useEffect(() => {
       setSelectedDayKey(null)
@@ -347,7 +365,7 @@ export default function PersonalEventsCalendar({ tone = 'default',showVisibility
         </button> : null}
       </div>
       {!isHidden && isMonthSelectOpen ? (
-        <div className={styles.monthSelectMenu} role="listbox" aria-label="Selezione mese">
+        <div className={styles.monthSelectMenu} role="listbox" aria-label={t('common.month_select')}>
           {MONTHS.map((month, index) => (
             <button
               key={`mobile-${index}`}

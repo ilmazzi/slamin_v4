@@ -5,6 +5,8 @@ namespace Domain\Report\Actions;
 use Domain\Article\Enums\ArticleStatus;
 use Domain\Article\Models\Article;
 use Domain\Comment\Models\Comment;
+use Domain\Event\Enums\EventStatus;
+use Domain\Event\Models\Event;
 use Domain\Media\Enums\MediaStatus;
 use Domain\Media\Enums\MediaVisibility;
 use Domain\Media\Models\MediaItem;
@@ -22,8 +24,7 @@ class StoreReportAction
 {
     public function __construct(
         private readonly CreateNotificationAction $createNotificationAction,
-    ) {
-    }
+    ) {}
 
     public function execute(Model $reportable, int $reporterUserId, string $reason, ?string $details = null): Report
     {
@@ -72,6 +73,7 @@ class StoreReportAction
             $reportable instanceof Article => 'article',
             $reportable instanceof Comment => 'comment',
             $reportable instanceof MediaItem => 'media',
+            $reportable instanceof Event => 'event',
             default => 'content',
         };
 
@@ -146,7 +148,17 @@ class StoreReportAction
                 return;
             }
 
+            if ($commentable instanceof Event && $commentable->status === EventStatus::Published && $commentable->is_public === true) {
+                return;
+            }
+
             if ($commentable instanceof MediaItem && $commentable->status === MediaStatus::Ready && $commentable->visibility === MediaVisibility::Public) {
+                return;
+            }
+        }
+
+        if ($reportable instanceof Event) {
+            if ($reportable->status === EventStatus::Published && $reportable->is_public === true) {
                 return;
             }
         }
@@ -157,6 +169,6 @@ class StoreReportAction
             }
         }
 
-        throw new NotFoundHttpException();
+        throw new NotFoundHttpException;
     }
 }

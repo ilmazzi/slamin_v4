@@ -1,7 +1,8 @@
 .eventPage,
 .gigsPage,
 .articlesPage,
-.poemsPage {
+.poemsPage,
+.mediaPage {
   --color-header-fg: var(--color-black);
   --color-header-border: var(--color-black);
   --page-inline-padding: 110px;
@@ -27,11 +28,19 @@
   --color-header-bg: var(--page-hero-accent);
 }
 
+.mediaPage {
+  --page-hero-accent: var(--color-media);
+  --color-header-bg: var(--page-hero-accent);
+  --color-header-fg: var(--color-white);
+  --color-header-border: var(--color-white);
+}
+
 @media (max-width: 1200px) {
   .eventPage,
   .gigsPage,
   .articlesPage,
-  .poemsPage {
+  .poemsPage,
+  .mediaPage {
     --page-inline-padding: 48px;
   }
 }
@@ -40,7 +49,8 @@
   .eventPage,
   .gigsPage,
   .articlesPage,
-  .poemsPage {
+  .poemsPage,
+  .mediaPage {
     --page-inline-padding: 24px;
   }
 }

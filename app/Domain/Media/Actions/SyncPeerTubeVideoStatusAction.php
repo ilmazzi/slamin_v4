@@ -14,8 +14,7 @@ class SyncPeerTubeVideoStatusAction
         private readonly PeerTubeService $peerTubeService,
         private readonly NotifyMediaVideoReadyAction $notifyMediaVideoReadyAction,
         private readonly NotifyMediaVideoFailedAction $notifyMediaVideoFailedAction,
-    ) {
-    }
+    ) {}
 
     public function execute(MediaItem $media): MediaItem
     {
@@ -52,9 +51,8 @@ class SyncPeerTubeVideoStatusAction
 
         $media->fill([
             'duration_seconds' => $details['duration'] ?? $media->duration_seconds,
-            'peertube_thumbnail_url' => ! empty($details['thumbnailPath'])
-                ? rtrim($this->peerTubeService->getBaseUrl(), '/') . $details['thumbnailPath']
-                : $media->peertube_thumbnail_url,
+            'peertube_thumbnail_url' => $this->peerTubeService->resolveThumbnailUrl($details)
+                ?? $media->peertube_thumbnail_url,
             'peertube_url' => $this->peerTubeService->buildWatchUrl(
                 $details['shortUUID'] ?? $media->peertube_short_uuid,
                 $details['uuid'] ?? $media->peertube_uuid,
@@ -118,7 +116,7 @@ class SyncPeerTubeVideoStatusAction
     }
 
     /**
-     * @param array<string,mixed> $details
+     * @param  array<string,mixed>  $details
      * @return array{status: ?MediaStatus, processing_status: string, upload_error: ?string}
      */
     private function resolveStateFromPeerTubePayload(array $details): array
@@ -129,8 +127,14 @@ class SyncPeerTubeVideoStatusAction
             ?? ''));
 
         $hasFiles = ! empty($details['files']) || ! empty($details['streamingPlaylists']);
+        $stateId = (int) data_get($details, 'state.id', 0);
+        $waitTranscoding = filter_var($details['waitTranscoding'] ?? false, FILTER_VALIDATE_BOOLEAN);
 
-        if ($hasFiles || str_contains($stateLabel, 'ready') || str_contains($stateLabel, 'publish')) {
+        if (
+            $stateId === 1
+            || $hasFiles
+            || (! $waitTranscoding && (str_contains($stateLabel, 'ready') || str_contains($stateLabel, 'publish') || str_contains($stateLabel, 'pubblic')))
+        ) {
             return [
                 'status' => MediaStatus::Ready,
                 'processing_status' => 'ready',

@@ -16,7 +16,7 @@ export const getApiUrl = (path) => {
   return `${API_BASE_URL}${normalizedPath}`
 }
 
-const LOCAL_APP_HOST_PATTERN = /^https?:\/\/(?:localhost|127\.0\.0\.1|[^/]+\.test)(?::\d+)?(?:\/|$)/i
+const LARAVEL_LOOPBACK_PORTS = new Set(['', '80', '443', '8000', '8080'])
 
 export const resolvePublicUrl = (value) => {
   const raw = String(value || '').trim()
@@ -27,16 +27,28 @@ export const resolvePublicUrl = (value) => {
   }
 
   if (/^https?:\/\//i.test(raw)) {
-    if (typeof window !== 'undefined' && window.location.protocol === 'https:' && raw.startsWith('http://')) {
-      return raw.replace(/^http:\/\//i, 'https://')
-    }
-
-    if (!LOCAL_APP_HOST_PATTERN.test(raw)) {
+    let parsed
+    try {
+      parsed = new URL(raw)
+    } catch {
       return raw
     }
 
-    const [, pathname = '/'] = raw.match(/^https?:\/\/[^/]+(\/.*)?$/i) || []
-    return getApiUrl(pathname)
+    const isLoopback = parsed.hostname === 'localhost' || parsed.hostname === '127.0.0.1'
+    const isHerdHost = parsed.hostname.endsWith('.test')
+
+    if (!isLoopback && !isHerdHost) {
+      if (typeof window !== 'undefined' && window.location.protocol === 'https:' && raw.startsWith('http://')) {
+        return raw.replace(/^http:\/\//i, 'https://')
+      }
+      return raw
+    }
+
+    if (isLoopback && !LARAVEL_LOOPBACK_PORTS.has(parsed.port)) {
+      return raw
+    }
+
+    return getApiUrl(`${parsed.pathname}${parsed.search}${parsed.hash}`)
   }
 
   return getApiUrl(raw)

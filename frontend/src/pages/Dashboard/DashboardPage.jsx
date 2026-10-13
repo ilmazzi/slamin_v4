@@ -217,19 +217,7 @@ export default function DashboardPage({ user }) {
             <span className={`${styles.statLabel} typeBody textBlack`}>{t('home.dashboard.likes').toLowerCase()}</span>
           </article>
         </section>
-        <section className={styles.actionsRow}>
-          {quickActions.map((action) => {
-            const ActionIcon = action.Icon
 
-            return (
-              <Link key={action.id} className={styles.actionButton} to={action.href}>
-                <ActionIcon className={styles.actionIcon} />
-                <span className={`${styles.actionButtonText} typeUi textWhite`}>{action.label}</span>
-                <PlusIcon className={styles.actionPlusIcon} />
-              </Link>
-            )
-          })}
-        </section>
         <PersonalEventsCalendar />
         <section className={styles.communityTitleWrap}>
           <h2 className={styles.communityTitle}>

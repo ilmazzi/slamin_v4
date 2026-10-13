@@ -11,7 +11,9 @@ import {
 } from '../../assets/home/media/index.js'
 import { authApiRequest } from '../../app/api/client.js'
 import { useAuth } from '../../app/hooks/useAuth.js'
+import { useI18n } from '../../app/hooks/useI18n.js'
 import { scheduleScrollToComments } from '../../app/utils/scrollToComments.js'
+import { CalendarIcon } from '../icons/ActionIcons.jsx'
 import styles from './SocialActions.module.css'
 
 function pluralizeContentType(contentType) {
@@ -141,6 +143,11 @@ export default function SocialActions({
   iconClassName = '',
   shareIconClassName = '',
   reportIconClassName = '',
+  shareIconSrc,
+  reportIconSrc,
+  showBookmark = false,
+  bookmarkLabel,
+  onBookmark,
   /** Order of view / like / comment metrics, e.g. poem detail: ['likes', 'comments', 'views'] */
   metricsOrder = ['views', 'likes', 'comments'],
   onLike,
@@ -149,18 +156,20 @@ export default function SocialActions({
   onReport,
 }) {
   const auth = useAuth()
+  const { t } = useI18n()
   const navigate = useNavigate()
   const location = useLocation()
   const target = explicitTarget ?? item ?? article ?? null
   const normalizedMetrics = metrics ?? target?.metrics ?? null
   const classes = [styles.actions, styles[layout] || '', className].filter(Boolean).join(' ')
-  const shareIcon = variant === 'list' ? mediaShareListFigmaIcon : mediaShareFeaturedFigmaIcon
-  const reportIcon = variant === 'list' ? mediaReportListFigmaIcon : mediaReportFeaturedFigmaIcon
+  const shareIcon = shareIconSrc || (variant === 'list' ? mediaShareListFigmaIcon : mediaShareFeaturedFigmaIcon)
+  const reportIcon = reportIconSrc || (variant === 'list' ? mediaReportListFigmaIcon : mediaReportFeaturedFigmaIcon)
   const resolvedApiBasePath = buildContentBasePath(contentType, apiBasePath)
 
   const initialIsLiked = Boolean(target?.is_liked)
   const [isLiked, setIsLiked] = useState(initialIsLiked)
   const [likesOverride, setLikesOverride] = useState(null)
+  const [isBookmarked, setIsBookmarked] = useState(Boolean(target?.is_bookmarked))
 
   const likesValue = likesOverride !== null
     ? likesOverride
@@ -169,7 +178,8 @@ export default function SocialActions({
   useEffect(() => {
     setIsLiked(Boolean(target?.is_liked))
     setLikesOverride(null)
-  }, [target?.id, target?.is_liked])
+    setIsBookmarked(Boolean(target?.is_bookmarked))
+  }, [target?.id, target?.is_liked, target?.is_bookmarked])
 
   async function handleLike() {
     if (onLike) {
@@ -182,6 +192,7 @@ export default function SocialActions({
     }
 
     if (!auth?.isAuthenticated || !auth?.token) {
+      navigate('/login', { state: { from: `${location.pathname}${location.search}` } })
       return
     }
 
@@ -216,6 +227,60 @@ export default function SocialActions({
     } catch {
       window.dispatchEvent(
         new CustomEvent(buildContentEventName(contentType, 'like-error'), {
+          detail: {
+            target: target ?? null,
+            contentType,
+          },
+        }),
+      )
+    }
+  }
+
+  async function handleBookmark() {
+    if (onBookmark) {
+      await onBookmark(target)
+      return
+    }
+
+    if (!target?.id) {
+      return
+    }
+
+    if (!auth?.isAuthenticated || !auth?.token) {
+      navigate('/login', { state: { from: `${location.pathname}${location.search}` } })
+      return
+    }
+
+    try {
+      const method = isBookmarked ? 'DELETE' : 'POST'
+      const result = await authApiRequest(
+        `/api/v1${resolvedApiBasePath}/${encodeURIComponent(target.id)}/bookmark`,
+        {
+          token: auth.token,
+          method,
+          fallbackMessage: 'Unable to toggle bookmark',
+        },
+      )
+
+      if (!result.ok) {
+        throw new Error('Unable to toggle bookmark')
+      }
+
+      const nextIsBookmarked = !isBookmarked
+      setIsBookmarked(nextIsBookmarked)
+
+      window.dispatchEvent(
+        new CustomEvent(buildContentEventName(contentType, 'bookmark-changed'), {
+          detail: {
+            target: target ?? null,
+            contentType,
+            isBookmarked: nextIsBookmarked,
+          },
+        }),
+      )
+    } catch {
+      window.dispatchEvent(
+        new CustomEvent(buildContentEventName(contentType, 'bookmark-error'), {
           detail: {
             target: target ?? null,
             contentType,
@@ -337,9 +402,8 @@ export default function SocialActions({
       className={[styles.metricButton, styles.metric, metricClassName, likeMetricClassName, isLiked ? styles.isLiked : '']
         .filter(Boolean)
         .join(' ')}
-      aria-label="Like"
+      aria-label={t('common.like')}
       onClick={handleLike}
-      disabled={!onLike && (!auth?.isAuthenticated || !auth?.token)}
     >
       <span className={[styles.metricValue, metricValueClassName].filter(Boolean).join(' ')}>{likesValue}</span>
       <img
@@ -356,7 +420,7 @@ export default function SocialActions({
       key="comments"
       type="button"
       className={[styles.metricButton, styles.metric, metricClassName, commentMetricClassName].filter(Boolean).join(' ')}
-      aria-label="Commenti"
+      aria-label={t('common.comments')}
       onClick={handleComments}
     >
       <span className={[styles.metricValue, metricValueClassName].filter(Boolean).join(' ')}>
@@ -385,6 +449,17 @@ export default function SocialActions({
 
   const buttonsBlock = showActions ? (
     <div className={[styles.buttons, buttonsClassName].filter(Boolean).join(' ')}>
+      {showBookmark ? (
+        <button
+          type="button"
+          aria-label={bookmarkLabel}
+          aria-pressed={isBookmarked}
+          onClick={handleBookmark}
+          className={[styles.actionButton, isBookmarked ? styles.isBookmarked : ''].filter(Boolean).join(' ')}
+        >
+          <CalendarIcon className={[styles.icon, styles.bookmarkIcon].filter(Boolean).join(' ')} />
+        </button>
+      ) : null}
       <button type="button" aria-label={shareLabel} onClick={handleShare} className={styles.actionButton}>
         <img
           src={shareIcon}

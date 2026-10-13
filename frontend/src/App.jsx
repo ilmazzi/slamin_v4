@@ -1,6 +1,7 @@
 import { lazy, Suspense, useEffect } from 'react'
 import { Navigate, Route, Routes, useParams } from 'react-router-dom'
 import ProtectedRoute from './components/ProtectedRoute.jsx'
+import ScrollToTop from './components/ScrollToTop.jsx'
 import { useAuth } from './app/hooks/useAuth.js'
 
 const DashboardPage = lazy(() => import('./pages/Dashboard/DashboardPage.jsx'))
@@ -27,10 +28,24 @@ const ArticlePage = lazy(() => import('./pages/Articles/ArticlePage.jsx'))
 const ArticleDetailPage = lazy(() => import('./pages/Articles/ArticleDetailPage.jsx'))
 const GigPage = lazy(() => import('./pages/Gigs/GigPage.jsx'))
 const MediaPage = lazy(() => import('./pages/Media/MediaPage.jsx'))
+const MediaUploadPage = lazy(() => import('./pages/Media/MediaUploadPage.jsx'))
 const MediaDetailPage = lazy(() => import('./pages/Media/MediaDetailPage.jsx'))
 const PoemDetailPage = lazy(() => import('./pages/Poems/PoemDetailPage.jsx'))
 const PoemCreate = lazy(() => import('./pages/Poems/PoemCreate.jsx'))
 const PlaceholderPage = lazy(() => import('./pages/shared/PlaceholderPage.jsx'))
+const TranslationsAdminPage = lazy(() => import('./pages/Admin/TranslationsAdminPage.jsx'))
+const AdminSettingsPage = lazy(() => import('./pages/Admin/AdminSettingsPage.jsx'))
+const AdminHomePage = lazy(() => import('./pages/Admin/AdminHomePage.jsx'))
+const HelpAdminPage = lazy(() => import('./pages/Admin/HelpAdminPage.jsx'))
+const HelpPage = lazy(() => import('./pages/Help/HelpPage.jsx'))
+const ModerationDashboardPage = lazy(() => import('./pages/Moderation/ModerationDashboardPage.jsx'))
+const ModerationQueuePage = lazy(() => import('./pages/Moderation/ModerationQueuePage.jsx'))
+const ModerationReviewPage = lazy(() => import('./pages/Moderation/ModerationReviewPage.jsx'))
+const ModerationReportsPage = lazy(() => import('./pages/Moderation/ModerationReportsPage.jsx'))
+const ModerationReportDetailPage = lazy(() => import('./pages/Moderation/ModerationReportDetailPage.jsx'))
+const ProfilePage = lazy(() => import('./pages/Profile/ProfilePage.jsx'))
+const ProfileEditPage = lazy(() => import('./pages/Profile/ProfileEditPage.jsx'))
+const PublicProfilePage = lazy(() => import('./pages/Profile/PublicProfilePage.jsx'))
 
 
 export default function App() {
@@ -53,6 +68,7 @@ export default function App() {
 
   return (
     <>
+      <ScrollToTop />
       <Suspense fallback={null}>
         <Routes>
           <Route
@@ -108,6 +124,15 @@ export default function App() {
 
           <Route
             path="/events/create"
+            element={
+              <ProtectedRoute>
+                <EventCreatePage />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/events/:eventId/edit"
             element={
               <ProtectedRoute>
                 <EventCreatePage />
@@ -190,6 +215,14 @@ export default function App() {
             }
           />
           <Route
+            path="/media/upload"
+            element={
+              <ProtectedRoute>
+                <MediaUploadPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
             path="/media/:mediaId"
             element={
               <ProtectedRoute>
@@ -198,23 +231,12 @@ export default function App() {
             }
           />
           <Route
-            path="/media/upload"
-            element={
-              <ProtectedRoute>
-                <PlaceholderPage
-                  title="Upload media in arrivo"
-                  description="La pagina di upload dedicata non e ancora pronta: per ora usa la sezione media esistente."
-                />
-              </ProtectedRoute>
-            }
-          />
-          <Route
             path="/articles/create"
             element={
               <ProtectedRoute>
                 <PlaceholderPage
-                  title="Creazione articolo in arrivo"
-                  description="Il flusso di creazione articolo frontend non e ancora disponibile in questa versione."
+                  titleKey="common.coming_soon.create_article_title"
+                  descriptionKey="common.coming_soon.create_article_description"
                 />
               </ProtectedRoute>
             }
@@ -223,10 +245,7 @@ export default function App() {
             path="/profile"
             element={
               <ProtectedRoute>
-                <PlaceholderPage
-                  title="Profilo in arrivo"
-                  description="La pagina profilo frontend e' in lavorazione."
-                />
+                <ProfilePage />
               </ProtectedRoute>
             }
           />
@@ -234,19 +253,17 @@ export default function App() {
             path="/profile/edit"
             element={
               <ProtectedRoute>
-                <PlaceholderPage
-                  title="Modifica profilo in arrivo"
-                  description="La modifica profilo dal nuovo frontend non e ancora disponibile."
-                />
+                <ProfileEditPage />
               </ProtectedRoute>
             }
           />
+          <Route path="/u/:nickname" element={<PublicProfilePage />} />
           <Route
             path="/forum"
             element={
               <PlaceholderPage
-                title="Forum in arrivo"
-                description="L'area forum non e ancora disponibile nel frontend corrente."
+                titleKey="common.coming_soon.forum_title"
+                descriptionKey="common.coming_soon.forum_description"
               />
             }
           />
@@ -254,26 +271,18 @@ export default function App() {
             path="/faq"
             element={
               <PlaceholderPage
-                title="FAQ in arrivo"
-                description="La pagina FAQ e' in preparazione."
+                titleKey="common.coming_soon.faq_title"
+                descriptionKey="common.coming_soon.faq_description"
               />
             }
           />
-          <Route
-            path="/help"
-            element={
-              <PlaceholderPage
-                title="Help in arrivo"
-                description="La sezione help non e ancora disponibile."
-              />
-            }
-          />
+          <Route path="/help" element={<HelpPage />} />
           <Route
             path="/support"
             element={
               <PlaceholderPage
-                title="Supporto in arrivo"
-                description="La pagina supporto e' in preparazione."
+                titleKey="common.coming_soon.support_title"
+                descriptionKey="common.coming_soon.support_description"
               />
             }
           />
@@ -281,8 +290,8 @@ export default function App() {
             path="/contact"
             element={
               <PlaceholderPage
-                title="Contatti in arrivo"
-                description="La pagina contatti non e ancora pronta."
+                titleKey="common.coming_soon.contacts_title"
+                descriptionKey="common.coming_soon.contacts_description"
               />
             }
           />
@@ -294,8 +303,8 @@ export default function App() {
             path="/tutorial"
             element={
               <PlaceholderPage
-                title="Tutorial in arrivo"
-                description="I tutorial del nuovo frontend sono in preparazione."
+                titleKey="common.coming_soon.tutorial_title"
+                descriptionKey="common.coming_soon.tutorial_description"
               />
             }
           />
@@ -303,8 +312,8 @@ export default function App() {
             path="/about"
             element={
               <PlaceholderPage
-                title="Chi siamo in arrivo"
-                description="La pagina informativa non e ancora disponibile."
+                titleKey="common.coming_soon.about_title"
+                descriptionKey="common.coming_soon.about_description"
               />
             }
           />
@@ -312,8 +321,8 @@ export default function App() {
             path="/terms"
             element={
               <PlaceholderPage
-                title="Termini in arrivo"
-                description="La pagina termini e condizioni e' in preparazione."
+                titleKey="common.coming_soon.terms_title"
+                descriptionKey="common.coming_soon.terms_description"
               />
             }
           />
@@ -321,8 +330,8 @@ export default function App() {
             path="/privacy"
             element={
               <PlaceholderPage
-                title="Privacy in arrivo"
-                description="La pagina privacy policy e' in preparazione."
+                titleKey="common.coming_soon.privacy_title"
+                descriptionKey="common.coming_soon.privacy_description"
               />
             }
           />
@@ -330,30 +339,80 @@ export default function App() {
             path="/newsletter"
             element={
               <PlaceholderPage
-                title="Newsletter in arrivo"
-                description="L'iscrizione newsletter dal nuovo frontend non e ancora disponibile."
+                titleKey="common.coming_soon.newsletter_title"
+                descriptionKey="common.coming_soon.newsletter_description"
               />
             }
           />
           <Route
             path="/moderation/dashboard"
             element={
-              <ProtectedRoute>
-                <PlaceholderPage
-                  title="Dashboard moderazione in arrivo"
-                  description="La dashboard moderazione frontend dedicata e' in lavorazione."
-                />
+              <ProtectedRoute roles={['admin', 'moderator']}>
+                <ModerationDashboardPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/moderation/reports"
+            element={
+              <ProtectedRoute roles={['admin', 'moderator']}>
+                <ModerationReportsPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/moderation/reports/:id"
+            element={
+              <ProtectedRoute roles={['admin', 'moderator']}>
+                <ModerationReportDetailPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/moderation/:type"
+            element={
+              <ProtectedRoute roles={['admin', 'moderator']}>
+                <ModerationQueuePage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/moderation/:type/:id"
+            element={
+              <ProtectedRoute roles={['admin', 'moderator']}>
+                <ModerationReviewPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin"
+            element={
+              <ProtectedRoute roles={['admin', 'moderator', 'translator']}>
+                <AdminHomePage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/translations"
+            element={
+              <ProtectedRoute roles={['admin', 'translator']}>
+                <TranslationsAdminPage />
               </ProtectedRoute>
             }
           />
           <Route
             path="/admin/settings"
             element={
-              <ProtectedRoute>
-                <PlaceholderPage
-                  title="Impostazioni admin in arrivo"
-                  description="Le impostazioni admin frontend dedicate non sono ancora disponibili."
-                />
+              <ProtectedRoute roles={['admin']}>
+                <AdminSettingsPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/help"
+            element={
+              <ProtectedRoute roles={['admin']}>
+                <HelpAdminPage />
               </ProtectedRoute>
             }
           />

@@ -1,19 +1,17 @@
 <?php
 
-use App\Http\Middleware\EnsureEmailIsVerified;
 use App\Http\Middleware\EnsureAccountType;
+use App\Http\Middleware\EnsureEmailIsVerified;
+use App\Http\Middleware\EnsureRole;
 use App\Http\Middleware\SetLocale;
+use App\Providers\AuthServiceProvider;
+use App\Support\Responses\ApiResponse;
+use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
-use App\Http\Middleware\EnsureRole;
-use App\Providers\AuthServiceProvider;
-
-
-
-
-
-
+use Illuminate\Http\Request;
+use Illuminate\Validation\ValidationException;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -38,12 +36,23 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
-        $exceptions->render(function (\Illuminate\Validation\ValidationException $exception, \Illuminate\Http\Request $request) {
+        $exceptions->render(function (ValidationException $exception, Request $request) {
             if ($request->expectsJson()) {
-                return \App\Support\Responses\ApiResponse::error(
+                return ApiResponse::error(
                     message: $exception->getMessage(),
                     fields: $exception->errors(),
                     status: $exception->status,
+                );
+            }
+
+            return null;
+        });
+
+        $exceptions->render(function (AuthorizationException $exception, Request $request) {
+            if ($request->expectsJson()) {
+                return ApiResponse::error(
+                    message: $exception->getMessage(),
+                    status: 403,
                 );
             }
 

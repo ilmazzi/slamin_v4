@@ -20,11 +20,11 @@ export default function PoemCard({ slug, onComments, onLoaded }) {
   }, [onLoaded, poem])
 
   if (!slug) {
-    return <div className={styles.poem}>Missing poem slug.</div>
+    return <div className={styles.poem}>{t('poems.missing_slug')}</div>
   }
 
   if (isLoading) {
-    return <div className={styles.poem}>Loading...</div>
+    return <div className={styles.poem}>{t('common.loading')}</div>
   }
 
   if (error) {
@@ -32,13 +32,12 @@ export default function PoemCard({ slug, onComments, onLoaded }) {
   }
 
   if (!poem) {
-    return <div className={styles.poem}>Poem not found.</div>
+    return <div className={styles.poem}>{t('poems.not_found')}</div>
   }
 
   const authorLabel = poem?.author?.display_name || poem?.author?.nickname || 'Slamin'
   const publishedDate = formatShortPublishedDate(poem?.published_at, locale, '')
-  const noCategoryLabel =
-    t('poems.all.no_category') === 'poems.all.no_category' ? 'Senza categoria' : t('poems.all.no_category')
+  const noCategoryLabel = t('poems.all.no_category')
   const categoryLabel = poem?.category?.name || noCategoryLabel
   const rawCover = poem?.cover_image_url || poem?.image_url || ''
   const coverUrl = rawCover ? resolvePublicUrl(rawCover) : ''
@@ -95,8 +94,8 @@ export default function PoemCard({ slug, onComments, onLoaded }) {
                 isMobileStrip ? ['views', 'likes', 'comments'] : ['likes', 'comments', 'views']
               }
               metricsPlacement={isMobileStrip ? 'end' : 'start'}
-              shareLabel={t('poems.featured.share') === 'poems.featured.share' ? 'Condividi' : t('poems.featured.share')}
-              reportLabel={t('poems.actions.report') === 'poems.actions.report' ? 'Segnala' : t('poems.actions.report')}
+              shareLabel={t('poems.featured.share')}
+              reportLabel={t('poems.actions.report')}
               variant="list"
               layout="row"
               className={styles.stripSocial}

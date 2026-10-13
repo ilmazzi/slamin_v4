@@ -20,7 +20,8 @@ export default function PoemDetailPage() {
   const { t } = useI18n()
   const { token } = useAuth()
   const commentsRef = useRef(null)
-  const [poemDetail, setPoemDetail] = useState(null)
+  const [loadedPoem, setLoadedPoem] = useState(null)
+  const poemDetail = loadedPoem?.slug === slug ? loadedPoem : null
 
   useEffect(() => {
     if (location.hash !== '#comments' && !location.state?.focusComments) {
@@ -65,16 +66,19 @@ export default function PoemDetailPage() {
       <div className={[shellStyles.poemsPage, styles.poemDetailPage].join(' ')}>
         <div className={styles.poem}>
           <PoemCard
+            key={slug}
             slug={slug}
-            onLoaded={setPoemDetail}
+            onLoaded={setLoadedPoem}
             onComments={() => commentsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
           />
         </div>
-        <div id="comments" ref={commentsRef} style={{ scrollMarginTop: 104 }}>
-          <CommentsThread contentType="poem" contentId={poemDetail?.id ?? null} title="Commenti poesia" />
+        <div id="comments" ref={commentsRef} className={styles.commentsBand}>
+          <CommentsThread key={slug} contentType="poem" contentId={poemDetail?.id ?? null} />
         </div>
 
-        <AllPoemsSection />
+        <div className={styles.relatedBand}>
+          <AllPoemsSection showHeader />
+        </div>
       </div>
       <ContentReportModal
         key={reportModalItem?.id ?? 'poem-report-closed'}

@@ -21,18 +21,18 @@ export default function HeaderGuestActions({
         locale={locale}
         availableLocales={availableLocales}
         onChange={onLanguageChange}
-        ariaLabel={t ? t('home.header.language_aria') : 'Select language'}
+        ariaLabel={t('home.header.language_aria')}
       />
 
       <Link to={loginHref} className={`${styles.headerButton} ${styles.loginButton}`}>
-        {t ? t('common.login') : 'Accedi'}
+        {t('common.login')}
       </Link>
 
       <Link
         to={registerHref}
         className={`${styles.headerButton} ${styles.registerButton}`}
       >
-        {t ? t('register.register') : 'Registrati'}
+        {t('register.register')}
       </Link>
     </div>
   )

@@ -2,17 +2,18 @@
 
 namespace App\Http\Resources\Api\V1\Event;
 
+use Domain\Event\Models\Event;
+use Illuminate\Filesystem\FilesystemAdapter;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 use Illuminate\Support\Facades\Storage;
 
-/** @mixin \Domain\Event\Models\Event */
+/** @mixin Event */
 class EventResource extends JsonResource
 {
     public function toArray(Request $request): array
     {
-        $disk = Storage::disk('public'); /** @var \Illuminate\Filesystem\FilesystemAdapter $disk */
-
+        $disk = Storage::disk('public'); /** @var FilesystemAdapter $disk */
 
         return [
             'id' => $this->id,
@@ -119,6 +120,13 @@ class EventResource extends JsonResource
                 'nickname' => $this->user?->profile?->nickname,
                 'display_name' => $this->user?->profile?->display_name,
             ],
+            'is_owner' => auth('sanctum')->id() !== null
+                && (int) auth('sanctum')->id() === (int) $this->user_id,
+            'likes_count' => (int) ($this->likes_count ?? 0),
+            'comments_count' => (int) ($this->comments_count ?? 0),
+            'bookmarks_count' => (int) ($this->bookmarks_count ?? 0),
+            'is_liked' => (bool) ($this->is_liked ?? false),
+            'is_bookmarked' => (bool) ($this->is_bookmarked ?? false),
         ];
     }
 }

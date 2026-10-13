@@ -117,11 +117,31 @@ export function AuthProvider({ children }) {
     }
   }, [])
 
-  const login = (nextToken, nextUser) => {
+  const login = async (nextToken, nextUser) => {
     setStoredToken(nextToken)
     setToken(nextToken)
     setUser(normalizeSessionUser(nextUser))
     setIsLoading(false)
+
+    try {
+      const authenticatedUser = await fetchAuthenticatedUser(nextToken)
+      if (authenticatedUser) {
+        setUser(authenticatedUser)
+      }
+    } catch {
+      // Keep the login payload if /me is temporarily unavailable.
+    }
+  }
+
+  const refreshUser = async () => {
+    const currentToken = getStoredToken()
+    if (!currentToken) {
+      return null
+    }
+
+    const authenticatedUser = await fetchAuthenticatedUser(currentToken)
+    setUser(authenticatedUser)
+    return authenticatedUser
   }
 
   const logout = async () => {
@@ -165,6 +185,7 @@ export function AuthProvider({ children }) {
       isLoading,
       login,
       logout,
+      refreshUser,
       hasRole,
       hasAnyRole,
       hasAllRoles,

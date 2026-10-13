@@ -1,8 +1,20 @@
 import { createContext, createElement, useContext, useEffect, useState } from 'react'
 import { getApiUrl } from '../api/url'
+import { getClientLocale, localeHeaders, LOCALE_STORAGE_KEY } from '../i18n/locale.js'
 
 const resolveKeyPath = (source, key) => {
   return key.split('.').reduce((acc, part) => acc?.[part], source)
+}
+
+const applyReplacements = (value, replacements) => {
+  if (!replacements || typeof replacements !== 'object') {
+    return value
+  }
+
+  return Object.entries(replacements).reduce(
+    (current, [name, replacement]) => current.replaceAll(`:${name}`, String(replacement)),
+    value,
+  )
 }
 
 const staticFallbacks = {
@@ -20,26 +32,10 @@ const staticFallbacks = {
   },
 }
 
-const LOCALE_STORAGE_KEY = 'slamin.locale'
 const I18nContext = createContext(null)
 
-const getInitialLocale = () => {
-  if (typeof window !== 'undefined') {
-    const storedLocale = (window.localStorage.getItem(LOCALE_STORAGE_KEY) || '')
-      .slice(0, 2)
-      .toLowerCase()
-    if (storedLocale) {
-      return storedLocale
-    }
-  }
-
-  const documentLocale = (document.documentElement.lang || '').slice(0, 2).toLowerCase()
-  const browserLocale = (navigator.language || '').slice(0, 2).toLowerCase()
-  return documentLocale || browserLocale || 'en'
-}
-
 function useI18nState() {
-  const [locale, setLocale] = useState(getInitialLocale)
+  const [locale, setLocale] = useState(getClientLocale)
   const [translations, setTranslations] = useState({})
   const [fallbackLocale, setFallbackLocale] = useState('en')
   const [availableLocales, setAvailableLocales] = useState([])
@@ -53,7 +49,7 @@ function useI18nState() {
       try {
         const response = await fetch(getApiUrl(`/api/v1/i18n/${locale}.json`), {
           signal: controller.signal,
-          headers: { Accept: 'application/json' },
+          headers: { Accept: 'application/json', ...localeHeaders() },
           cache: 'no-store',
         })
 
@@ -100,20 +96,20 @@ function useI18nState() {
     }
   }, [locale])
 
-  const t = (key) => {
+  const t = (key, replacements) => {
     const value = resolveKeyPath(translations, key)
     if (typeof value === 'string') {
-      return value
+      return applyReplacements(value, replacements)
     }
 
     const localeFallback = resolveKeyPath(staticFallbacks[locale] || {}, key)
     if (typeof localeFallback === 'string') {
-      return localeFallback
+      return applyReplacements(localeFallback, replacements)
     }
 
     const defaultFallback = resolveKeyPath(staticFallbacks[fallbackLocale] || {}, key)
     if (typeof defaultFallback === 'string') {
-      return defaultFallback
+      return applyReplacements(defaultFallback, replacements)
     }
 
     return key

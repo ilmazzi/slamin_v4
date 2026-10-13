@@ -38,6 +38,8 @@ return [
         'participant_response_message' => 'Un invitato ha :response l\'invito all\'evento ":title".',
         'audience_response_title' => 'Risposta a invito pubblico',
         'audience_response_message' => 'Un utente ha :response l\'invito pubblico all\'evento ":title".',
+        'updated_title' => 'Evento aggiornato',
+        'updated_message' => 'L\'evento ":title" e stato modificato. Controlla i nuovi dettagli.',
     ],
     'mail' => [
         'external_participant_invite_subject' => 'Invito a partecipare a ":title"',

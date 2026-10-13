@@ -85,3 +85,11 @@
   object-fit: contain;
   display: block;
 }
+
+.bookmarkIcon {
+  color: currentColor;
+}
+
+.isBookmarked {
+  color: #e30613;
+}

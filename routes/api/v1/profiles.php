@@ -1,14 +1,11 @@
 <?php
 
-use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Api\V1\Profile\ShowPublicProfileController;
 use App\Http\Controllers\Api\V1\Profile\UpdateProfileController;
+use Illuminate\Support\Facades\Route;
 
-/**
- * Profile routes
- */
+Route::get('/profiles/{nickname}', ShowPublicProfileController::class)->name('api.v1.profile.show');
+
 Route::middleware('auth:sanctum')->group(function () {
-    /**
-     * Update the authenticated user's profile
-     */
     Route::patch('/me/profile', UpdateProfileController::class)->name('api.v1.profile.update');
 });

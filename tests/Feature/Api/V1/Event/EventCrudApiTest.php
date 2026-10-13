@@ -1,7 +1,10 @@
 <?php
 
+use Domain\Engagement\Models\Bookmark;
 use Domain\Event\Models\Event;
 use Domain\Event\Models\EventCategory;
+use Domain\Gig\Models\GigApplication;
+use Domain\Notification\Models\Notification;
 use Domain\User\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
@@ -147,4 +150,130 @@ it('returns validation error when participant_invites is not an array', function
     $response
         ->assertStatus(422)
         ->assertJsonPath('errors.fields.participant_invites.0', __('validation.array', ['attribute' => 'participant invites']));
+});
+
+it('notifies bookmarkers, participants and gig applicants when the owner updates an event', function () {
+    $owner = eventCrudAuthor();
+    $bookmarker = User::factory()->create(['email_verified_at' => now()]);
+    $participant = User::factory()->create(['email_verified_at' => now()]);
+    $declined = User::factory()->create(['email_verified_at' => now()]);
+    $gigApplicant = User::factory()->poetOrganizer()->create(['email_verified_at' => now()]);
+    $rejectedApplicant = User::factory()->poetOrganizer()->create(['email_verified_at' => now()]);
+    $outsider = User::factory()->create(['email_verified_at' => now()]);
+    Sanctum::actingAs($owner);
+    $category = eventCrudCategory();
+
+    /** @var Event $event */
+    $event = Event::query()->create([
+        'user_id' => $owner->id,
+        'event_category_id' => $category->id,
+        'title' => 'Evento da aggiornare',
+        'slug' => 'evento-da-aggiornare',
+        'description' => 'Descrizione originale',
+        'schedule_mode' => 'fixed',
+        'delivery_mode' => 'online',
+        'status' => 'draft',
+        'is_public' => true,
+    ]);
+
+    Bookmark::query()->create([
+        'user_id' => $bookmarker->id,
+        'bookmarkable_type' => $event->getMorphClass(),
+        'bookmarkable_id' => $event->id,
+    ]);
+
+    $event->participantInvites()->create([
+        'user_id' => $participant->id,
+        'role' => 'artist',
+        'invite_type' => 'internal',
+        'status' => 'accepted',
+    ]);
+    $event->participantInvites()->create([
+        'user_id' => $declined->id,
+        'role' => 'artist',
+        'invite_type' => 'internal',
+        'status' => 'declined',
+    ]);
+
+    $gig = $event->gigs()->create([
+        'type' => 'poet_artist',
+        'quantity' => 1,
+        'filled_quantity' => 0,
+        'status' => 'open',
+        'opened_at' => now(),
+        'created_by_user_id' => $owner->id,
+        'updated_by_user_id' => $owner->id,
+    ]);
+
+    GigApplication::query()->create([
+        'gig_id' => $gig->id,
+        'user_id' => $gigApplicant->id,
+        'status' => 'pending',
+    ]);
+    GigApplication::query()->create([
+        'gig_id' => $gig->id,
+        'user_id' => $rejectedApplicant->id,
+        'status' => 'rejected',
+    ]);
+
+    $response = $this->patchJson("/api/v1/events/{$event->id}", [
+        ...eventCrudPayload($category->id),
+        'title' => 'Evento aggiornato',
+        'participant_invites' => [
+            [
+                'invite_type' => 'internal',
+                'role' => 'artist',
+                'user_id' => $participant->id,
+                'status' => 'accepted',
+            ],
+        ],
+    ]);
+
+    $response
+        ->assertOk()
+        ->assertJsonPath('data.event.title', 'Evento aggiornato');
+
+    $notifiedIds = Notification::query()
+        ->where('type', 'event_updated')
+        ->pluck('user_id')
+        ->map(fn ($id) => (int) $id)
+        ->sort()
+        ->values()
+        ->all();
+
+    expect($notifiedIds)->toEqualCanonicalizing([
+        (int) $bookmarker->id,
+        (int) $participant->id,
+        (int) $gigApplicant->id,
+    ]);
+
+    expect(Notification::query()->where('user_id', $owner->id)->where('type', 'event_updated')->exists())->toBeFalse();
+    expect(Notification::query()->where('user_id', $declined->id)->where('type', 'event_updated')->exists())->toBeFalse();
+    expect(Notification::query()->where('user_id', $rejectedApplicant->id)->where('type', 'event_updated')->exists())->toBeFalse();
+    expect(Notification::query()->where('user_id', $outsider->id)->where('type', 'event_updated')->exists())->toBeFalse();
+});
+
+it('forbids another user from updating an event', function () {
+    $owner = eventCrudAuthor();
+    $other = eventCrudAuthor();
+    Sanctum::actingAs($other);
+    $category = eventCrudCategory();
+
+    /** @var Event $event */
+    $event = Event::query()->create([
+        'user_id' => $owner->id,
+        'event_category_id' => $category->id,
+        'title' => 'Evento di un altro',
+        'slug' => 'evento-di-un-altro',
+        'description' => 'Non tuo',
+        'schedule_mode' => 'fixed',
+        'delivery_mode' => 'online',
+        'status' => 'draft',
+        'is_public' => true,
+    ]);
+
+    $this->patchJson("/api/v1/events/{$event->id}", [
+        ...eventCrudPayload($category->id),
+        'title' => 'Titolo rubato',
+    ])->assertForbidden();
 });
