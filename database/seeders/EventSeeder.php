@@ -17,6 +17,7 @@ use Domain\PoetrySlam\Enums\PoetrySlamEntryStatus;
 use Domain\PoetrySlam\Enums\PoetrySlamStatus;
 use Domain\PoetrySlam\Models\PoetrySlam;
 use Domain\PoetrySlam\Models\PoetrySlamEntry;
+use Domain\User\Models\User;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Collection;
 
