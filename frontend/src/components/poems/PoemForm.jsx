@@ -17,8 +17,6 @@ export default function PoemForm() {
     poem_category_id: '',
     poem_type_id: '',
     language: 'it',
-    status: 'draft',
-    is_public: true,
     image: null,
   })
   const [categories, setCategories] = useState([])
@@ -83,11 +81,15 @@ export default function PoemForm() {
 
     setIsSubmitting(true)
     setErrorMessage('')
+    const requestedStatus = event.nativeEvent?.submitter?.value
+    const status = requestedStatus === 'published' ? 'published' : 'draft'
 
     try {
       const createdPoem = await createPoem(
         {
           ...formValues,
+          status,
+          is_public: true,
           poem_category_id: formValues.poem_category_id || null,
           poem_type_id: formValues.poem_type_id || null,
         },
@@ -120,7 +122,7 @@ export default function PoemForm() {
 
         <div className={styles.grid}>
           <label className={styles.field}>
-            <span className={styles.label}>{t('poems.form.label_title')}</span>
+            <span className={styles.label}>{t('poems.form.label_title')} *</span>
             <input
               className={styles.input}
               name="title"
@@ -176,21 +178,6 @@ export default function PoemForm() {
             </select>
           </label>
 
-          <label className={styles.field}>
-            <span className={styles.label}>{t('poems.form.label_status')}</span>
-            <select
-              className={styles.input}
-              name="status"
-              value={formValues.status}
-              onChange={handleFieldChange}
-            >
-              <option value="draft">Bozza</option>
-              <option value="published">Pubblica</option>
-            </select>
-          </label>
-
-
-
           <label className={`${styles.field} ${styles.full}`}>
             <span className={styles.label}>{t('poems.form.label_description')}</span>
             <textarea
@@ -203,7 +190,7 @@ export default function PoemForm() {
           </label>
 
           <label className={`${styles.field} ${styles.full}`}>
-            <span className={styles.label}>{t('poems.form.label_content')}</span>
+            <span className={styles.label}>{t('poems.form.label_content')} *</span>
             <textarea
               className={styles.textarea}
               name="content"
@@ -225,20 +212,28 @@ export default function PoemForm() {
             />
           </label>
 
-          <label className={`${styles.field} ${styles.checkboxField}`}>
-            <input
-              name="is_public"
-              type="checkbox"
-              checked={formValues.is_public}
-              onChange={handleFieldChange}
-            />
-            <span className={styles.checkboxLabel}>{t('poems.form.label_is_public')}</span>
-          </label>
         </div>
 
         <div className={styles.actions}>
-          <button className={styles.submitButton} type="submit" disabled={isSubmitting}>
-            {isSubmitting ? t('common.loading') : t('poems.form.submit_button_label')}
+          <button
+            className={`${styles.actionButton} ${styles.publishButton}`}
+            type="submit"
+            name="status"
+            value="published"
+            disabled={isSubmitting}
+          >
+            <span>{isSubmitting ? t('common.loading') : t('poems.form.publish_button')}</span>
+            <small>{t('poems.form.publish_button_hint')}</small>
+          </button>
+          <button
+            className={styles.actionButton}
+            type="submit"
+            name="status"
+            value="draft"
+            disabled={isSubmitting}
+          >
+            <span>{isSubmitting ? t('common.loading') : t('poems.form.save_draft_button')}</span>
+            <small>{t('poems.form.save_draft_button_hint')}</small>
           </button>
         </div>
       </form>

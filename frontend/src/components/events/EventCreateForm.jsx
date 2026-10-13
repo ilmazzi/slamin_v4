@@ -671,19 +671,23 @@ export default function EventCreateForm({ eventSlug = null }) {
     event.preventDefault()
     setSaving(true)
     setError('')
+    const requestedStatus = event.nativeEvent?.submitter?.value
+    const submissionPayload = requestedStatus === 'published' || requestedStatus === 'draft'
+      ? { ...payload, status: requestedStatus }
+      : payload
 
     try {
       if (isEdit) {
         if (!eventRecordId) {
           throw new Error(t('events.edit_page.save_error'))
         }
-        const updated = await updateEvent(eventRecordId, payload, { token })
+        const updated = await updateEvent(eventRecordId, submissionPayload, { token })
         const nextId = updated?.slug ?? eventSlug
         navigate(nextId ? `/events/${nextId}` : '/events')
         return
       }
 
-      const created = await createEvent(payload, { token })
+      const created = await createEvent(submissionPayload, { token })
       const nextId = created?.slug ?? created?.id
       navigate(nextId ? `/events/${nextId}` : '/events')
     } catch (err) {
@@ -1450,11 +1454,32 @@ export default function EventCreateForm({ eventSlug = null }) {
           <div className={styles.readyText}>{t('events.create_page.ui.ready_text')}</div>
         </div>
 
-        <button className={styles.submit} type="submit" disabled={saving || loadingEvent || (isEdit && !eventRecordId)}>
-          {saving
-            ? (isEdit ? t('events.edit_page.saving') : t('events.create_page.saving'))
-            : (isEdit ? t('events.edit_page.save') : t('events.create_page.publish'))}
-        </button>
+        <div className={styles.publishRow}>
+          <button
+            className={`${styles.choiceButton} ${v.status === 'published' ? styles.choiceButtonActive : ''}`}
+            type="submit"
+            name="status"
+            value="published"
+            disabled={saving || loadingEvent || (isEdit && !eventRecordId)}
+          >
+            <span className={styles.choiceTitle}>
+              {saving ? t('events.create_page.saving') : t('events.create_page.ui.publish_now')}
+            </span>
+            <span className={styles.choiceSub}>{t('events.create_page.ui.publish_now_sub')}</span>
+          </button>
+          <button
+            className={`${styles.choiceButton} ${v.status === 'draft' ? styles.choiceButtonActive : ''}`}
+            type="submit"
+            name="status"
+            value="draft"
+            disabled={saving || loadingEvent || (isEdit && !eventRecordId)}
+          >
+            <span className={styles.choiceTitle}>
+              {saving ? t('events.create_page.saving') : t('events.create_page.save_draft')}
+            </span>
+            <span className={styles.choiceSub}>{t('events.create_page.ui.save_draft_sub')}</span>
+          </button>
+        </div>
       </section>
       </AccordionSection>
     </form>
