@@ -657,7 +657,7 @@ export default function EventCreateForm({ eventSlug = null }) {
           />
         </Field>
 
-        <Field label={`${t('events.create_page.fields.requirements')} *`} full>
+        <Field label={t('events.create_page.fields.requirements')} full>
           <textarea
             className={styles.textareaSmall}
             name="requirements"
