@@ -24,9 +24,6 @@ class SubmitOpenProjectFeedbackAction
 
         $payload = [
             'subject' => $subject,
-            'scheduleManually' => true,
-            'dueDate' => now()->addWeek()->toDateString(),
-            'customField1' => now()->addWeek()->toDateString(),
             'description' => [
                 'format' => 'markdown',
                 'raw' => $this->description($user, $description, $url),
