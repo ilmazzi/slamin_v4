@@ -37,6 +37,11 @@ class SubmitOpenProjectFeedbackAction
         ];
 
         $endpoint = $baseUrl.'/api/v3/projects/'.rawurlencode($project).'/work_packages';
+
+        if (! app()->runningUnitTests()) {
+            return $this->executeCli($endpoint, $token, $payload, $screenshot);
+        }
+
         $ip = $this->resolveIpv4($endpoint);
         $response = $this->postJson($endpoint, $token, $payload, $ip);
 
@@ -69,6 +74,203 @@ class SubmitOpenProjectFeedbackAction
         $lines[] = '**Utente:** '.$name.' ('.$user->email.')';
 
         return implode("\n", $lines);
+    }
+
+    /**
+     * @param  array<string, mixed>  $payload
+     */
+    private function executeCli(string $endpoint, string $token, array $payload, ?UploadedFile $screenshot): int
+    {
+        $bodyFile = tempnam(sys_get_temp_dir(), 'opf');
+        $headerFile = tempnam(sys_get_temp_dir(), 'opfh');
+
+        if ($bodyFile === false || $headerFile === false) {
+            throw new RuntimeException('Impossibile preparare l\'invio del feedback.');
+        }
+
+        try {
+            file_put_contents($bodyFile, json_encode($payload, JSON_THROW_ON_ERROR));
+            $this->writeAuthHeader($headerFile, $token, bearer: true);
+            [$status, $body] = $this->runCurl([
+                '-H', '@'.$headerFile,
+                '-H', 'Content-Type: application/json',
+                '-H', 'Accept: application/hal+json',
+                '--data-binary', '@'.$bodyFile,
+                $endpoint,
+            ], 8);
+
+            if ($status === 401) {
+                $this->writeAuthHeader($headerFile, $token, bearer: false);
+                [$status, $body] = $this->runCurl([
+                    '-H', '@'.$headerFile,
+                    '-H', 'Content-Type: application/json',
+                    '-H', 'Accept: application/hal+json',
+                    '--data-binary', '@'.$bodyFile,
+                    $endpoint,
+                ], 8);
+            }
+
+            $decoded = json_decode($body, true);
+            $workPackageId = (int) (is_array($decoded) ? ($decoded['id'] ?? 0) : 0);
+
+            if ($status < 200 || $status >= 300 || $workPackageId < 1) {
+                throw new RuntimeException($this->cliFailure($status, $decoded, $body));
+            }
+
+            if ($screenshot instanceof UploadedFile) {
+                $this->attachCli($endpoint, $token, $workPackageId, $screenshot, $headerFile);
+            }
+
+            return $workPackageId;
+        } finally {
+            @unlink($bodyFile);
+            @unlink($headerFile);
+        }
+    }
+
+    private function attachCli(string $endpoint, string $token, int $workPackageId, UploadedFile $screenshot, string $headerFile): void
+    {
+        $filename = preg_replace('/[^A-Za-z0-9._-]/', '_', basename($screenshot->getClientOriginalName() ?: '')) ?: 'screenshot.png';
+        $metaFile = tempnam(sys_get_temp_dir(), 'opm');
+
+        if ($metaFile === false) {
+            throw new RuntimeException('Impossibile allegare lo screenshot.');
+        }
+
+        try {
+            file_put_contents($metaFile, json_encode(['fileName' => $filename], JSON_THROW_ON_ERROR));
+            $attachmentUrl = preg_replace('#/projects/[^/]+/work_packages$#', '/work_packages/'.$workPackageId.'/attachments', $endpoint);
+            $this->writeAuthHeader($headerFile, $token, bearer: true);
+            [$status, $body] = $this->runCurl([
+                '-H', '@'.$headerFile,
+                '-H', 'Accept: application/hal+json',
+                '-F', 'metadata=<'.$metaFile.';type=application/json',
+                '-F', 'file=@'.$screenshot->getRealPath().';filename='.$filename,
+                (string) $attachmentUrl,
+            ], 12);
+
+            $decoded = json_decode($body, true);
+
+            if ($status < 200 || $status >= 300) {
+                throw new RuntimeException($this->cliFailure($status, $decoded, $body));
+            }
+        } finally {
+            @unlink($metaFile);
+        }
+    }
+
+    private function writeAuthHeader(string $headerFile, string $token, bool $bearer): void
+    {
+        $value = $bearer
+            ? 'Bearer '.$token
+            : 'Basic '.base64_encode('apikey:'.$token);
+
+        file_put_contents($headerFile, 'Authorization: '.$value."\n");
+        chmod($headerFile, 0600);
+    }
+
+    /**
+     * @param  list<string>  $arguments
+     * @return array{0: int, 1: string}
+     */
+    private function runCurl(array $arguments, int $timeoutSeconds): array
+    {
+        $binary = $this->curlBinary();
+        $bodyFile = tempnam(sys_get_temp_dir(), 'opb');
+
+        if ($bodyFile === false) {
+            throw new RuntimeException('Impossibile preparare l\'invio del feedback.');
+        }
+
+        $command = array_merge([
+            $binary,
+            '-4',
+            '-sS',
+            '--max-time', (string) $timeoutSeconds,
+            '--connect-timeout', '3',
+            '-o', $bodyFile,
+            '-w', '%{http_code}',
+        ], $arguments);
+
+        $pipes = [];
+        $process = proc_open($command, [1 => ['pipe', 'w'], 2 => ['pipe', 'w']], $pipes);
+
+        if (! is_resource($process)) {
+            @unlink($bodyFile);
+            throw new RuntimeException('Impossibile contattare OpenProject.');
+        }
+
+        stream_set_blocking($pipes[1], false);
+        stream_set_blocking($pipes[2], false);
+
+        $stderr = '';
+        $started = microtime(true);
+
+        try {
+            while (true) {
+                $stderr .= (string) stream_get_contents($pipes[2]);
+                $status = proc_get_status($process);
+
+                if (! $status['running']) {
+                    break;
+                }
+
+                if ((microtime(true) - $started) > ($timeoutSeconds + 2)) {
+                    proc_terminate($process, 9);
+                    throw new RuntimeException('OpenProject non ha risposto in tempo.');
+                }
+
+                usleep(50000);
+            }
+
+            $stderr .= (string) stream_get_contents($pipes[2]);
+            $httpCode = (int) trim((string) stream_get_contents($pipes[1]));
+            $body = (string) file_get_contents($bodyFile);
+
+            if ($httpCode < 100) {
+                Log::warning('OpenProject curl failed', ['error' => mb_substr($stderr, 0, 500)]);
+                throw new RuntimeException('Impossibile raggiungere OpenProject.');
+            }
+
+            return [$httpCode, $body];
+        } finally {
+            foreach ($pipes as $pipe) {
+                if (is_resource($pipe)) {
+                    fclose($pipe);
+                }
+            }
+            proc_close($process);
+            @unlink($bodyFile);
+        }
+    }
+
+    private function curlBinary(): string
+    {
+        foreach (['/usr/bin/curl', '/bin/curl'] as $path) {
+            if (is_executable($path)) {
+                return $path;
+            }
+        }
+
+        throw new RuntimeException('curl non è disponibile sul server.');
+    }
+
+    /**
+     * @param  array<string, mixed>|null  $decoded
+     */
+    private function cliFailure(int $status, ?array $decoded, string $body): string
+    {
+        $message = is_array($decoded) ? ($decoded['message'] ?? null) : null;
+        $text = is_string($message) && trim($message) !== ''
+            ? trim($message)
+            : 'OpenProject ha rifiutato il feedback.';
+
+        Log::warning('OpenProject feedback failed', [
+            'status' => $status,
+            'body' => mb_substr($body, 0, 500),
+        ]);
+
+        return $text.' (HTTP '.$status.')';
     }
 
     private function attachScreenshot(string $baseUrl, string $token, int $workPackageId, UploadedFile $screenshot, ?string $ip): void

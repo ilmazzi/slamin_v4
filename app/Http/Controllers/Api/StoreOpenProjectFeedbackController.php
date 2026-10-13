@@ -54,7 +54,7 @@ class StoreOpenProjectFeedbackController extends Controller
                         : 'Invio del feedback non riuscito.',
                     'fields' => [],
                 ],
-            ], 502);
+            ], 422);
         }
 
         return ApiResponse::success([
