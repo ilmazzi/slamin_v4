@@ -129,7 +129,9 @@ class SubmitOpenProjectFeedbackAction
     {
         $pending = Http::withHeaders([
             'Accept' => 'application/hal+json',
-        ])->timeout(20);
+        ])->withOptions([
+            'force_ip_resolve' => 'v4',
+        ])->connectTimeout(5)->timeout(10);
 
         return $bearer
             ? $pending->withToken($token)

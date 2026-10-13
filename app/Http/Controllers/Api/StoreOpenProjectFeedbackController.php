@@ -7,7 +7,7 @@ use App\Support\Responses\ApiResponse;
 use Domain\Feedback\Actions\SubmitOpenProjectFeedbackAction;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use RuntimeException;
+use Throwable;
 
 class StoreOpenProjectFeedbackController extends Controller
 {
@@ -32,7 +32,7 @@ class StoreOpenProjectFeedbackController extends Controller
                 $data['url'] ?? null,
                 $request->file('screenshot'),
             );
-        } catch (RuntimeException $exception) {
+        } catch (Throwable $exception) {
             if ($exception->getMessage() === 'openproject_not_configured') {
                 return ApiResponse::error(
                     message: 'OpenProject non è configurato.',
@@ -40,12 +40,18 @@ class StoreOpenProjectFeedbackController extends Controller
                 );
             }
 
+            report($exception);
+
             return response()->json([
-                'message' => $exception->getMessage(),
+                'message' => $exception->getMessage() !== ''
+                    ? $exception->getMessage()
+                    : 'Invio del feedback non riuscito.',
                 'data' => null,
                 'meta' => [],
                 'errors' => [
-                    'message' => $exception->getMessage(),
+                    'message' => $exception->getMessage() !== ''
+                        ? $exception->getMessage()
+                        : 'Invio del feedback non riuscito.',
                     'fields' => [],
                 ],
             ], 502);
