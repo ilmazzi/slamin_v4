@@ -39,6 +39,7 @@ it('creates an openproject work package from site feedback', function () {
         return $request->url() === 'https://projects.test/api/v3/projects/slamin-feedback/work_packages'
             && $request->hasHeader('Authorization', 'Bearer secret-token')
             && $request['subject'] === 'Il video non parte'
+            && $request['dueDate'] === now()->addWeek()->toDateString()
             && $request['_links']['type']['href'] === '/api/v3/types/1'
             && str_contains($request['description']['raw'], 'https://slamin.on-forge.com/media/2');
     });
