@@ -17,7 +17,8 @@ const UpcomingEventSlider = lazy(() => import('../../components/events/UpcomingE
 
 export default function EventPage() {
   const { t } = useI18n()
-  const { token } = useAuth()
+  const { token, user } = useAuth()
+  const canCreateEvent = user?.account_type === 'poet_organizer'
   const {
     reportModalItem,
     toastMessage,
@@ -51,12 +52,13 @@ export default function EventPage() {
           leadEmphasis={t('events.lead_emphasis')}
           ctaLabel={t('events.create_event')}
           ctaHref="/events/create"
+          hideCta={!canCreateEvent}
         />
         <EventMap />
         <Suspense fallback={null}>
           <UpcomingEventSlider />
         </Suspense>
-        <PersonalEventsCalendar tone="event" showVisibilityToggle={false} />
+        {token ? <PersonalEventsCalendar tone="event" showVisibilityToggle={false} /> : null}
 
         <HomeDashboardPromoSection compactTop={true} />
       </div>

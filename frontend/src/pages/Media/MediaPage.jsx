@@ -22,7 +22,8 @@ const SEARCH_DEBOUNCE_MS = 300
 
 export default function MediaPage() {
   const { t } = useI18n()
-  const { token } = useAuth()
+  const { token, user } = useAuth()
+  const canUploadMedia = user?.account_type === 'poet_organizer'
   const isDesktop = useMediaQuery('(min-width: 1025px)')
   const cardsPerPage = isDesktop ? CARDS_PER_PAGE : 1
   const {
@@ -134,6 +135,7 @@ export default function MediaPage() {
           ctaLabel={t('media.create_media')}
           ctaHref="/media/upload"
           ctaVariant="red"
+          hideCta={!canUploadMedia}
         />
 
         <section className={styles.filtersSection}>

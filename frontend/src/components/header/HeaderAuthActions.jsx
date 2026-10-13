@@ -31,6 +31,7 @@ export default function HeaderAuthActions({
   logoutLabel = 'Logout',
 }) {
   const { logout } = useAuth()
+  const canPublish = user?.account_type === 'poet_organizer'
   const navigate = useNavigate()
   const [isQuickActionsOpen, setIsQuickActionsOpen] = useState(false)
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false)
@@ -142,23 +143,25 @@ export default function HeaderAuthActions({
           </svg>
         </button>
 
-        <button
-          type="button"
-          ref={quickActionsButtonRef}
-          className={`${styles.menuButton} ${styles.quickActionsButton}`}
-          onClick={() => {
-            setIsQuickActionsOpen((current) => !current)
-            setIsProfileMenuOpen(false)
-            onMainMenuClose?.()
-          }}
-          aria-label={quickActionsTitle}
-          aria-expanded={isQuickActionsOpen}
-          aria-haspopup="menu"
-        >
-          <svg viewBox="0 0 24 24" fill="none" className={styles.menuIcon} aria-hidden="true">
-            <path d="M13.5 2.5L4 14h6l-1 7.5L20 10h-6l-.5-7.5z" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" />
-          </svg>
-        </button>
+        {canPublish ? (
+          <button
+            type="button"
+            ref={quickActionsButtonRef}
+            className={`${styles.menuButton} ${styles.quickActionsButton}`}
+            onClick={() => {
+              setIsQuickActionsOpen((current) => !current)
+              setIsProfileMenuOpen(false)
+              onMainMenuClose?.()
+            }}
+            aria-label={quickActionsTitle}
+            aria-expanded={isQuickActionsOpen}
+            aria-haspopup="menu"
+          >
+            <svg viewBox="0 0 24 24" fill="none" className={styles.menuIcon} aria-hidden="true">
+              <path d="M13.5 2.5L4 14h6l-1 7.5L20 10h-6l-.5-7.5z" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" />
+            </svg>
+          </button>
+        ) : null}
 
         <button type="button" className={styles.menuButton} aria-label={notificationsAriaLabel}>
           <svg viewBox="0 0 24 24" fill="none" className={styles.menuIcon} aria-hidden="true">
@@ -208,46 +211,54 @@ export default function HeaderAuthActions({
           }}
         >
           <p className={styles.authDropdownTitle}>{quickActionsTitle}</p>
-          <Link
-            to="/poems/create"
-            className={styles.authMenuLink}
-            data-tone="poems"
-            role="menuitem"
-            onClick={() => setIsQuickActionsOpen(false)}
-          >
-            <span className={styles.authMenuArrow} aria-hidden="true">›</span>
-            <span>{writePoemLabel}</span>
-          </Link>
-          <Link
-            to="/events/create"
-            className={styles.authMenuLink}
-            data-tone="event"
-            role="menuitem"
-            onClick={() => setIsQuickActionsOpen(false)}
-          >
-            <span className={styles.authMenuArrow} aria-hidden="true">›</span>
-            <span>{createEventLabel}</span>
-          </Link>
-          <Link
-            to="/media/upload"
-            className={styles.authMenuLink}
-            data-tone="media"
-            role="menuitem"
-            onClick={() => setIsQuickActionsOpen(false)}
-          >
-            <span className={styles.authMenuArrow} aria-hidden="true">›</span>
-            <span>{uploadVideoLabel}</span>
-          </Link>
-          <Link
-            to="/articles/create"
-            className={styles.authMenuLink}
-            data-tone="articles"
-            role="menuitem"
-            onClick={() => setIsQuickActionsOpen(false)}
-          >
-            <span className={styles.authMenuArrow} aria-hidden="true">›</span>
-            <span>{publishArticleLabel}</span>
-          </Link>
+          {canPublish ? (
+            <Link
+              to="/poems/create"
+              className={styles.authMenuLink}
+              data-tone="poems"
+              role="menuitem"
+              onClick={() => setIsQuickActionsOpen(false)}
+            >
+              <span className={styles.authMenuArrow} aria-hidden="true">›</span>
+              <span>{writePoemLabel}</span>
+            </Link>
+          ) : null}
+          {canPublish ? (
+            <Link
+              to="/events/create"
+              className={styles.authMenuLink}
+              data-tone="event"
+              role="menuitem"
+              onClick={() => setIsQuickActionsOpen(false)}
+            >
+              <span className={styles.authMenuArrow} aria-hidden="true">›</span>
+              <span>{createEventLabel}</span>
+            </Link>
+          ) : null}
+          {canPublish ? (
+            <Link
+              to="/media/upload"
+              className={styles.authMenuLink}
+              data-tone="media"
+              role="menuitem"
+              onClick={() => setIsQuickActionsOpen(false)}
+            >
+              <span className={styles.authMenuArrow} aria-hidden="true">›</span>
+              <span>{uploadVideoLabel}</span>
+            </Link>
+          ) : null}
+          {canPublish ? (
+            <Link
+              to="/articles/create"
+              className={styles.authMenuLink}
+              data-tone="articles"
+              role="menuitem"
+              onClick={() => setIsQuickActionsOpen(false)}
+            >
+              <span className={styles.authMenuArrow} aria-hidden="true">›</span>
+              <span>{publishArticleLabel}</span>
+            </Link>
+          ) : null}
         </div>
       ) : null}
 

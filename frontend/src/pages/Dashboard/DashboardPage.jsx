@@ -28,13 +28,14 @@ import {
 } from '../../components/icons/ActionIcons.jsx'
 import PersonalEventsCalendar from '../../components/PersonalEventsCalendar.jsx'
 
-function resolveQuickActions(t, { hasAnyRole, canAny }) {
+function resolveQuickActions(t, { hasAnyRole, canAny, user }) {
+  const canPublish = user?.account_type === 'poet_organizer'
   const actions = []
 
-  if (hasAnyRole(['poet']) || canAny(['poems.create', 'content.publish.own'])) {
+  if (canPublish || hasAnyRole(['poet']) || canAny(['poems.create', 'content.publish.own'])) {
     actions.push({ id: 'write-poem', label: t('home.quick_actions.write_poem'), href: '/poems/create', Icon: PenIcon })
   }
-  if (hasAnyRole(['organizer']) || canAny(['events.create', 'events.create.public', 'events.create.private'])) {
+  if (canPublish || hasAnyRole(['organizer']) || canAny(['events.create', 'events.create.public', 'events.create.private'])) {
     actions.push({
       id: 'create-event',
       label: t('home.quick_actions.create_event'),
@@ -43,7 +44,8 @@ function resolveQuickActions(t, { hasAnyRole, canAny }) {
     })
   }
   if (
-    hasAnyRole(['poet', 'organizer', 'media'])
+    canPublish
+    || hasAnyRole(['poet', 'organizer', 'media'])
     || canAny(['videos.create', 'media.upload', 'content.publish.own'])
   ) {
     actions.push({
@@ -53,7 +55,7 @@ function resolveQuickActions(t, { hasAnyRole, canAny }) {
       Icon: VideoIcon,
     })
   }
-  if (hasAnyRole(['editor', 'journalist']) || canAny(['articles.create', 'content.publish.own'])) {
+  if (canPublish || hasAnyRole(['editor', 'journalist']) || canAny(['articles.create', 'content.publish.own'])) {
     actions.push({
       id: 'publish-article',
       label: t('home.quick_actions.publish_article'),
@@ -95,7 +97,7 @@ export default function DashboardPage({ user }) {
   const eventsValue = formatMetricValue(events)
   const viewsValue = formatMetricValue(views)
   const likesValue = formatMetricValue(likes)
-  const quickActions = resolveQuickActions(t, { hasAnyRole, canAny })
+  const quickActions = resolveQuickActions(t, { hasAnyRole, canAny, user })
   const withCount = (key, count) => t(key).replace(':count', String(count))
   const fallbackCommunityCards = [
     { id: 'friends', count: 0, title: t('home.dashboard_page.friends_title'), subtitle: withCount('home.dashboard_page.friends_subtitle', 0) },

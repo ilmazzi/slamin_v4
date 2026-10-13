@@ -4,6 +4,7 @@ import PageHero from '../../components/PageHero.jsx'
 import pageStyles from '../shared/ContentPageShell.module.css'
 import styles from './PoemsPage.module.css'
 import { useI18n } from '../../app/hooks/useI18n.js'
+import { useAuth } from '../../app/hooks/useAuth.js'
 import { usePaginatedApiList } from '../../app/hooks/usePaginatedApiList.js'
 import { usePoemPageSearchParams } from '../../app/hooks/usePoemPageSearchParams.js'
 import { useContentFeedbackUi } from '../../app/hooks/useContentFeedbackUi.js'
@@ -22,6 +23,8 @@ const SEARCH_DEBOUNCE_MS = 300
 
 export default function PoemsPage() {
   const { t, locale, availableLocales } = useI18n()
+  const { user } = useAuth()
+  const canCreatePoem = user?.account_type === 'poet_organizer'
   const {
     search,
     categorySlug,
@@ -210,12 +213,14 @@ export default function PoemsPage() {
             ) : null}
           </div>
 
-          <PillButton
-            label={t('poems.upload_poem')}
-            href="/poems/create"
-            variant="dark"
-            className={styles.uploadButton}
-          />
+          {canCreatePoem ? (
+            <PillButton
+              label={t('poems.upload_poem')}
+              href="/poems/create"
+              variant="dark"
+              className={styles.uploadButton}
+            />
+          ) : null}
         </div>
       </div>
 

@@ -4,6 +4,7 @@ import { usePaginatedApiList } from '../../app/hooks/usePaginatedApiList.js'
 import MainLayout from '../../components/layout/MainLayout.jsx'
 import PageHero from '../../components/PageHero.jsx'
 import { useI18n } from '../../app/hooks/useI18n.js'
+import { useAuth } from '../../app/hooks/useAuth.js'
 import { useContentFeedbackUi } from '../../app/hooks/useContentFeedbackUi.js'
 import { useArticlePageSearchParams } from '../../app/hooks/useArticlePageSearchParams.js'
 import { useArticleCategoryLookup } from '../../app/hooks/useArticleCategoryLookup.js'
@@ -23,6 +24,8 @@ const API_PER_PAGE = 5
 
 export default function ArticlePage() {
   const { t, locale } = useI18n()
+  const { user } = useAuth()
+  const canCreateArticle = user?.account_type === 'poet_organizer'
   const {
     categorySlug,
     currentPage: currentPageFromUrl,
@@ -130,6 +133,7 @@ export default function ArticlePage() {
           leadEmphasis={t('articles.lead_emphasis')}
           ctaLabel={t('articles.create_article')}
           ctaHref="/articles/create"
+          hideCta={!canCreateArticle}
         />
 
         <section className={styles.filterSection}>

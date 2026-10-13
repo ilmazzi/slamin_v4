@@ -104,28 +104,13 @@ export default function App() {
             }
           />
 
-          <Route
-            path="/events"
-            element={
-              <ProtectedRoute>
-                <EventPage />
-              </ProtectedRoute>
-            }
-          />
-
-          <Route
-            path="/eventi"
-            element={
-              <ProtectedRoute>
-                <Navigate to="/events" replace />
-              </ProtectedRoute>
-            }
-          />
+          <Route path="/events" element={<EventPage />} />
+          <Route path="/eventi" element={<Navigate to="/events" replace />} />
 
           <Route
             path="/events/create"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute accountTypes={['poet_organizer']} redirectTo="/events">
                 <EventCreatePage />
               </ProtectedRoute>
             }
@@ -134,70 +119,38 @@ export default function App() {
           <Route
             path="/events/:eventId/edit"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute accountTypes={['poet_organizer']} redirectTo="/events">
                 <EventCreatePage />
               </ProtectedRoute>
             }
           />
 
-          <Route
-            path="/events/:eventId"
-            element={
-              <ProtectedRoute>
-                <EventDetailPage />
-              </ProtectedRoute>
-            }
-          />
+          <Route path="/events/:eventId" element={<EventDetailPage />} />
+          <Route path="/eventi/:eventId" element={<LegacyEventRedirect />} />
 
-          <Route
-            path="/eventi/:eventId"
-            element={
-              <ProtectedRoute>
-                <LegacyEventRedirect />
-              </ProtectedRoute>
-            }
-          />
-
-          <Route
-            path="/poems"
-            element={
-              <ProtectedRoute>
-                <PoemsPage />
-              </ProtectedRoute>
-            }
-          />
+          <Route path="/poems" element={<PoemsPage />} />
           <Route
             path="/poems/create"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute accountTypes={['poet_organizer']} redirectTo="/poems">
                 <PoemCreate />
               </ProtectedRoute>
             }
           />
+          <Route path="/poems/:slug" element={<PoemDetailPage />} />
+          <Route path="/articles" element={<ArticlePage />} />
           <Route
-            path="/poems/:slug"
+            path="/articles/create"
             element={
-              <ProtectedRoute>
-                <PoemDetailPage />
+              <ProtectedRoute accountTypes={['poet_organizer']} redirectTo="/articles">
+                <PlaceholderPage
+                  titleKey="common.coming_soon.create_article_title"
+                  descriptionKey="common.coming_soon.create_article_description"
+                />
               </ProtectedRoute>
             }
           />
-          <Route
-            path="/articles"
-            element={
-              <ProtectedRoute>
-                <ArticlePage />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/articles/:slug"
-            element={
-              <ProtectedRoute>
-                <ArticleDetailPage />
-              </ProtectedRoute>
-            }
-          />
+          <Route path="/articles/:slug" element={<ArticleDetailPage />} />
           <Route
             path="/gigs"
             element={
@@ -206,41 +159,16 @@ export default function App() {
               </ProtectedRoute>
             }
           />
-          <Route
-            path="/media"
-            element={
-              <ProtectedRoute>
-                <MediaPage />
-              </ProtectedRoute>
-            }
-          />
+          <Route path="/media" element={<MediaPage />} />
           <Route
             path="/media/upload"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute accountTypes={['poet_organizer']} redirectTo="/media">
                 <MediaUploadPage />
               </ProtectedRoute>
             }
           />
-          <Route
-            path="/media/:mediaId"
-            element={
-              <ProtectedRoute>
-                <MediaDetailPage />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/articles/create"
-            element={
-              <ProtectedRoute>
-                <PlaceholderPage
-                  titleKey="common.coming_soon.create_article_title"
-                  descriptionKey="common.coming_soon.create_article_description"
-                />
-              </ProtectedRoute>
-            }
-          />
+          <Route path="/media/:mediaId" element={<MediaDetailPage />} />
           <Route
             path="/profile"
             element={
