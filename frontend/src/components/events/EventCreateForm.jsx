@@ -48,6 +48,12 @@ function mergeDateTimeParts(datePart, timePart) {
   return `${safeDate}T${safeTime}`
 }
 
+function currentLocalDateTime() {
+  const now = new Date()
+  const local = new Date(now.getTime() - now.getTimezoneOffset() * 60_000)
+  return local.toISOString().slice(0, 16)
+}
+
 function Field({ label, children, full = false, hint = '' }) {
   return (
     <label className={`${styles.field} ${full ? styles.full : ''}`}>
@@ -434,6 +440,30 @@ export default function EventCreateForm({ eventSlug = null }) {
     })
   }
 
+  function setRecurringMode(checked) {
+    setV((prev) => ({
+      ...prev,
+      schedule_mode: checked ? 'recurring' : 'fixed',
+    }))
+  }
+
+  function setAvailabilityMode(checked) {
+    setV((prev) => ({
+      ...prev,
+      schedule_mode: checked ? 'availability' : 'fixed',
+    }))
+  }
+
+  function removeAvailabilityOption(index) {
+    setV((prev) => {
+      if (prev.availability_options.length <= 1) return prev
+      return {
+        ...prev,
+        availability_options: prev.availability_options.filter((_, optionIndex) => optionIndex !== index),
+      }
+    })
+  }
+
   function parseIdList(text) {
     return String(text || '')
       .split(',')
@@ -676,59 +706,109 @@ export default function EventCreateForm({ eventSlug = null }) {
         onToggle={toggleSection}
       >
       <section className={styles.sectionBlock}>
-        <div className={styles.twoCols}>
-          <Field label={t('events.create_page.ui.starts_at')}>
-            <input className={styles.input} type="datetime-local" name="starts_at" value={v.occurrence.starts_at} onChange={(event) => setNested('occurrence', event)} required />
-          </Field>
-          <Field label={t('events.create_page.ui.ends_at')}>
-            <input className={styles.input} type="datetime-local" name="ends_at" value={v.occurrence.ends_at} onChange={(event) => setNested('occurrence', event)} />
-          </Field>
-        </div>
+        {!isAvailability ? (
+          <>
+            <div className={styles.twoCols}>
+              <Field label={t('events.create_page.ui.starts_at')}>
+                <input className={styles.input} type="datetime-local" name="starts_at" value={v.occurrence.starts_at} onChange={(event) => setNested('occurrence', event)} required />
+              </Field>
+              <Field label={t('events.create_page.ui.ends_at')}>
+                <input className={styles.input} type="datetime-local" name="ends_at" value={v.occurrence.ends_at} onChange={(event) => setNested('occurrence', event)} />
+              </Field>
+            </div>
 
-        <div className={styles.toggleRow}>
-          <span>{t('events.create_page.fields.is_recurring')}</span>
-          <Toggle checked={isRecurring} onChange={(checked) => setV((prev) => ({ ...prev, schedule_mode: checked ? 'recurring' : 'fixed' }))} />
-        </div>
+            <div>
+              <div className={styles.toggleRow}>
+                <span>{t('events.create_page.fields.is_recurring')}</span>
+                <Toggle checked={isRecurring} onChange={setRecurringMode} />
+              </div>
+              <p className={styles.microCopy}>{t('events.create_page.ui.recurrence_hint')}</p>
+            </div>
 
-        <div className={styles.threeCols}>
-          <select className={styles.input} name="frequency" value={v.recurrence.frequency} onChange={(event) => setNested('recurrence', event)} disabled={!isRecurring}>
-            <option value="daily">{t('events.create_page.ui.recurrence_frequency_placeholder')}</option>
-            <option value="daily">{t('events.create_page.ui.daily')}</option>
-            <option value="weekly">{t('events.create_page.ui.weekly')}</option>
-            <option value="monthly">{t('events.create_page.ui.monthly')}</option>
-          </select>
-          <input className={styles.input} name="interval" type="number" min="1" value={v.recurrence.interval} onChange={(event) => setNested('recurrence', event)} disabled={!isRecurring} placeholder={t('events.create_page.ui.interval_placeholder')} />
-          <input className={styles.input} name="occurrences_count" type="number" min="1" value={v.recurrence.occurrences_count} onChange={(event) => setNested('recurrence', event)} disabled={!isRecurring} placeholder={t('events.create_page.ui.occurrences_placeholder')} />
-        </div>
+            {isRecurring ? (
+              <div className={styles.conditionalPanel}>
+                <h3 className={styles.conditionalTitle}>{t('events.create_page.ui.recurrence_settings')}</h3>
+                <div className={styles.threeCols}>
+                  <Field label={t('events.create_page.fields.recurrence_type')}>
+                    <select className={styles.input} name="frequency" value={v.recurrence.frequency} onChange={(event) => setNested('recurrence', event)}>
+                      <option value="daily">{t('events.create_page.ui.daily')}</option>
+                      <option value="weekly">{t('events.create_page.ui.weekly')}</option>
+                      <option value="monthly">{t('events.create_page.ui.monthly')}</option>
+                    </select>
+                  </Field>
+                  <Field label={t('events.create_page.fields.recurrence_interval')}>
+                    <input className={styles.input} name="interval" type="number" min="1" value={v.recurrence.interval} onChange={(event) => setNested('recurrence', event)} />
+                  </Field>
+                  <Field label={t('events.create_page.fields.recurrence_count')}>
+                    <input className={styles.input} name="occurrences_count" type="number" min="1" value={v.recurrence.occurrences_count} onChange={(event) => setNested('recurrence', event)} />
+                  </Field>
+                </div>
+              </div>
+            ) : null}
+          </>
+        ) : null}
 
-        <div className={styles.toggleRow}>
-          <span>{t('events.create_page.fields.is_availability_based')}</span>
-          <Toggle checked={isAvailability} onChange={(checked) => setV((prev) => ({ ...prev, schedule_mode: checked ? 'availability' : 'fixed' }))} />
-        </div>
-        <p className={styles.microCopy}>{t('events.create_page.ui.availability_hint')}</p>
-
-        <div className={styles.twoCols}>
-          <Field label={t('events.create_page.fields.availability_deadline')}>
-            <input className={styles.input} type="datetime-local" name="response_deadline" value={v.availability_poll.response_deadline} onChange={(event) => setNested('availability_poll', event)} disabled={!isAvailability} />
-          </Field>
-          <Field label={t('events.create_page.ui.instructions')}>
-            <input className={styles.input} name="instructions" value={v.availability_poll.instructions} onChange={(event) => setNested('availability_poll', event)} disabled={!isAvailability} placeholder={t('events.create_page.ui.instructions_placeholder')} />
-          </Field>
-        </div>
-
-        <div className={styles.availabilityHeader}>
-          <button type="button" className={styles.addInline} onClick={() => setV((prev) => ({ ...prev, availability_options: [...prev.availability_options, { ...emptyAvailability }] }))}>
-            <span className={styles.addCircle}>+</span>
-            <span>{t('events.create_page.ui.add_options')}</span>
-          </button>
-        </div>
-
-        {v.availability_options.map((option, index) => (
-          <div key={`availability-${index}`} className={styles.twoCols}>
-            <input className={styles.input} type="datetime-local" value={option.starts_at} onChange={(event) => setRow('availability_options', index, 'starts_at', event.target.value)} disabled={!isAvailability} />
-            <input className={styles.input} value={option.description} onChange={(event) => setRow('availability_options', index, 'description', event.target.value)} disabled={!isAvailability} placeholder={t('events.create_page.ui.option_description_placeholder')} />
+        <div>
+          <div className={styles.toggleRow}>
+            <span>{t('events.create_page.ui.availability_toggle')}</span>
+            <Toggle checked={isAvailability} onChange={setAvailabilityMode} />
           </div>
-        ))}
+          <p className={styles.microCopy}>{t('events.create_page.ui.availability_hint')}</p>
+        </div>
+
+        {isAvailability ? (
+          <div className={styles.conditionalPanel}>
+            <div>
+              <h3 className={styles.conditionalTitle}>{t('events.create_page.ui.availability_setup_title')}</h3>
+              <p className={styles.microCopy}>{t('events.create_page.ui.availability_setup_hint')}</p>
+            </div>
+
+            <div className={styles.twoCols}>
+              <Field label={`${t('events.create_page.fields.availability_deadline')} *`}>
+                <input className={styles.input} type="datetime-local" name="response_deadline" value={v.availability_poll.response_deadline} onChange={(event) => setNested('availability_poll', event)} required />
+              </Field>
+              <Field label={t('events.create_page.ui.instructions')}>
+                <input className={styles.input} name="instructions" value={v.availability_poll.instructions} onChange={(event) => setNested('availability_poll', event)} placeholder={t('events.create_page.ui.instructions_placeholder')} />
+              </Field>
+            </div>
+
+            <div className={styles.optionGroupHeader}>
+              <div>
+                <h3 className={styles.conditionalTitle}>{t('events.create_page.ui.proposed_dates_title')}</h3>
+                <p className={styles.microCopy}>{t('events.create_page.ui.proposed_dates_hint')}</p>
+              </div>
+              <button type="button" className={styles.addInline} onClick={() => setV((prev) => ({ ...prev, availability_options: [...prev.availability_options, { ...emptyAvailability }] }))}>
+                <span className={styles.addCircle}>+</span>
+                <span>{t('events.create_page.ui.add_options')}</span>
+              </button>
+            </div>
+
+            {v.availability_options.map((option, index) => (
+              <div key={`availability-${index}`} className={styles.optionCard}>
+                <div className={styles.optionCardHeader}>
+                  <strong>{t('events.create_page.ui.option_n', { n: index + 1 })}</strong>
+                  <button
+                    type="button"
+                    className={styles.removeOption}
+                    onClick={() => removeAvailabilityOption(index)}
+                    disabled={v.availability_options.length === 1}
+                    title={v.availability_options.length === 1 ? t('events.create_page.ui.cannot_remove_last_option') : undefined}
+                  >
+                    {t('events.create_page.ui.remove_option')}
+                  </button>
+                </div>
+                <div className={styles.twoCols}>
+                  <Field label={`${t('events.create_page.ui.option_datetime')} *`}>
+                    <input className={styles.input} type="datetime-local" value={option.starts_at} onChange={(event) => setRow('availability_options', index, 'starts_at', event.target.value)} required />
+                  </Field>
+                  <Field label={t('events.create_page.ui.option_description')}>
+                    <input className={styles.input} value={option.description} onChange={(event) => setRow('availability_options', index, 'description', event.target.value)} placeholder={t('events.create_page.ui.option_description_placeholder')} />
+                  </Field>
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : null}
 
         <div className={styles.twoColsTight}>
           <div className={styles.choiceGroup}>
@@ -846,14 +926,16 @@ export default function EventCreateForm({ eventSlug = null }) {
                 {t('events.create_page.ui.free_event')}
               </ChoiceButton>
             </div>
-            <div className={styles.twoCols}>
-              <input className={styles.input} name="price" placeholder={t('events.create_page.fields.price')} value={v.price} onChange={setField} disabled={!v.has_cost} />
-              <select className={styles.input} name="currency" value={v.currency} onChange={setField} disabled={!v.has_cost}>
-                <option value="EUR">{t('events.create_page.ui.currency')}</option>
-                <option value="EUR">EUR</option>
-                <option value="USD">USD</option>
-              </select>
-            </div>
+            {v.has_cost ? (
+              <div className={styles.twoCols}>
+                <input className={styles.input} name="price" placeholder={t('events.create_page.fields.price')} value={v.price} onChange={setField} />
+                <select className={styles.input} name="currency" value={v.currency} onChange={setField}>
+                  <option value="EUR">{t('events.create_page.ui.currency')}</option>
+                  <option value="EUR">EUR</option>
+                  <option value="USD">USD</option>
+                </select>
+              </div>
+            ) : null}
           </div>
         </div>
 
@@ -973,24 +1055,24 @@ export default function EventCreateForm({ eventSlug = null }) {
                 />
                 <span>{t('events.create_page.fields.gig_cachet')}</span>
               </label>
-              <div className={styles.twoCols}>
-                <input
-                  className={styles.input}
-                  placeholder={t('events.create_page.ui.amount')}
-                  value={gig.proposed_price}
-                  onChange={(event) => setRow('gigs', index, 'proposed_price', event.target.value)}
-                  disabled={!gig.cachet_enabled}
-                />
-                <select
-                  className={styles.input}
-                  value={gig.currency}
-                  onChange={(event) => setRow('gigs', index, 'currency', event.target.value)}
-                  disabled={!gig.cachet_enabled}
-                >
-                  <option value="EUR">EUR (€)</option>
-                  <option value="USD">USD ($)</option>
-                </select>
-              </div>
+              {gig.cachet_enabled ? (
+                <div className={styles.twoCols}>
+                  <input
+                    className={styles.input}
+                    placeholder={t('events.create_page.ui.amount')}
+                    value={gig.proposed_price}
+                    onChange={(event) => setRow('gigs', index, 'proposed_price', event.target.value)}
+                  />
+                  <select
+                    className={styles.input}
+                    value={gig.currency}
+                    onChange={(event) => setRow('gigs', index, 'currency', event.target.value)}
+                  >
+                    <option value="EUR">EUR (€)</option>
+                    <option value="USD">USD ($)</option>
+                  </select>
+                </div>
+              ) : null}
             </div>
 
             <div className={styles.offerBox}>
@@ -1002,24 +1084,24 @@ export default function EventCreateForm({ eventSlug = null }) {
                 />
                 <span>{t('events.create_page.ui.travel_expenses')}</span>
               </label>
-              <div className={styles.twoCols}>
-                <input
-                  className={styles.input}
-                  placeholder={t('events.create_page.ui.max_coverage')}
-                  value={gig.travel_expenses_max}
-                  onChange={(event) => setRow('gigs', index, 'travel_expenses_max', event.target.value)}
-                  disabled={!gig.travel_expenses_enabled}
-                />
-                <select
-                  className={styles.input}
-                  value={gig.currency}
-                  onChange={(event) => setRow('gigs', index, 'currency', event.target.value)}
-                  disabled={!gig.travel_expenses_enabled}
-                >
-                  <option value="EUR">EUR (€)</option>
-                  <option value="USD">USD ($)</option>
-                </select>
-              </div>
+              {gig.travel_expenses_enabled ? (
+                <div className={styles.twoCols}>
+                  <input
+                    className={styles.input}
+                    placeholder={t('events.create_page.ui.max_coverage')}
+                    value={gig.travel_expenses_max}
+                    onChange={(event) => setRow('gigs', index, 'travel_expenses_max', event.target.value)}
+                  />
+                  <select
+                    className={styles.input}
+                    value={gig.currency}
+                    onChange={(event) => setRow('gigs', index, 'currency', event.target.value)}
+                  >
+                    <option value="EUR">EUR (€)</option>
+                    <option value="USD">USD ($)</option>
+                  </select>
+                </div>
+              ) : null}
             </div>
 
             <div className={styles.offerBox}>
@@ -1034,13 +1116,14 @@ export default function EventCreateForm({ eventSlug = null }) {
                 />
                 <span>{t('events.create_page.ui.food_and_lodging')}</span>
               </label>
-              <textarea
-                className={styles.textareaInline}
-                placeholder={t('events.create_page.ui.lodging_details')}
-                value={gig.accommodation_details}
-                onChange={(event) => setRow('gigs', index, 'accommodation_details', event.target.value)}
-                disabled={!gig.accommodation_enabled}
-              />
+              {gig.accommodation_enabled ? (
+                <textarea
+                  className={styles.textareaInline}
+                  placeholder={t('events.create_page.ui.lodging_details')}
+                  value={gig.accommodation_details}
+                  onChange={(event) => setRow('gigs', index, 'accommodation_details', event.target.value)}
+                />
+              ) : null}
             </div>
           </div>
         ))}
@@ -1049,14 +1132,27 @@ export default function EventCreateForm({ eventSlug = null }) {
 
         <div className={styles.toggleRow}>
           <span>{t('events.create_page.ui.registration_deadline')}</span>
-          <Toggle checked={Boolean(v.registration_deadline)} onChange={(checked) => setV((prev) => ({ ...prev, registration_deadline: checked ? prev.registration_deadline || prev.occurrence.starts_at : '' }))} />
+          <Toggle
+            checked={Boolean(v.registration_deadline)}
+            onChange={(checked) => setV((prev) => ({
+              ...prev,
+              registration_deadline: checked
+                ? prev.registration_deadline
+                  || prev.occurrence.starts_at
+                  || prev.availability_poll.response_deadline
+                  || currentLocalDateTime()
+                : '',
+            }))}
+          />
         </div>
         <p className={styles.microCopy}>{t('events.create_page.ui.registration_deadline_hint')}</p>
 
-        <div className={styles.twoCols}>
-          <input className={styles.input} type="date" value={registrationParts.date} onChange={(event) => setRegistrationDate(event.target.value)} />
-          <input className={styles.input} type="time" value={registrationParts.time} onChange={(event) => setRegistrationTime(event.target.value)} placeholder={t('events.create_page.ui.time')} />
-        </div>
+        {v.registration_deadline ? (
+          <div className={styles.twoCols}>
+            <input className={styles.input} type="date" value={registrationParts.date} onChange={(event) => setRegistrationDate(event.target.value)} />
+            <input className={styles.input} type="time" value={registrationParts.time} onChange={(event) => setRegistrationTime(event.target.value)} placeholder={t('events.create_page.ui.time')} />
+          </div>
+        ) : null}
 
         <Field label={t('events.create_page.ui.invite_audience')} full>
           <input className={styles.input} name="audience_capacity" placeholder={t('events.create_page.ui.capacity_limit')} value={v.audience_capacity} onChange={setField} />
