@@ -39,6 +39,7 @@ return [
         'base_url' => env('OPENPROJECT_BASE_URL'),
         'api_token' => env('OPENPROJECT_API_TOKEN'),
         'project' => env('OPENPROJECT_PROJECT'),
+        'type_id' => env('OPENPROJECT_TYPE_ID', 1),
     ],
 
 ];

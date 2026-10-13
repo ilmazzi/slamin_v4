@@ -13,7 +13,8 @@ function configureOpenProject(): void
     config([
         'services.openproject.base_url' => 'https://projects.test',
         'services.openproject.api_token' => 'secret-token',
-        'services.openproject.project' => 'slamin-feedback',
+        'services.openproject.project' => '4',
+        'services.openproject.type_id' => 1,
     ]);
 }
 
@@ -21,7 +22,7 @@ it('creates an openproject work package from site feedback', function () {
     configureOpenProject();
 
     Http::fake([
-        'https://projects.test/api/v3/projects/slamin-feedback/work_packages' => Http::response(['id' => 42], 201),
+        'https://projects.test/api/v3/work_packages' => Http::response(['id' => 42], 201),
     ]);
 
     Sanctum::actingAs(User::factory()->create());
@@ -35,10 +36,11 @@ it('creates an openproject work package from site feedback', function () {
         ->assertJsonPath('data.work_package_id', 42);
 
     Http::assertSent(function ($request) {
-        return $request->url() === 'https://projects.test/api/v3/projects/slamin-feedback/work_packages'
+        return $request->url() === 'https://projects.test/api/v3/work_packages'
             && $request->hasHeader('Authorization', 'Bearer secret-token')
             && $request['subject'] === 'Il video non parte'
-            && ! isset($request['_links']['type'])
+            && $request['_links']['project']['href'] === '/api/v3/projects/4'
+            && $request['_links']['type']['href'] === '/api/v3/types/1'
             && str_contains($request['description']['raw'], 'https://slamin.on-forge.com/media/2');
     });
 });
@@ -47,7 +49,7 @@ it('attaches the optional screenshot to the created work package', function () {
     configureOpenProject();
 
     Http::fake([
-        'https://projects.test/api/v3/projects/slamin-feedback/work_packages' => Http::response(['id' => 42], 201),
+        'https://projects.test/api/v3/work_packages' => Http::response(['id' => 42], 201),
         'https://projects.test/api/v3/work_packages/42/attachments' => Http::response(['id' => 7], 201),
     ]);
 
@@ -63,6 +65,12 @@ it('attaches the optional screenshot to the created work package', function () {
 });
 
 it('refuses feedback when openproject is not configured', function () {
+    config([
+        'services.openproject.base_url' => null,
+        'services.openproject.api_token' => null,
+        'services.openproject.project' => null,
+    ]);
+
     Sanctum::actingAs(User::factory()->create());
 
     $this->postJson('/api/feedback', [

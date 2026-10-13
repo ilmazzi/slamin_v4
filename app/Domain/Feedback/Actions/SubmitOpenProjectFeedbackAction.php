@@ -17,8 +17,9 @@ class SubmitOpenProjectFeedbackAction
         $baseUrl = rtrim((string) config('services.openproject.base_url'), '/');
         $token = (string) config('services.openproject.api_token');
         $project = trim((string) config('services.openproject.project'));
+        $typeId = (int) config('services.openproject.type_id', 1);
 
-        if ($baseUrl === '' || $token === '' || $project === '') {
+        if ($baseUrl === '' || $token === '' || $project === '' || ! ctype_digit($project) || $typeId < 1) {
             throw new RuntimeException('openproject_not_configured');
         }
 
@@ -28,9 +29,17 @@ class SubmitOpenProjectFeedbackAction
                 'format' => 'markdown',
                 'raw' => $this->description($user, $description, $url),
             ],
+            '_links' => [
+                'project' => [
+                    'href' => '/api/v3/projects/'.$project,
+                ],
+                'type' => [
+                    'href' => '/api/v3/types/'.$typeId,
+                ],
+            ],
         ];
 
-        $endpoint = $baseUrl.'/api/v3/projects/'.rawurlencode($project).'/work_packages';
+        $endpoint = $baseUrl.'/api/v3/work_packages';
 
         if (! app()->runningUnitTests()) {
             return $this->executeCli($endpoint, $token, $payload, $screenshot);
@@ -83,35 +92,10 @@ class SubmitOpenProjectFeedbackAction
         }
 
         try {
-            [$formStatus, $formBody] = $this->postCliJson(
-                $endpoint.'/form',
-                $token,
-                $payload,
-                $bodyFile,
-                $headerFile,
-            );
-            $form = json_decode($formBody, true);
-
-            if ($formStatus < 200 || $formStatus >= 300 || ! is_array($form)) {
-                throw new RuntimeException($this->cliFailure($formStatus, $form, $formBody));
-            }
-
-            $validationErrors = data_get($form, '_embedded.validationErrors', []);
-
-            if (is_array($validationErrors) && $validationErrors !== []) {
-                throw new RuntimeException($this->formValidationMessage($validationErrors));
-            }
-
-            $validatedPayload = data_get($form, '_embedded.payload');
-
-            if (! is_array($validatedPayload)) {
-                throw new RuntimeException('OpenProject non ha restituito un payload valido.');
-            }
-
             [$status, $body] = $this->postCliJson(
                 $endpoint,
                 $token,
-                $validatedPayload,
+                $payload,
                 $bodyFile,
                 $headerFile,
             );
@@ -164,28 +148,6 @@ class SubmitOpenProjectFeedbackAction
         ], 8);
     }
 
-    /**
-     * @param  array<string, mixed>  $errors
-     */
-    private function formValidationMessage(array $errors): string
-    {
-        $messages = [];
-
-        foreach ($errors as $field => $error) {
-            $message = is_array($error) ? ($error['message'] ?? null) : null;
-
-            if (is_string($message) && trim($message) !== '') {
-                $messages[] = $field.': '.trim($message);
-            }
-        }
-
-        $messages = array_values(array_unique($messages));
-
-        return $messages !== []
-            ? implode(' ', $messages)
-            : 'Il feedback non rispetta i vincoli configurati in OpenProject.';
-    }
-
     private function attachCli(string $endpoint, string $token, int $workPackageId, UploadedFile $screenshot, string $headerFile): void
     {
         $filename = preg_replace('/[^A-Za-z0-9._-]/', '_', basename($screenshot->getClientOriginalName() ?: '')) ?: 'screenshot.png';
@@ -197,7 +159,7 @@ class SubmitOpenProjectFeedbackAction
 
         try {
             file_put_contents($metaFile, json_encode(['fileName' => $filename], JSON_THROW_ON_ERROR));
-            $attachmentUrl = preg_replace('#/projects/[^/]+/work_packages$#', '/work_packages/'.$workPackageId.'/attachments', $endpoint);
+            $attachmentUrl = $endpoint.'/'.$workPackageId.'/attachments';
             $this->writeAuthHeader($headerFile, $token, bearer: true);
             [$status, $body] = $this->runCurl([
                 '-H', '@'.$headerFile,
