@@ -1,6 +1,11 @@
 <?php
 
+use App\Http\Controllers\Api\StoreOpenProjectFeedbackController;
 use Illuminate\Support\Facades\Route;
+
+Route::post('/feedback', StoreOpenProjectFeedbackController::class)
+    ->middleware(['auth:sanctum', 'account.verified'])
+    ->name('feedback.store');
 
 Route::prefix('v1')->group(function (): void {
     require __DIR__.'/api/v1/i18n.php';
