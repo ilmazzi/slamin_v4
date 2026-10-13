@@ -99,6 +99,32 @@ function SummaryCard({ title, items }) {
   )
 }
 
+function AccordionSection({ id, title, isOpen, onToggle, children }) {
+  return (
+    <section className={`${styles.accordion} ${isOpen ? styles.accordionOpen : ''}`} data-accordion-id={id}>
+      <button
+        type="button"
+        className={styles.accordionHeader}
+        onClick={() => onToggle(id)}
+        aria-expanded={isOpen}
+        aria-controls={`event-section-${id}`}
+      >
+        <span>{title}</span>
+        <span className={styles.accordionChevron} aria-hidden="true">⌄</span>
+      </button>
+      <div
+        id={`event-section-${id}`}
+        className={styles.accordionClip}
+        onFocusCapture={() => {
+          if (!isOpen) onToggle(id, true)
+        }}
+      >
+        <div className={styles.accordionContent}>{children}</div>
+      </div>
+    </section>
+  )
+}
+
 export default function EventCreateForm({ eventSlug = null }) {
   const { token, user } = useAuth()
   const navigate = useNavigate()
@@ -111,6 +137,7 @@ export default function EventCreateForm({ eventSlug = null }) {
   const [saving, setSaving] = useState(false)
   const [loadingEvent, setLoadingEvent] = useState(isEdit)
   const [geoStatus, setGeoStatus] = useState({ loading: false, error: '' })
+  const [openSections, setOpenSections] = useState(() => new Set(['basic']))
   const lastGeocodeKeyRef = useRef('')
   const geocodeTimerRef = useRef(null)
   const geocodeAbortRef = useRef(null)
@@ -154,6 +181,20 @@ export default function EventCreateForm({ eventSlug = null }) {
     gigs: [emptyGig],
     cover_image: null,
   })
+
+  function toggleSection(id, forceOpen = false) {
+    setOpenSections((current) => {
+      const next = new Set(current)
+      if (forceOpen) {
+        next.add(id)
+      } else if (next.has(id)) {
+        next.delete(id)
+      } else {
+        next.add(id)
+      }
+      return next
+    })
+  }
 
   useEffect(() => {
     listEventCategories().then((r) => setCategories(r.categories)).catch(() => {})
@@ -534,7 +575,14 @@ export default function EventCreateForm({ eventSlug = null }) {
   }
 
   return (
-    <form className={styles.form} onSubmit={submit}>
+    <form
+      className={styles.form}
+      onSubmit={submit}
+      onInvalid={(event) => {
+        const sectionId = event.target.closest?.('[data-accordion-id]')?.dataset?.accordionId
+        if (sectionId) toggleSection(sectionId, true)
+      }}
+    >
       {error ? <p className={styles.error}>{error}</p> : null}
       {loadingEvent ? <p className={styles.error}>{t('events.detail_page.messages.loading')}</p> : null}
 
@@ -545,6 +593,12 @@ export default function EventCreateForm({ eventSlug = null }) {
         </p>
       </section>
 
+      <AccordionSection
+        id="basic"
+        title={t('events.create_page.summary.basic_title')}
+        isOpen={openSections.has('basic')}
+        onToggle={toggleSection}
+      >
       <section className={styles.sectionBlock}>
         <div className={styles.twoCols}>
           <Field label={`${t('events.create_page.fields.title')} *`}>
@@ -613,8 +667,14 @@ export default function EventCreateForm({ eventSlug = null }) {
           />
         </Field>
       </section>
+      </AccordionSection>
 
-      <div className={styles.separator} />
+      <AccordionSection
+        id="schedule"
+        title={t('events.create_page.summary.schedule_title')}
+        isOpen={openSections.has('schedule')}
+        onToggle={toggleSection}
+      >
       <section className={styles.sectionBlock}>
         <div className={styles.twoCols}>
           <Field label={t('events.create_page.ui.starts_at')}>
@@ -759,8 +819,14 @@ export default function EventCreateForm({ eventSlug = null }) {
           </div>
         ) : null}
       </section>
+      </AccordionSection>
 
-      <div className={styles.separator} />
+      <AccordionSection
+        id="media"
+        title={t('events.create_page.summary.tickets_title')}
+        isOpen={openSections.has('media')}
+        onToggle={toggleSection}
+      >
       <section className={styles.sectionBlock}>
         <div className={styles.twoColsTight}>
           <Field label={t('events.create_page.ui.media')}>
@@ -799,8 +865,14 @@ export default function EventCreateForm({ eventSlug = null }) {
           <input className={styles.input} name="festival_event_id" placeholder={t('events.create_page.ui.festival_placeholder')} value={v.festival_event_id} onChange={setField} />
         </Field>
       </section>
+      </AccordionSection>
 
-      <div className={styles.separator} />
+      <AccordionSection
+        id="participants"
+        title={t('events.create_page.ui.invite_participants')}
+        isOpen={openSections.has('participants')}
+        onToggle={toggleSection}
+      >
       <section className={styles.sectionBlock}>
         <Field label={t('events.create_page.ui.invite_participants')} full>
           <input className={styles.input} placeholder={t('events.create_page.ui.invite_search_placeholder')} readOnly />
@@ -1002,8 +1074,14 @@ export default function EventCreateForm({ eventSlug = null }) {
           </ChoiceButton>
         </div>
       </section>
+      </AccordionSection>
 
-      <div className={styles.separator} />
+      <AccordionSection
+        id="confirmation"
+        title={t('events.create_page.summary_title')}
+        isOpen={openSections.has('confirmation')}
+        onToggle={toggleSection}
+      >
       <section className={styles.confirmSection}>
         <h2 className={styles.confirmTitle}>{t('events.create_page.summary_title')}</h2>
         <p className={styles.confirmSub}>{t('events.create_page.summary_hint')}</p>
@@ -1064,6 +1142,7 @@ export default function EventCreateForm({ eventSlug = null }) {
             : (isEdit ? t('events.edit_page.save') : t('events.create_page.publish'))}
         </button>
       </section>
+      </AccordionSection>
     </form>
   )
 }

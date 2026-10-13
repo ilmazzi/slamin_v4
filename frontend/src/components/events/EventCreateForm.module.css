@@ -18,6 +18,66 @@
   background: #e30613;
 }
 
+.accordion {
+  border-bottom: 4px solid #e30613;
+}
+
+.accordion + .accordion {
+  margin-top: 18px;
+}
+
+.accordionHeader {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 20px 0;
+  border: 0;
+  background: transparent;
+  color: #111;
+  cursor: pointer;
+  font: inherit;
+  font-size: 22px;
+  font-weight: 700;
+  text-align: left;
+}
+
+.accordionChevron {
+  display: inline-flex;
+  font-size: 30px;
+  font-weight: 400;
+  line-height: 1;
+  transition: transform 180ms ease;
+}
+
+.accordionOpen .accordionChevron {
+  transform: rotate(180deg);
+}
+
+.accordionClip {
+  display: grid;
+  grid-template-rows: 0fr;
+  opacity: 0;
+  pointer-events: none;
+  transition: grid-template-rows 220ms ease, opacity 160ms ease;
+}
+
+.accordionOpen .accordionClip {
+  grid-template-rows: 1fr;
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.accordionContent {
+  min-height: 0;
+  overflow: hidden;
+}
+
+.accordionOpen .accordionContent {
+  padding-bottom: 32px;
+}
+
 .sectionBlock,
 .confirmSection {
   display: flex;
