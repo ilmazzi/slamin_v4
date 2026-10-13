@@ -25,10 +25,8 @@ class SubmitOpenProjectFeedbackAction
 
         $payload = [
             'subject' => $subject,
-            'scheduleManually' => true,
-            'startDate' => now()->toDateString(),
             'dueDate' => now()->addWeek()->toDateString(),
-            'duration' => 'P7D',
+            'date' => now()->addWeek()->toDateString(),
             'description' => [
                 'format' => 'markdown',
                 'raw' => $this->description($user, $description, $url),
@@ -93,27 +91,38 @@ class SubmitOpenProjectFeedbackAction
         }
 
         try {
-            file_put_contents($bodyFile, json_encode($payload, JSON_THROW_ON_ERROR));
-            $this->writeAuthHeader($headerFile, $token, bearer: true);
-            [$status, $body] = $this->runCurl([
-                '-H', '@'.$headerFile,
-                '-H', 'Content-Type: application/json',
-                '-H', 'Accept: application/hal+json',
-                '--data-binary', '@'.$bodyFile,
-                $endpoint,
-            ], 8);
+            [$formStatus, $formBody] = $this->postCliJson(
+                $endpoint.'/form',
+                $token,
+                $payload,
+                $bodyFile,
+                $headerFile,
+            );
+            $form = json_decode($formBody, true);
 
-            if ($status === 401) {
-                $this->writeAuthHeader($headerFile, $token, bearer: false);
-                [$status, $body] = $this->runCurl([
-                    '-H', '@'.$headerFile,
-                    '-H', 'Content-Type: application/json',
-                    '-H', 'Accept: application/hal+json',
-                    '--data-binary', '@'.$bodyFile,
-                    $endpoint,
-                ], 8);
+            if ($formStatus < 200 || $formStatus >= 300 || ! is_array($form)) {
+                throw new RuntimeException($this->cliFailure($formStatus, $form, $formBody));
             }
 
+            $validationErrors = data_get($form, '_embedded.validationErrors', []);
+
+            if (is_array($validationErrors) && $validationErrors !== []) {
+                throw new RuntimeException($this->formValidationMessage($validationErrors));
+            }
+
+            $validatedPayload = data_get($form, '_embedded.payload');
+
+            if (! is_array($validatedPayload)) {
+                throw new RuntimeException('OpenProject non ha restituito un payload valido.');
+            }
+
+            [$status, $body] = $this->postCliJson(
+                $endpoint,
+                $token,
+                $validatedPayload,
+                $bodyFile,
+                $headerFile,
+            );
             $decoded = json_decode($body, true);
             $workPackageId = (int) (is_array($decoded) ? ($decoded['id'] ?? 0) : 0);
 
@@ -130,6 +139,57 @@ class SubmitOpenProjectFeedbackAction
             @unlink($bodyFile);
             @unlink($headerFile);
         }
+    }
+
+    /**
+     * @param  array<string, mixed>  $payload
+     * @return array{0: int, 1: string}
+     */
+    private function postCliJson(string $url, string $token, array $payload, string $bodyFile, string $headerFile): array
+    {
+        file_put_contents($bodyFile, json_encode($payload, JSON_THROW_ON_ERROR));
+        $this->writeAuthHeader($headerFile, $token, bearer: true);
+        $result = $this->runCurl([
+            '-H', '@'.$headerFile,
+            '-H', 'Content-Type: application/json',
+            '-H', 'Accept: application/hal+json',
+            '--data-binary', '@'.$bodyFile,
+            $url,
+        ], 8);
+
+        if ($result[0] !== 401) {
+            return $result;
+        }
+
+        $this->writeAuthHeader($headerFile, $token, bearer: false);
+
+        return $this->runCurl([
+            '-H', '@'.$headerFile,
+            '-H', 'Content-Type: application/json',
+            '-H', 'Accept: application/hal+json',
+            '--data-binary', '@'.$bodyFile,
+            $url,
+        ], 8);
+    }
+
+    /**
+     * @param  array<string, mixed>  $errors
+     */
+    private function formValidationMessage(array $errors): string
+    {
+        $messages = [];
+
+        array_walk_recursive($errors, function (mixed $value, string|int $key) use (&$messages): void {
+            if ($key === 'message' && is_string($value) && trim($value) !== '') {
+                $messages[] = trim($value);
+            }
+        });
+
+        $messages = array_values(array_unique($messages));
+
+        return $messages !== []
+            ? implode(' ', $messages)
+            : 'Il feedback non rispetta i vincoli configurati in OpenProject.';
     }
 
     private function attachCli(string $endpoint, string $token, int $workPackageId, UploadedFile $screenshot, string $headerFile): void
