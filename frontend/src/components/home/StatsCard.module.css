@@ -43,23 +43,17 @@
 
 .icon {
   display: flex;
-  align-items: center;
+  align-items: flex-end;
   justify-content: center;
   width: 286.5px;
   min-height: 107px;
+  color: #f5e6be;
 }
 
-.iconAsset {
+.icon svg {
   display: block;
-}
-
-.iconAssetDesktop {
-  width: var(--stats-icon-width-desktop);
-  height: var(--stats-icon-height-desktop);
-}
-
-.iconAssetMobile {
-  display: none;
+  width: 112px;
+  height: 112px;
 }
 
 @media (max-width: 768px) {
@@ -96,13 +90,8 @@
     min-height: 44px;
   }
 
-  .iconAssetDesktop {
-    display: none;
-  }
-
-  .iconAssetMobile {
-    display: block;
-    width: var(--stats-icon-width-mobile);
-    height: var(--stats-icon-height-mobile);
+  .icon svg {
+    width: 44px;
+    height: 44px;
   }
 }

@@ -12,29 +12,14 @@
   border: 1.563vw solid #e30613;
   overflow: hidden;
   box-sizing: border-box;
+  background: #111;
 }
 
 .backdrop {
-  position: absolute;
-  inset: 0;
-  overflow: hidden;
-  pointer-events: none;
+  display: none;
 }
 
 .desktopBackdropAsset,
-.mobileBackdropAsset {
-  position: absolute;
-  display: block;
-  max-width: none;
-}
-
-.desktopBackdropAsset {
-  top: -57.85%;
-  left: 0;
-  width: 119.82%;
-  height: 234.9%;
-}
-
 .mobileBackdropAsset {
   display: none;
 }
@@ -108,19 +93,13 @@
   height: 1.146vw;
 }
 
-.buttonIconDesktop,
-.buttonIconMobile {
+.buttonChevron {
   display: block;
-}
-
-.buttonIconDesktop {
-  width: 1.146vw;
-  height: 0.797vw;
-  transform: rotate(90deg);
-}
-
-.buttonIconMobile {
-  display: none;
+  width: 0.55vw;
+  height: 0.55vw;
+  border-top: 2px solid #fff;
+  border-right: 2px solid #fff;
+  transform: rotate(45deg);
 }
 
 @media (max-width: 768px) {
@@ -139,11 +118,7 @@
   }
 
   .mobileBackdropAsset {
-    display: block;
-    top: -74.8%;
-    left: 0;
-    width: 110.17%;
-    height: 303.71%;
+    display: none;
   }
 
   .content {
@@ -181,18 +156,12 @@
   }
 
   .buttonIconWrap {
-    width: 5px;
+    width: 8px;
     height: 8px;
   }
 
-  .buttonIconDesktop {
-    display: none;
-  }
-
-  .buttonIconMobile {
-    display: block;
-    width: 8px;
-    height: 5px;
-    transform: rotate(90deg);
+  .buttonChevron {
+    width: 6px;
+    height: 6px;
   }
 }

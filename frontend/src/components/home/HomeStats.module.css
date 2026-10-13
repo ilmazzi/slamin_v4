@@ -1,15 +1,17 @@
 .separator {
-  display: flex;
-  justify-content: flex-end;
-  padding-left: var(--home-section-pad-desktop, 110px);
+  position: relative;
   background: #fff;
   height: 117px;
 }
 
-.separatorAsset {
-  display: block;
+.separatorMark {
+  position: absolute;
+  top: 0;
+  right: 0;
   width: 177px;
   height: 117px;
+  background: #f5e6be;
+  clip-path: polygon(38% 0, 100% 0, 100% 100%);
 }
 
 .heading {
@@ -83,7 +85,7 @@
     height: 44px;
   }
 
-  .separatorAsset {
+  .separatorMark {
     width: 67px;
     height: 44px;
   }

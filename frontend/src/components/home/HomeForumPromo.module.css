@@ -92,23 +92,17 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 0.797vw;
-  height: 1.146vw;
+  width: 0.9vw;
+  height: 0.9vw;
 }
 
-.buttonIconDesktop,
-.buttonIconMobile {
+.buttonChevron {
   display: block;
-}
-
-.buttonIconDesktop {
-  width: 1.146vw;
-  height: 0.797vw;
-  transform: rotate(90deg);
-}
-
-.buttonIconMobile {
-  display: none;
+  width: 0.5vw;
+  height: 0.5vw;
+  border-top: 2px solid #000;
+  border-right: 2px solid #000;
+  transform: rotate(45deg);
 }
 
 @media (max-width: 768px) {
@@ -163,18 +157,12 @@
   }
 
   .buttonIconWrap {
-    width: 5px;
+    width: 8px;
     height: 8px;
   }
 
-  .buttonIconDesktop {
-    display: none;
-  }
-
-  .buttonIconMobile {
-    display: block;
-    width: 8px;
-    height: 5px;
-    transform: rotate(90deg);
+  .buttonChevron {
+    width: 6px;
+    height: 6px;
   }
 }
