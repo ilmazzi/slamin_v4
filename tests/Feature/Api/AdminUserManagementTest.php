@@ -33,6 +33,7 @@ it('lists and filters users for administrators', function () {
 it('updates status account type verification and roles', function () {
     $admin = adminUserForManagement();
     $target = User::factory()->unverified()->create();
+    $target->createToken('existing-session');
     Role::query()->firstOrCreate(['name' => 'moderator'], ['label' => 'Moderator']);
 
     Sanctum::actingAs($admin);
@@ -50,6 +51,7 @@ it('updates status account type verification and roles', function () {
         ->assertJsonPath('data.user.roles.0', 'moderator');
 
     expect($target->fresh()->hasRole('moderator'))->toBeTrue();
+    expect($target->tokens()->count())->toBe(0);
 });
 
 it('prevents an administrator from locking their own account', function () {

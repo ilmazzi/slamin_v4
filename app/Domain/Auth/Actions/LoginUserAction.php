@@ -15,7 +15,7 @@ class LoginUserAction
             ->where('email', $data->email)
             ->first();
 
-        if (! $user || ! Hash::check($data->password, $user->password)) {
+        if (! $user || $user->status !== 'active' || ! Hash::check($data->password, $user->password)) {
             throw new AuthenticationException(__('auth.invalid_credentials'));
         }
 

@@ -87,6 +87,19 @@ it('rejects login with invalid credentials', function () {
     $response->assertStatus(401);
 });
 
+it('rejects login for suspended or banned users', function (string $status) {
+    User::factory()->create([
+        'email' => $status.'-user@example.com',
+        'password' => Hash::make('password1234'),
+        'status' => $status,
+    ]);
+
+    $this->postJson('/api/v1/login', [
+        'email' => $status.'-user@example.com',
+        'password' => 'password1234',
+    ])->assertUnauthorized();
+})->with(['suspended', 'banned']);
+
 it('returns the authenticated user on me endpoint', function () {
     $user = User::factory()->create();
     $role = Role::query()->firstOrCreate(

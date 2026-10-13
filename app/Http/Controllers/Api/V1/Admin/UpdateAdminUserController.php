@@ -46,6 +46,10 @@ class UpdateAdminUserController extends Controller
 
             $roleIds = Role::query()->whereIn('name', $roles)->pluck('id');
             $user->roles()->sync($roleIds);
+
+            if ($data['status'] !== 'active') {
+                $user->tokens()->delete();
+            }
         });
 
         return ApiResponse::success([
