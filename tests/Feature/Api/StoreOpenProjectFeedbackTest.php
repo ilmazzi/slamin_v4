@@ -40,6 +40,7 @@ it('creates an openproject work package from site feedback', function () {
             && $request['subject'] === 'Il video non parte'
             && $request['scheduleManually'] === true
             && $request['dueDate'] === now()->addWeek()->toDateString()
+            && $request['customField1'] === now()->addWeek()->toDateString()
             && ! isset($request['_links']['type'])
             && str_contains($request['description']['raw'], 'https://slamin.on-forge.com/media/2');
     });
