@@ -2,19 +2,19 @@
 
 namespace Database\Seeders;
 
-use Database\Factories\UserFactory;
+use Database\Seeders\Concerns\ResolvesSeedAuthor;
 use Domain\Article\Enums\ArticleStatus;
 use Domain\Article\Models\Article;
 use Domain\Article\Models\ArticleCategory;
-use Domain\User\Models\User;
 use Illuminate\Database\Seeder;
 
 class ArticleSeeder extends Seeder
 {
+    use ResolvesSeedAuthor;
+
     public function run(): void
     {
-        $user = User::query()->first()
-            ?? UserFactory::new()->poetOrganizer()->create();
+        $user = $this->resolveSeedAuthor();
 
         $categories = ArticleCategory::query()
             ->whereIn('slug', [

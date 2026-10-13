@@ -2,20 +2,20 @@
 
 namespace Database\Seeders;
 
-use Database\Factories\UserFactory;
+use Database\Seeders\Concerns\ResolvesSeedAuthor;
 use Domain\Poetry\Enums\PoemStatus;
 use Domain\Poetry\Models\Poem;
 use Domain\Poetry\Models\PoemCategory;
 use Domain\Poetry\Models\PoemType;
-use Domain\User\Models\User;
 use Illuminate\Database\Seeder;
 
 class PoemSeeder extends Seeder
 {
+    use ResolvesSeedAuthor;
+
     public function run(): void
     {
-        $user = User::query()->first()
-            ?? UserFactory::new()->poetOrganizer()->create();
+        $user = $this->resolveSeedAuthor();
 
         $categorySlugs = [
             'amore', 'natura', 'sociale', 'politica', 'personale', 'filosofia', 'religione', 'pace',

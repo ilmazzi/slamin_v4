@@ -27,12 +27,12 @@ class UserFactory extends Factory
     public function definition(): array
     {
         return [
-            'email' => fake()->unique()->safeEmail(),
+            'email' => $this->faker->unique()->safeEmail(),
             'email_verified_at' => now(),
             'password' => static::$password ??= Hash::make('password'),
             'account_type' => AccountType::Audience,
             'status' => 'active',
-            'remember_token' => fake()->regexify('[A-Za-z0-9]{10}'),
+            'remember_token' => $this->faker->regexify('[A-Za-z0-9]{10}'),
             'two_factor_secret' => null,
             'two_factor_recovery_codes' => null,
             'two_factor_confirmed_at' => null,

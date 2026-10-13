@@ -4,7 +4,7 @@ namespace Database\Seeders;
 
 use Carbon\Carbon;
 use Carbon\CarbonInterface;
-use Database\Factories\UserFactory;
+use Database\Seeders\Concerns\ResolvesSeedAuthor;
 use Domain\Event\Enums\EventDeliveryMode;
 use Domain\Event\Enums\EventScheduleMode;
 use Domain\Event\Enums\EventStatus;
@@ -17,16 +17,16 @@ use Domain\PoetrySlam\Enums\PoetrySlamEntryStatus;
 use Domain\PoetrySlam\Enums\PoetrySlamStatus;
 use Domain\PoetrySlam\Models\PoetrySlam;
 use Domain\PoetrySlam\Models\PoetrySlamEntry;
-use Domain\User\Models\User;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Collection;
 
 class EventSeeder extends Seeder
 {
+    use ResolvesSeedAuthor;
+
     public function run(): void
     {
-        $organizer = User::query()->first()
-            ?? UserFactory::new()->poetOrganizer()->create();
+        $organizer = $this->resolveSeedAuthor();
 
         $bySlug = EventCategory::query()
             ->where('is_active', true)
