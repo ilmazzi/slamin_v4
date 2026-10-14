@@ -5,7 +5,6 @@ export const categoryCards = [
     accent: '#84dab4',
     tone: 'events',
     imageSrc: '/images/home/events.webp',
-    imageSrcSet: '/images/home/events.webp 1x, /images/home/events@2x.webp 2x',
   },
   {
     key: 'ingaggi',
@@ -13,7 +12,6 @@ export const categoryCards = [
     accent: '#fdae5f',
     tone: 'gigs',
     imageSrc: '/images/home/gigs.webp',
-    imageSrcSet: '/images/home/gigs.webp 1x, /images/home/gigs@2x.webp 2x',
   },
   {
     key: 'poesie',
@@ -21,7 +19,6 @@ export const categoryCards = [
     accent: '#a553dd',
     tone: 'poems',
     imageSrc: '/images/home/poems.webp',
-    imageSrcSet: '/images/home/poems.webp 1x, /images/home/poems@2x.webp 2x',
   },
   {
     key: 'notizie',
@@ -29,7 +26,6 @@ export const categoryCards = [
     accent: '#6574de',
     tone: 'news',
     imageSrc: '/images/home/articles.webp',
-    imageSrcSet: '/images/home/articles.webp 1x, /images/home/articles@2x.webp 2x',
   },
 ]
 
@@ -42,8 +38,6 @@ export const mediaItems = [
 export const forumPromo = {
   imageDesktopSrc: '/images/home/forum.webp',
   imageMobileSrc: '/images/home/forum.webp',
-  imageDesktopSrcSet: '/images/home/forum.webp 1x, /images/home/forum@2x.webp 2x',
-  imageMobileSrcSet: '/images/home/forum-mobile.webp 1x, /images/home/forum-mobile@2x.webp 2x',
 }
 
 export const communityStats = [
