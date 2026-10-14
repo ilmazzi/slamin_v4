@@ -13,6 +13,7 @@ class ListPoemData
         public readonly ?string $search,
         public readonly ?string $language,
         public readonly string $sort,
+        public readonly ?string $nickname,
     ) {}
 
     public static function fromRequest(ListPoemRequest $request): self
@@ -24,6 +25,7 @@ class ListPoemData
             search: $request->validated('q'),
             language: $request->validated('language'),
             sort: $request->validated('sort') ?: 'newest',
+            nickname: $request->validated('nickname'),
         );
     }
 }

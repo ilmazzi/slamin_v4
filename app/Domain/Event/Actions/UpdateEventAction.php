@@ -277,6 +277,36 @@ class UpdateEventAction
         ]);
     }
 
+    public function updatePublicationStatus(Event $event, EventStatus $requestedStatus, int $userId): Event
+    {
+        $status = $this->resolveTargetStatus($requestedStatus);
+        $publishedAt = $status === EventStatus::Published
+            ? ($event->published_at ?? now())
+            : null;
+
+        $event->update([
+            'status' => $status,
+            'is_public' => $status === EventStatus::Published ? true : $event->is_public,
+            'published_at' => $publishedAt,
+        ]);
+
+        audit()->log(
+            event: 'event.updated',
+            userId: $userId,
+            auditable: $event,
+            newValues: [
+                'status' => $event->status?->value,
+                'is_public' => $event->is_public,
+                'published_at' => $event->published_at?->toISOString(),
+            ],
+            metadata: [
+                'source' => 'event_publication_status',
+            ],
+        );
+
+        return $event->fresh(Event::RESOURCE_RELATIONS);
+    }
+
     private function resolveTargetStatus(EventStatus $requestedStatus): EventStatus
     {
         if ($requestedStatus !== EventStatus::Published) {

@@ -1,4 +1,4 @@
-import { apiGet, authApiGet, authApiPatch, authApiPost } from './client.js'
+import { apiGet, authApiDelete, authApiGet, authApiPatch, authApiPost } from './client.js'
 
 export async function listMedia({
   page = 1,
@@ -6,12 +6,16 @@ export async function listMedia({
   q = '',
   type = '',
   sort = 'newest',
+  nickname = '',
   token: paramsToken,
 } = {}, { token: optionToken, signal } = {}) {
   const token = optionToken ?? paramsToken
   const params = new URLSearchParams()
   params.set('page', String(page))
   params.set('per_page', String(perPage))
+  if (nickname) {
+    params.set('nickname', String(nickname))
+  }
 
   const query = String(q ?? '').trim()
   if (query) {
@@ -154,4 +158,41 @@ export async function testPeerTubeConnection({ token, signal } = {}) {
   })
 
   return Boolean(data?.connected)
+}
+
+export async function listMyMedia(
+  { page = 1, perPage = 50 } = {},
+  { token, signal } = {},
+) {
+  const params = new URLSearchParams()
+  params.set('page', String(page))
+  params.set('per_page', String(perPage))
+
+  const { data, meta } = await authApiGet(`/api/v1/my/media?${params.toString()}`, {
+    token,
+    signal,
+    fallbackMessage: 'Failed to fetch my media',
+  })
+
+  return {
+    items: Array.isArray(data) ? data : [],
+    meta,
+  }
+}
+
+export async function updateMediaItem(mediaId, payload, { token, signal } = {}) {
+  const { data } = await authApiPatch(`/api/v1/media/${encodeURIComponent(mediaId)}`, payload, {
+    token,
+    signal,
+    fallbackMessage: 'Unable to update media',
+  })
+  return data?.media ?? null
+}
+
+export async function deleteMediaItem(mediaId, { token, signal } = {}) {
+  await authApiDelete(`/api/v1/media/${encodeURIComponent(mediaId)}`, {
+    token,
+    signal,
+    fallbackMessage: 'Unable to delete media',
+  })
 }

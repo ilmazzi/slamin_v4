@@ -28,6 +28,10 @@ return [
         'notizie' => 'notizie',
         'discover_more' => 'Scopri di più',
     ],
+    'upcoming_events' => [
+        'title' => 'prossimi eventi',
+        'subtitle' => 'in programma',
+    ],
     'community_media' => [
         'title' => 'video e foto',
         'subtitle' => 'dalla community',

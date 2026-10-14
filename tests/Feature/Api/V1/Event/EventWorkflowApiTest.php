@@ -192,7 +192,7 @@ it('uses a bounded query count and does not expose invitations in the public eve
         $queryCount++;
     });
 
-    $events = app(ListEventQuery::class)->execute(new ListEventData(10, null, null));
+    $events = app(ListEventQuery::class)->execute(new ListEventData(10, null, null, null));
     EventSummaryResource::collection($events->items())->resolve();
 
     expect($queryCount)->toBeLessThanOrEqual(6);

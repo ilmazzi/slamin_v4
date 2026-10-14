@@ -30,6 +30,7 @@ class ShowHomeMediaController extends Controller
                 search: null,
                 type: null,
                 sort: 'newest',
+                nickname: null,
             ),
         );
 

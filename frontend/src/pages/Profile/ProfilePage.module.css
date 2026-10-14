@@ -1,5 +1,5 @@
 .page {
-  width: min(100%, 820px);
+  width: min(100%, 920px);
   margin: 0 auto;
   padding: 48px var(--header-desktop-padding-x) 72px;
   color: var(--color-black);

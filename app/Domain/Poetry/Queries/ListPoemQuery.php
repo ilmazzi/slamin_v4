@@ -5,6 +5,7 @@ namespace Domain\Poetry\Queries;
 use Domain\Poetry\DTOs\ListPoemData;
 use Domain\Poetry\Enums\PoemStatus;
 use Domain\Poetry\Models\Poem;
+use Domain\Shared\Support\AuthorNicknameFilter;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 
 class ListPoemQuery
@@ -16,6 +17,8 @@ class ListPoemQuery
             ->withCount(['likes', 'bookmarks', 'comments'])
             ->where('status', PoemStatus::Published)
             ->where('is_public', true);
+
+        AuthorNicknameFilter::apply($query, $data->nickname);
 
         if ($data->poemCategoryId) {
             $query->where('poem_category_id', $data->poemCategoryId);

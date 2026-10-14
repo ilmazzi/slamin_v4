@@ -8,6 +8,7 @@ use Domain\Media\Enums\MediaType;
 use Domain\Media\Enums\MediaVisibility;
 use Domain\Media\Models\MediaItem;
 use Domain\Media\Services\PeerTubeService;
+use Domain\Shared\Support\AuthorNicknameFilter;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 
 class ListMediaAction
@@ -29,6 +30,8 @@ class ListMediaAction
             ])
             ->where('status', MediaStatus::Ready)
             ->where('visibility', MediaVisibility::Public);
+
+        AuthorNicknameFilter::apply($query, $data->nickname);
 
         if ($data->type) {
             $query->where('type', $data->type);

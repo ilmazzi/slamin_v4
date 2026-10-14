@@ -18,11 +18,14 @@ async function collectPaginatedItems(fetchPage, { signal, maxPages, perPage }) {
   return all
 }
 
-export async function listEvents({ page = 1, perPage = 10, token: paramsToken } = {}, { token: optionToken, signal } = {}) {
+export async function listEvents({ page = 1, perPage = 10, nickname = '', token: paramsToken } = {}, { token: optionToken, signal } = {}) {
   const token = optionToken ?? paramsToken
   const params = new URLSearchParams()
   params.set('per_page', String(perPage))
   params.set('page', String(page))
+  if (nickname) {
+    params.set('nickname', String(nickname))
+  }
 
   const path = `/api/v1/events?${params.toString()}`
   const fetcher = token ? authApiGet : apiGet
@@ -185,6 +188,14 @@ export async function updateEvent(eventId, eventData, { token, signal } = {}) {
     fallbackMessage: 'Unable to update event.',
   })
   return data?.event ?? null
+}
+
+export async function deleteEvent(eventId, { token, signal } = {}) {
+  await authApiDelete(`/api/v1/events/${encodeURIComponent(eventId)}`, {
+    token,
+    signal,
+    fallbackMessage: 'Unable to delete event.',
+  })
 }
 
 function appendIfDefined(formData, key, value) {

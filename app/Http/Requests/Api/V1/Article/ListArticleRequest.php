@@ -21,6 +21,7 @@ class ListArticleRequest extends FormRequest
                 'integer',
                 Rule::exists('article_categories', 'id')->where('is_active', true),
             ],
+            'nickname' => ['nullable', 'string', 'max:191'],
         ];
     }
 }

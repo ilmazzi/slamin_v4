@@ -10,6 +10,7 @@ class ListEventData
         public readonly int $perPage,
         public readonly ?int $eventCategoryId,
         public readonly ?int $festivalEventId,
+        public readonly ?string $nickname,
     ) {
     }
 
@@ -19,6 +20,7 @@ class ListEventData
             perPage: (int) $request->validated('per_page', 10),
             eventCategoryId: $request->validated('event_category_id'),
             festivalEventId: $request->validated('festival_event_id'),
+            nickname: $request->validated('nickname'),
         );
     }
 }

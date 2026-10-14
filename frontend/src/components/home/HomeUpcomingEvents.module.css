@@ -1,0 +1,19 @@
+.section {
+  --page-inline-padding: var(--home-section-pad-desktop, 110px);
+  background: #fff;
+}
+
+.headingWrap {
+  padding: 24px var(--home-section-pad-desktop, 110px) 0;
+  background: #fff;
+}
+
+@media (max-width: 768px) {
+  .section {
+    --page-inline-padding: var(--home-section-pad-mobile, 30px);
+  }
+
+  .headingWrap {
+    padding: 8px var(--home-section-pad-mobile, 30px) 0;
+  }
+}

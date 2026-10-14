@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { lazy, Suspense, useEffect, useState } from 'react'
 import { formatLocaleNumber } from '../../app/formatters/number.js'
 import { getHomeMedia, getHomeStats } from '../../app/api/home.js'
 import { createMediaReport } from '../../app/api/reports.js'
@@ -22,6 +22,8 @@ import HomeMedia from '../../components/home/HomeMedia.jsx'
 import HomeStats from '../../components/home/HomeStats.jsx'
 import { useI18n } from '../../app/hooks/useI18n.js'
 import styles from './HomePage.module.css'
+
+const HomeUpcomingEvents = lazy(() => import('../../components/home/HomeUpcomingEvents.jsx'))
 
 export function HomePage({ variant = 'guest', user = null }) {
   const { t, locale } = useI18n()
@@ -143,6 +145,10 @@ export function HomePage({ variant = 'guest', user = null }) {
           cards={cards}
           ctaLabel={t('home.content_cards.discover_more')}
         />
+
+        <Suspense fallback={null}>
+          <HomeUpcomingEvents />
+        </Suspense>
 
         <HomeMedia
           headingAccent={t('home.community_media.title')}

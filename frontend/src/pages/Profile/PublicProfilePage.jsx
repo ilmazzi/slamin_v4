@@ -6,6 +6,7 @@ import { useAuth } from '../../app/hooks/useAuth.js'
 import { useI18n } from '../../app/hooks/useI18n.js'
 import MainLayout from '../../components/layout/MainLayout.jsx'
 import ProfileCard from './ProfileCard.jsx'
+import ProfileWorks from './ProfileWorks.jsx'
 import styles from './ProfilePage.module.css'
 
 export default function PublicProfilePage() {
@@ -57,6 +58,7 @@ export default function PublicProfilePage() {
   }, [nickname, token])
 
   const displayName = profile?.display_name || profile?.nickname || ''
+  const canManage = Boolean(profile?.is_owner && user?.account_type === 'poet_organizer')
   const canWrite = Boolean(
     isAuthenticated && token && profile?.nickname && profile?.nickname !== user?.profile?.nickname && !profile?.is_owner,
   )
@@ -93,6 +95,11 @@ export default function PublicProfilePage() {
               t={t}
               onWrite={canWrite ? handleWrite : null}
               isWriting={isWriting}
+            />
+            <ProfileWorks
+              nickname={profile.nickname}
+              canManage={canManage}
+              token={canManage ? token : null}
             />
           </>
         ) : null}

@@ -5,6 +5,7 @@ namespace Domain\Article\Actions;
 use Domain\Article\DTOs\ListArticleData;
 use Domain\Article\Enums\ArticleStatus;
 use Domain\Article\Models\Article;
+use Domain\Shared\Support\AuthorNicknameFilter;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 
 class ListArticleAction
@@ -18,6 +19,8 @@ class ListArticleAction
             ->where('is_public', true)
             ->orderByDesc('published_at')
             ->orderByDesc('created_at');
+
+        AuthorNicknameFilter::apply($query, $data->nickname);
 
         if ($data->articleCategoryId) {
             $query->where('article_category_id', $data->articleCategoryId);

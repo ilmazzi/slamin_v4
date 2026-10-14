@@ -12,6 +12,7 @@ class ListMediaData
         public readonly ?string $search,
         public readonly ?MediaType $type,
         public readonly string $sort,
+        public readonly ?string $nickname,
     ) {}
 
     public static function fromRequest(ListMediaRequest $request): self
@@ -23,6 +24,7 @@ class ListMediaData
             search: $request->validated('q'),
             type: is_string($type) && $type !== '' ? MediaType::from($type) : null,
             sort: $request->validated('sort') ?: 'newest',
+            nickname: $request->validated('nickname'),
         );
     }
 }

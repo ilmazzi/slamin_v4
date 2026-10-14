@@ -8,6 +8,7 @@ use App\Http\Resources\Api\V1\Event\EventResource;
 use App\Support\Responses\ApiResponse;
 use Domain\Event\Actions\UpdateEventAction;
 use Domain\Event\DTOs\UpdateEventData;
+use Domain\Event\Enums\EventStatus;
 use Domain\Event\Models\Event;
 use Illuminate\Http\JsonResponse;
 
@@ -19,17 +20,21 @@ class UpdateEventController extends Controller
     }
 
     public function __invoke(UpdateEventRequest $request, Event $event): JsonResponse
-{
-    $this->authorize('update', $event);
+    {
+        $this->authorize('update', $event);
 
-    $data = \Domain\Event\DTOs\UpdateEventData::fromRequest($request);
+        if ($request->isStatusOnlyUpdate()) {
+            $event = $this->action->updatePublicationStatus(
+                $event,
+                EventStatus::from($request->validated('status')),
+                (int) $request->user()->id,
+            );
+        } else {
+            $event = $this->action->execute($event, UpdateEventData::fromRequest($request));
+        }
 
-  
-
-    $event = $this->action->execute($event, $data);
-
-    return ApiResponse::success([
-        'event' => new EventResource($event),
-    ]);
-}
+        return ApiResponse::success([
+            'event' => new EventResource($event),
+        ]);
+    }
 }

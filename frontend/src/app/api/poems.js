@@ -1,4 +1,4 @@
-import { apiGet, authApiGet, authApiPost } from './client.js'
+import { apiGet, authApiDelete, authApiGet, authApiPatch, authApiPost } from './client.js'
 
 const MAX_PER_PAGE = 3
 
@@ -46,7 +46,7 @@ function buildPoemPayload(poem) {
 
 
 export async function listPoems(
-    { page = 1, perPage = 10, poemCategoryId = null, search = '', language = '', sort = 'newest' } = {},
+    { page = 1, perPage = 10, poemCategoryId = null, search = '', language = '', sort = 'newest', nickname = '' } = {},
     { signal } = {},
   ) {
     const params = new URLSearchParams()
@@ -63,6 +63,9 @@ export async function listPoems(
     }
     if (sort) {
       params.set('sort', String(sort))
+    }
+    if (nickname) {
+      params.set('nickname', String(nickname))
     }
 
     const { data, meta } = await apiGet(`/api/v1/poems?${params.toString()}`, { signal })
@@ -117,3 +120,41 @@ export async function getPoemBySlug(slug, { token, signal } = {}) {
     const { data } = await authApiPost('/api/v1/poems', payload, { token, signal })
     return data?.poem ?? null
   }
+
+export async function listMyPoems(
+  { page = 1, perPage = 50 } = {},
+  { token, signal } = {},
+) {
+  const params = new URLSearchParams()
+  params.set('per_page', String(perPage))
+  params.set('page', String(page))
+
+  const { data, meta } = await authApiGet(`/api/v1/my/poems?${params.toString()}`, {
+    token,
+    signal,
+    fallbackMessage: 'Failed to fetch my poems',
+  })
+
+  return {
+    items: Array.isArray(data) ? data : [],
+    meta,
+  }
+}
+
+export async function updatePoem(poemId, poem, { token, signal } = {}) {
+  const payload = buildPoemPayload(poem)
+  const { data } = await authApiPatch(`/api/v1/poems/${encodeURIComponent(poemId)}`, payload, {
+    token,
+    signal,
+    fallbackMessage: 'Unable to update poem',
+  })
+  return data?.poem ?? null
+}
+
+export async function deletePoem(poemId, { token, signal } = {}) {
+  await authApiDelete(`/api/v1/poems/${encodeURIComponent(poemId)}`, {
+    token,
+    signal,
+    fallbackMessage: 'Unable to delete poem',
+  })
+}

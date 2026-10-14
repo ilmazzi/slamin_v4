@@ -20,6 +20,7 @@ export default function UpcomingEventSlider({
   events: providedEvents = null,
   isLoading: providedLoading = false,
   error: providedError = '',
+  showHeading = true,
 }) {
   const { t, locale } = useI18n()
   const { token } = useAuth()
@@ -123,11 +124,13 @@ export default function UpcomingEventSlider({
 
   return (
     <section className={styles.section}>
-      <div className={styles.titleRow}>
-        <h3>
-          <em>{t('events.upcoming')}</em> {t('events.events')}
-        </h3>
-      </div>
+      {showHeading ? (
+        <div className={styles.titleRow}>
+          <h3>
+            <em>{t('events.upcoming')}</em> {t('events.events')}
+          </h3>
+        </div>
+      ) : null}
 
       <div className={styles.sliderRow}>
         <button

@@ -9,6 +9,7 @@ class ListArticleData
     public function __construct(
         public readonly int $perPage,
         public readonly ?int $articleCategoryId,
+        public readonly ?string $nickname,
     ) {
     }
 
@@ -17,6 +18,7 @@ class ListArticleData
         return new self(
             perPage: (int) $request->validated('per_page', 10),
             articleCategoryId: $request->validated('article_category_id'),
+            nickname: $request->validated('nickname'),
         );
     }
 }

@@ -1,4 +1,4 @@
-import { apiGet, authApiGet, authApiPost } from './client.js'
+import { apiGet, authApiDelete, authApiGet, authApiPatch, authApiPost } from './client.js'
 
 function buildArticlePayload(article) {
   const coverImage = article?.cover_image
@@ -43,7 +43,7 @@ export async function listArticleCategories({ signal } = {}) {
 }
 
 export async function listArticles(
-  { page = 1, perPage = 10, articleCategoryId = null } = {},
+  { page = 1, perPage = 10, articleCategoryId = null, nickname = '' } = {},
   { signal } = {},
 ) {
   const params = new URLSearchParams()
@@ -51,6 +51,9 @@ export async function listArticles(
   params.set('page', String(page))
   if (articleCategoryId) {
     params.set('article_category_id', String(articleCategoryId))
+  }
+  if (nickname) {
+    params.set('nickname', String(nickname))
   }
 
   const { data, meta } = await apiGet(`/api/v1/articles?${params.toString()}`, { signal })
@@ -87,4 +90,42 @@ export async function getArticleBySlug(slug, { token, signal } = {}) {
       })
 
   return data?.article ?? null
+}
+
+export async function listMyArticles(
+  { page = 1, perPage = 50 } = {},
+  { token, signal } = {},
+) {
+  const params = new URLSearchParams()
+  params.set('per_page', String(perPage))
+  params.set('page', String(page))
+
+  const { data, meta } = await authApiGet(`/api/v1/my/articles?${params.toString()}`, {
+    token,
+    signal,
+    fallbackMessage: 'Failed to fetch my articles',
+  })
+
+  return {
+    items: Array.isArray(data) ? data : [],
+    meta,
+  }
+}
+
+export async function updateArticle(articleId, article, { token, signal } = {}) {
+  const payload = buildArticlePayload(article)
+  const { data } = await authApiPatch(`/api/v1/articles/${encodeURIComponent(articleId)}`, payload, {
+    token,
+    signal,
+    fallbackMessage: 'Unable to update article',
+  })
+  return data?.article ?? null
+}
+
+export async function deleteArticle(articleId, { token, signal } = {}) {
+  await authApiDelete(`/api/v1/articles/${encodeURIComponent(articleId)}`, {
+    token,
+    signal,
+    fallbackMessage: 'Unable to delete article',
+  })
 }

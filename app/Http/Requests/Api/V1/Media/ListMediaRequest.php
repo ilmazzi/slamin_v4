@@ -20,6 +20,7 @@ class ListMediaRequest extends FormRequest
             'q' => ['nullable', 'string', 'max:191'],
             'type' => ['nullable', 'string', Rule::enum(MediaType::class)],
             'sort' => ['nullable', 'string', Rule::in(['newest', 'oldest', 'popular'])],
+            'nickname' => ['nullable', 'string', 'max:191'],
         ];
     }
 }

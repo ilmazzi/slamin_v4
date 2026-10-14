@@ -28,6 +28,10 @@ return [
         'notizie' => 'news',
         'discover_more' => 'Discover more',
     ],
+    'upcoming_events' => [
+        'title' => 'upcoming events',
+        'subtitle' => 'coming up',
+    ],
     'community_media' => [
         'title' => 'videos and photos',
         'subtitle' => 'from the community',

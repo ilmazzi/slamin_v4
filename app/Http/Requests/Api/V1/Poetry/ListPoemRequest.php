@@ -29,6 +29,7 @@ class ListPoemRequest extends FormRequest
                 'integer',
                 Rule::exists('poem_types', 'id')->where('is_active', true),
             ],
+            'nickname' => ['nullable', 'string', 'max:191'],
         ];
     }
 }

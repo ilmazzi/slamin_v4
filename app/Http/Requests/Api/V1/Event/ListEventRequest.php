@@ -18,6 +18,7 @@ class ListEventRequest extends FormRequest
             'per_page' => ['nullable', 'integer', 'min:1', 'max:50'],
             'event_category_id' => ['nullable', 'integer', Rule::exists('event_categories', 'id')->where('is_active', true)],
             'festival_event_id' => ['nullable', 'integer', 'exists:events,id'],
+            'nickname' => ['nullable', 'string', 'max:191'],
         ];
     }
 }
