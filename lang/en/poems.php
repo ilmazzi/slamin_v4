@@ -61,6 +61,10 @@ return [
         'report_confirm' => 'Report',
         'report_submitted' => 'Report sent',
     ],
+    'share_card' => [
+        'from' => 'poems from :place',
+        'without_place' => 'poems',
+    ],
     'missing_slug' => 'Missing poem identifier.',
     'not_found' => 'Poem not found.',
     'form' => [

@@ -10,6 +10,7 @@ import {
   mediaViewsDesktopIcon,
 } from '../../assets/home/media/index.js'
 import { authApiRequest } from '../../app/api/client.js'
+import { getApiUrl } from '../../app/api/url.js'
 import { useAuth } from '../../app/hooks/useAuth.js'
 import { useI18n } from '../../app/hooks/useI18n.js'
 import { scheduleScrollToComments } from '../../app/utils/scrollToComments.js'
@@ -77,9 +78,27 @@ function resolveMetricValue(value) {
   return Number.isFinite(numeric) ? numeric : 0
 }
 
-async function defaultShare(target, { contentType, publicBasePath }) {
-  const shareUrl = resolveContentUrl(target, contentType, publicBasePath)
-  const shareTitle = target?.title ?? ''
+function canSharePayload(payload) {
+  try {
+    return typeof navigator.canShare === 'function' && navigator.canShare(payload)
+  } catch {
+    return false
+  }
+}
+
+async function shareWithFallback(shareTitle, shareUrl, file = null) {
+  if (file && navigator.share) {
+    const withFileAndUrl = { title: shareTitle, text: shareTitle, url: shareUrl, files: [file] }
+    if (canSharePayload(withFileAndUrl)) {
+      await navigator.share(withFileAndUrl)
+      return
+    }
+
+    if (canSharePayload({ files: [file] })) {
+      await navigator.share({ title: shareTitle, files: [file] })
+      return
+    }
+  }
 
   if (navigator.share) {
     await navigator.share({
@@ -92,6 +111,40 @@ async function defaultShare(target, { contentType, publicBasePath }) {
   if (navigator.clipboard?.writeText) {
     await navigator.clipboard.writeText(shareUrl)
   }
+}
+
+async function sharePoemCard(target, poemPageUrl) {
+  const slug = encodeURIComponent(String(target?.slug ?? ''))
+  const shareTitle = target?.title ?? ''
+  const sharePageUrl = target?.share_url || getApiUrl(`/share/poems/${slug}`) || poemPageUrl
+  const cardUrl = getApiUrl(`/api/v1/poems/${slug}/share-card`)
+
+  let file = null
+  try {
+    const response = await fetch(cardUrl, { headers: { Accept: 'image/png' } })
+    if (response.ok) {
+      const blob = await response.blob()
+      if (blob?.size > 0) {
+        file = new File([blob], `${target.slug}-share.png`, { type: 'image/png' })
+      }
+    }
+  } catch {
+    file = null
+  }
+
+  await shareWithFallback(shareTitle, sharePageUrl, file)
+}
+
+async function defaultShare(target, { contentType, publicBasePath }) {
+  const shareUrl = resolveContentUrl(target, contentType, publicBasePath)
+  const shareTitle = target?.title ?? ''
+
+  if (String(contentType ?? '').toLowerCase() === 'poem' && target?.slug) {
+    await sharePoemCard(target, shareUrl)
+    return
+  }
+
+  await shareWithFallback(shareTitle, shareUrl)
 }
 
 function buildReportDetail(target, contentType) {

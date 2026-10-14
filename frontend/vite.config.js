@@ -95,6 +95,14 @@ export default defineConfig(({ mode }) => {
             Host: apiProxyHost,
           },
         },
+        '/share': {
+          target: apiProxyTarget,
+          changeOrigin: true,
+          secure: false,
+          headers: {
+            Host: apiProxyHost,
+          },
+        },
       },
     },
   }

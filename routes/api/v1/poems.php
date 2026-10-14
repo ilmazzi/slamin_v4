@@ -1,7 +1,25 @@
 <?php
 
-use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\Api\V1\Poetry\StorePoemController;
+use App\Http\Controllers\Api\V1\Admin\ListContentPublicationSettingsController;
+use App\Http\Controllers\Api\V1\Admin\UpdateContentPublicationSettingController;
+use App\Http\Controllers\Api\V1\Gig\AgreeGigNegotiationController;
+use App\Http\Controllers\Api\V1\Gig\ApproveTranslationJobController;
+use App\Http\Controllers\Api\V1\Gig\DeletePoemTranslationGigController;
+use App\Http\Controllers\Api\V1\Gig\ListGigNegotiationsController;
+use App\Http\Controllers\Api\V1\Gig\ListPoemTranslationGigsController;
+use App\Http\Controllers\Api\V1\Gig\ListTranslationCommentsController;
+use App\Http\Controllers\Api\V1\Gig\OpenGigNegotiationController;
+use App\Http\Controllers\Api\V1\Gig\RequestTranslationChangesController;
+use App\Http\Controllers\Api\V1\Gig\ResolveTranslationCommentController;
+use App\Http\Controllers\Api\V1\Gig\ShowGigNegotiationController;
+use App\Http\Controllers\Api\V1\Gig\ShowTranslationJobController;
+use App\Http\Controllers\Api\V1\Gig\StoreGigNegotiationEventController;
+use App\Http\Controllers\Api\V1\Gig\StorePoemTranslationGigController;
+use App\Http\Controllers\Api\V1\Gig\StoreTranslationCommentController;
+use App\Http\Controllers\Api\V1\Gig\SubmitTranslationJobController;
+use App\Http\Controllers\Api\V1\Gig\UpdatePoemTranslationGigController;
+use App\Http\Controllers\Api\V1\Gig\UpdateTranslationCommentController;
+use App\Http\Controllers\Api\V1\Gig\UpdateTranslationJobController;
 use App\Http\Controllers\Api\V1\Poetry\AdminDeletePoemCategoryController;
 use App\Http\Controllers\Api\V1\Poetry\AdminDeletePoemTypeController;
 use App\Http\Controllers\Api\V1\Poetry\AdminListPoemCategoriesController;
@@ -12,38 +30,22 @@ use App\Http\Controllers\Api\V1\Poetry\AdminStorePoemCategoryController;
 use App\Http\Controllers\Api\V1\Poetry\AdminStorePoemTypeController;
 use App\Http\Controllers\Api\V1\Poetry\AdminUpdatePoemCategoryController;
 use App\Http\Controllers\Api\V1\Poetry\AdminUpdatePoemTypeController;
-use App\Http\Controllers\Api\V1\Admin\ListContentPublicationSettingsController;
-use App\Http\Controllers\Api\V1\Admin\UpdateContentPublicationSettingController;
-use App\Http\Controllers\Api\V1\Poetry\ListPoemController;
-use App\Http\Controllers\Api\V1\Poetry\ListMyPoemsController;
-use App\Http\Controllers\Api\V1\Poetry\ShowPoemController;
-use App\Http\Controllers\Api\V1\Poetry\UpdatePoemController;
-use App\Http\Controllers\Api\V1\Poetry\DeletePoemController;
 use App\Http\Controllers\Api\V1\Poetry\BookmarkPoemController;
+use App\Http\Controllers\Api\V1\Poetry\DeletePoemController;
 use App\Http\Controllers\Api\V1\Poetry\LikePoemController;
 use App\Http\Controllers\Api\V1\Poetry\ListFeaturedPoemsController;
+use App\Http\Controllers\Api\V1\Poetry\ListMyPoemsController;
 use App\Http\Controllers\Api\V1\Poetry\ListPoemCategoriesController;
+use App\Http\Controllers\Api\V1\Poetry\ListPoemController;
 use App\Http\Controllers\Api\V1\Poetry\ListPoemTypesController;
 use App\Http\Controllers\Api\V1\Poetry\RemoveBookmarkPoemController;
+use App\Http\Controllers\Api\V1\Poetry\ShowPoemController;
+use App\Http\Controllers\Api\V1\Poetry\StorePoemController;
 use App\Http\Controllers\Api\V1\Poetry\UnlikePoemController;
-use App\Http\Controllers\Api\V1\Gig\DeletePoemTranslationGigController;
-use App\Http\Controllers\Api\V1\Gig\ListPoemTranslationGigsController;
-use App\Http\Controllers\Api\V1\Gig\StorePoemTranslationGigController;
-use App\Http\Controllers\Api\V1\Gig\UpdatePoemTranslationGigController;
-use App\Http\Controllers\Api\V1\Gig\AgreeGigNegotiationController;
-use App\Http\Controllers\Api\V1\Gig\ListGigNegotiationsController;
-use App\Http\Controllers\Api\V1\Gig\OpenGigNegotiationController;
-use App\Http\Controllers\Api\V1\Gig\ShowGigNegotiationController;
-use App\Http\Controllers\Api\V1\Gig\StoreGigNegotiationEventController;
-use App\Http\Controllers\Api\V1\Gig\ApproveTranslationJobController;
-use App\Http\Controllers\Api\V1\Gig\ListTranslationCommentsController;
-use App\Http\Controllers\Api\V1\Gig\RequestTranslationChangesController;
-use App\Http\Controllers\Api\V1\Gig\ResolveTranslationCommentController;
-use App\Http\Controllers\Api\V1\Gig\ShowTranslationJobController;
-use App\Http\Controllers\Api\V1\Gig\StoreTranslationCommentController;
-use App\Http\Controllers\Api\V1\Gig\SubmitTranslationJobController;
-use App\Http\Controllers\Api\V1\Gig\UpdateTranslationCommentController;
-use App\Http\Controllers\Api\V1\Gig\UpdateTranslationJobController;
+use App\Http\Controllers\Api\V1\Poetry\UpdatePoemController;
+use App\Http\Controllers\Share\ShowPoemShareCardController;
+use Illuminate\Support\Facades\Route;
+
 /* Poem routes for poet organizer */
 Route::middleware([
     'auth:sanctum',
@@ -80,10 +82,10 @@ Route::middleware([
     Route::patch('/translation-jobs/{job}/comments/{comment}', UpdateTranslationCommentController::class)->name('api.v1.translation-jobs.comments.update');
     Route::post('/translation-jobs/{job}/comments/{comment}/resolve', ResolveTranslationCommentController::class)->name('api.v1.translation-jobs.comments.resolve');
     Route::post('/poems/{poem}/like', LikePoemController::class)->name('poems.like');
-Route::delete('/poems/{poem}/like', UnlikePoemController::class)->name('poems.unlike');
+    Route::delete('/poems/{poem}/like', UnlikePoemController::class)->name('poems.unlike');
 
-Route::post('/poems/{poem}/bookmark', BookmarkPoemController::class)->name('poems.bookmark');
-Route::delete('/poems/{poem}/bookmark', RemoveBookmarkPoemController::class)->name('poems.unbookmark');
+    Route::post('/poems/{poem}/bookmark', BookmarkPoemController::class)->name('poems.bookmark');
+    Route::delete('/poems/{poem}/bookmark', RemoveBookmarkPoemController::class)->name('poems.unbookmark');
 });
 
 Route::middleware([
@@ -107,10 +109,10 @@ Route::middleware([
     Route::patch('/content-publication-settings/{contentPublicationSetting}', UpdateContentPublicationSettingController::class)->name('admin.content-publication-settings.update');
 });
 
-
 /* Poem routes for public */
 Route::get('/poems', ListPoemController::class)->name('poems.index');
 Route::get('/featured-poems', ListFeaturedPoemsController::class)->name('featured-poems.index');
+Route::get('/poems/{slug}/share-card', ShowPoemShareCardController::class)->name('poems.share-card');
 Route::get('/poems/{slug}', ShowPoemController::class)->name('poems.show');
 Route::get('/poem-categories', ListPoemCategoriesController::class)->name('poem-categories.index');
 Route::get('/poem-types', ListPoemTypesController::class)->name('poem-types.index');

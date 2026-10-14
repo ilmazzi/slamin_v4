@@ -61,6 +61,10 @@ return [
         'report_confirm' => 'Segnala',
         'report_submitted' => 'Segnalazione inviata',
     ],
+    'share_card' => [
+        'from' => 'poesie da :place',
+        'without_place' => 'poesie',
+    ],
     'missing_slug' => 'Identificativo poesia mancante.',
     'not_found' => 'Poesia non trovata.',
     'form' => [
