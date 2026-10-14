@@ -52,7 +52,11 @@ export default function ChatWidget() {
       return undefined
     }
 
-    echo.private(`chat.user.${user.id}`).listen('.message.sent', () => {
+    echo.private(`chat.user.${user.id}`).listen('.message.sent', (payload) => {
+      const authorId = Number(payload?.message?.author?.id ?? payload?.message?.user_id ?? 0)
+      if (!authorId || authorId !== Number(user.id)) {
+        setUnread((count) => count + 1)
+      }
       refreshUnread().catch(() => null)
     })
 

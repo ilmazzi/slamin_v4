@@ -6,11 +6,11 @@ use App\Http\Resources\Api\V1\Chat\ChatMessageResource;
 use Domain\Chat\Models\ChatMessage;
 use Illuminate\Broadcasting\InteractsWithSockets;
 use Illuminate\Broadcasting\PrivateChannel;
-use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
+use Illuminate\Contracts\Broadcasting\ShouldBroadcastNow;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
 
-class ChatMessageUpdated implements ShouldBroadcast
+class ChatMessageUpdated implements ShouldBroadcastNow
 {
     use Dispatchable;
     use InteractsWithSockets;

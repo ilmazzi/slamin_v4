@@ -12,7 +12,7 @@ class ShowRealtimeConfigController extends Controller
     {
         $connection = config('broadcasting.connections.reverb', []);
         $key = trim((string) ($connection['key'] ?? ''));
-        $host = trim((string) ($connection['options']['host'] ?? ''));
+        $host = $this->clientHost($connection);
         $scheme = trim((string) ($connection['options']['scheme'] ?? 'https')) ?: 'https';
         $port = (int) ($connection['options']['port'] ?? ($scheme === 'https' ? 443 : 80));
         $enabled = config('broadcasting.default') === 'reverb'
@@ -28,5 +28,22 @@ class ShowRealtimeConfigController extends Controller
                 'scheme' => $enabled ? $scheme : null,
             ],
         ]);
+    }
+
+    /**
+     * @param  array<string, mixed>  $connection
+     */
+    private function clientHost(array $connection): string
+    {
+        $host = trim((string) ($connection['options']['host'] ?? ''));
+        $loopback = ['127.0.0.1', 'localhost', '0.0.0.0', '::1'];
+
+        if ($host !== '' && ! in_array(strtolower($host), $loopback, true)) {
+            return $host;
+        }
+
+        $fromApp = parse_url((string) config('app.url'), PHP_URL_HOST);
+
+        return is_string($fromApp) && $fromApp !== '' ? $fromApp : $host;
     }
 }

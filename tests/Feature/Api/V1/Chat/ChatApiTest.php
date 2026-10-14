@@ -528,6 +528,7 @@ it('dispatches a realtime event when a chat message is sent', function () {
 
         return (int) $event->message->chat_thread_id === (int) $threadId
             && $event->message->content === 'Realtime'
+            && $event instanceof \Illuminate\Contracts\Broadcasting\ShouldBroadcastNow
             && $channels->contains('private-chat.'.$threadId)
             && $channels->contains('private-chat.user.'.$secondUser->id);
     });
@@ -581,6 +582,21 @@ it('returns realtime config from the authenticated api', function () {
         ->assertJsonPath('data.realtime.host', 'ws.staging.slamin.it')
         ->assertJsonPath('data.realtime.port', 443)
         ->assertJsonPath('data.realtime.scheme', 'https');
+
+    config([
+        'app.url' => 'https://staging.slamin.it',
+        'broadcasting.default' => 'reverb',
+        'broadcasting.connections.reverb.key' => 'live-key',
+        'broadcasting.connections.reverb.options.host' => '127.0.0.1',
+        'broadcasting.connections.reverb.options.port' => 8080,
+        'broadcasting.connections.reverb.options.scheme' => 'https',
+    ]);
+
+    $this->getJson('/api/v1/realtime')
+        ->assertOk()
+        ->assertJsonPath('data.realtime.enabled', true)
+        ->assertJsonPath('data.realtime.host', 'staging.slamin.it')
+        ->assertJsonPath('data.realtime.port', 8080);
 });
 
 it('searches public verified users for new chat threads', function () {
