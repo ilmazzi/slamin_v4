@@ -60,7 +60,7 @@ export default function ChatPage() {
   const [isStarting, setIsStarting] = useState(false)
   const [echoClient, setEchoClient] = useState(null)
   const selectedIdRef = useRef(null)
-  const messagesEndRef = useRef(null)
+  const messagesPaneRef = useRef(null)
   const realtime = useRealtimeConfig(token)
   const selectedId = threadId ? Number(threadId) : null
   selectedIdRef.current = selectedId
@@ -126,7 +126,11 @@ export default function ChatPage() {
   }, [selectedId, t, token])
 
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
+    const pane = messagesPaneRef.current
+    if (!pane) {
+      return
+    }
+    pane.scrollTop = pane.scrollHeight
   }, [messages])
 
   useEffect(() => {
@@ -259,7 +263,7 @@ export default function ChatPage() {
   )
 
   return (
-    <MainLayout>
+    <MainLayout showFooter={false} pageClassName={styles.shell} mainClassName={styles.main}>
       <section className={styles.page}>
         <aside className={styles.sidebar}>
           <h1 className={styles.title}>{t('chat.ui.title')}</h1>
@@ -369,7 +373,7 @@ export default function ChatPage() {
               <header className={styles.conversationHead}>
                 <h2>{selectedThread ? threadTitle(selectedThread, t) : t('chat.ui.title')}</h2>
               </header>
-              <div className={styles.messages}>
+              <div className={styles.messages} ref={messagesPaneRef}>
                 {isLoadingMessages ? <p className={styles.status}>{t('common.loading')}</p> : null}
                 {!isLoadingMessages && messages.length === 0 ? (
                   <p className={styles.status}>{t('chat.ui.empty_messages')}</p>
@@ -404,7 +408,6 @@ export default function ChatPage() {
                     </article>
                   )
                 })}
-                <div ref={messagesEndRef} />
               </div>
               <form className={styles.composer} onSubmit={handleSubmit}>
                 <input

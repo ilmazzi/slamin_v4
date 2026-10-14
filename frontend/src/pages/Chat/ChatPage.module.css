@@ -1,7 +1,22 @@
+.shell {
+  display: flex;
+  flex-direction: column;
+  height: 100dvh;
+  overflow: hidden;
+}
+
+.main {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: hidden;
+}
+
 .page {
   display: grid;
   grid-template-columns: minmax(240px, 320px) minmax(0, 1fr);
-  min-height: calc(100dvh - var(--header-desktop-height));
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
   background: #fff;
 }
 
@@ -9,6 +24,8 @@
   display: flex;
   flex-direction: column;
   gap: 16px;
+  min-height: 0;
+  overflow: hidden;
   padding: 28px 20px;
   border-right: 1px solid #e5e4e7;
   background: #fafafa;
@@ -124,6 +141,9 @@
   padding: 0;
   display: grid;
   gap: 8px;
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
 }
 
 .threadButton {
@@ -190,10 +210,13 @@
 .conversation {
   display: flex;
   min-width: 0;
+  min-height: 0;
   flex-direction: column;
+  overflow: hidden;
 }
 
 .conversationHead {
+  flex: 0 0 auto;
   padding: 20px 24px;
   border-bottom: 1px solid #e5e4e7;
 }
@@ -208,6 +231,7 @@
   flex: 1 1 auto;
   flex-direction: column;
   gap: 12px;
+  min-height: 0;
   overflow-y: auto;
   padding: 24px;
 }
@@ -257,6 +281,7 @@
 
 .composer {
   display: flex;
+  flex: 0 0 auto;
   gap: 12px;
   padding: 16px 24px 24px;
 }
@@ -289,15 +314,11 @@
 @media (max-width: 768px) {
   .page {
     grid-template-columns: 1fr;
-    min-height: calc(100dvh - var(--header-mobile-height));
+    grid-template-rows: minmax(160px, 34vh) minmax(0, 1fr);
   }
 
   .sidebar {
     border-right: 0;
     border-bottom: 1px solid #e5e4e7;
-  }
-
-  .messages {
-    min-height: 360px;
   }
 }

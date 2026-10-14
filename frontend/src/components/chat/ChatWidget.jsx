@@ -69,6 +69,7 @@ export default function ChatWidget() {
   return (
     <Link to="/chat" className={styles.widget} aria-label={t('chat.ui.open')}>
       <SlaminMark className={styles.mark} />
+      <span className={styles.label}>{t('chat.ui.title')}</span>
       {unread > 0 ? (
         <span className={styles.badge}>{unread > 99 ? '99+' : unread}</span>
       ) : null}
