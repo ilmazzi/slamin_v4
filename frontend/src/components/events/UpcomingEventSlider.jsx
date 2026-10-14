@@ -7,7 +7,14 @@ import SlideCard from '../shared/SlideCard.jsx'
 import styles from './UpcomingSlider.module.css'
 
 const DESKTOP_BREAKPOINT = 1024
+const TABLET_BREAKPOINT = 640
 const UPCOMING_PER_PAGE = 9
+
+const resolveCardsPerView = (width) => {
+  if (width >= DESKTOP_BREAKPOINT) return 3
+  if (width >= TABLET_BREAKPOINT) return 2
+  return 1
+}
 
 export default function UpcomingEventSlider({
   events: providedEvents = null,
@@ -21,14 +28,14 @@ export default function UpcomingEventSlider({
   const [fetchLoading, setFetchLoading] = useState(!hasProvidedEvents)
   const [fetchError, setFetchError] = useState('')
   const [slideStart, setSlideStart] = useState(0)
-  const [isDesktop, setIsDesktop] = useState(
-    typeof window !== 'undefined' ? window.innerWidth >= DESKTOP_BREAKPOINT : true,
+  const [cardsPerView, setCardsPerView] = useState(
+    typeof window !== 'undefined' ? resolveCardsPerView(window.innerWidth) : 3,
   )
   const AUTO_SLIDE_MS = 4500
   const [isPaused, setIsPaused] = useState(false)
 
   useEffect(() => {
-    const onResize = () => setIsDesktop(window.innerWidth >= DESKTOP_BREAKPOINT)
+    const onResize = () => setCardsPerView(resolveCardsPerView(window.innerWidth))
     window.addEventListener('resize', onResize)
     return () => window.removeEventListener('resize', onResize)
   }, [])
@@ -69,7 +76,6 @@ export default function UpcomingEventSlider({
   const isLoading = hasProvidedEvents ? providedLoading : fetchLoading
   const error = hasProvidedEvents ? providedError : fetchError
 
-  const cardsPerView = isDesktop ? 3 : 1
   const maxSlideStart = Math.max(0, events.length - cardsPerView)
   const clampedSlideStart = Math.min(slideStart, maxSlideStart)
 
