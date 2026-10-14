@@ -31,7 +31,7 @@ class ShowPoemSharePageController extends Controller
             $excerpt = rtrim(mb_substr($excerpt, 0, 177)).'…';
         }
 
-        return response()->view('share.poem', [
+        return response()->view('share.card', [
             'title' => $poem->title ?: __('poems.all.no_title'),
             'description' => $excerpt !== '' ? $excerpt : __('poems.all.no_excerpt'),
             'canonicalUrl' => route('share.poems.show', ['slug' => $poem->slug]),

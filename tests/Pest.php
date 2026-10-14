@@ -1,5 +1,6 @@
 <?php
 
+use Domain\Share\Support\ShareCardLogo;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -47,4 +48,24 @@ expect()->extend('toBeOne', function () {
 function something()
 {
     // ..
+}
+
+/**
+ * Sample points inside the official share-card wordmark (white letter + red mark).
+ *
+ * @return array{0: int, 1: int, 2: int, 3: int}
+ */
+function shareCardLogoSamplePoints(int $canvasWidth): array
+{
+    $x = $canvasWidth - ShareCardLogo::MARGIN_RIGHT - ShareCardLogo::DISPLAY_WIDTH;
+    $y = ShareCardLogo::MARGIN_TOP;
+    $scaleX = ShareCardLogo::DISPLAY_WIDTH / ShareCardLogo::SOURCE_WIDTH;
+    $scaleY = ShareCardLogo::displayHeight() / ShareCardLogo::SOURCE_HEIGHT;
+
+    return [
+        (int) round($x + (55 * $scaleX)),
+        (int) round($y + (22 * $scaleY)),
+        (int) round($x + (158 * $scaleX)),
+        (int) round($y + (66 * $scaleY)),
+    ];
 }

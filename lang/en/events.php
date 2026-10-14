@@ -41,6 +41,11 @@ return [
         'report_submitted' => 'Report submitted',
         'open' => 'Open event',
     ],
+    'share_card' => [
+        'from' => 'events from :place',
+        'without_place' => 'events',
+        'online' => 'online events',
+    ],
     'prev_month' => 'Previous month',
     'next_month' => 'Next month',
     'event' => 'event',

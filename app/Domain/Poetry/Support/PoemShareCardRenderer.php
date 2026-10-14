@@ -3,6 +3,8 @@
 namespace Domain\Poetry\Support;
 
 use Domain\Poetry\Models\Poem;
+use Domain\Share\Support\ShareCardLogo;
+use Domain\Share\Support\SlaminShareMark;
 use GdImage;
 use RuntimeException;
 
@@ -11,15 +13,6 @@ class PoemShareCardRenderer
     private const SIZE = 1080;
 
     private const BACKGROUND = [107, 33, 168];
-
-    /** Canonical SlaminMark path: frontend/src/components/brand/SlaminMark.jsx (viewBox 27×39). */
-    private const MARK_WIDTH = 27.0;
-
-    private const MARK_HEIGHT = 39.0;
-
-    private const MARK_BODY_HEIGHT = 29.3142;
-
-    private const MARK_NOTCH_X = 12.2315;
 
     public function render(Poem $poem): string
     {
@@ -71,7 +64,7 @@ class PoemShareCardRenderer
 
         $paddingX = 80;
         $paddingTop = 96;
-        $textMaxWidth = self::SIZE - ($paddingX * 2);
+        $textMaxWidth = self::SIZE - $paddingX - ShareCardLogo::reservedRight();
         $textMaxBottom = $bubble['y'] - 48;
 
         $poemText = $this->poemBody($poem);
@@ -92,6 +85,7 @@ class PoemShareCardRenderer
         }
 
         $this->drawSlaminMark($image, $white, $purple, $semibold, $regular, $authorName, $placeLine, $bubble);
+        ShareCardLogo::stamp($image);
 
         ob_start();
         imagepng($image, null, 8);
@@ -261,7 +255,7 @@ class PoemShareCardRenderer
         $innerHeight = (int) ($nameBox['height'] + ($placeLine ? 8 + $placeBox['height'] : 0));
         $bodyWidth = $innerWidth + ($paddingX * 2);
         $bodyHeight = $innerHeight + ($paddingY * 2);
-        $height = (int) round($bodyHeight * (self::MARK_HEIGHT / self::MARK_BODY_HEIGHT));
+        $height = SlaminShareMark::totalHeight($bodyHeight);
         $width = $bodyWidth;
 
         return [
@@ -292,18 +286,16 @@ class PoemShareCardRenderer
     ): void {
         $x = $bubble['x'];
         $y = $bubble['y'];
-        $width = $bubble['width'];
-        $height = $bubble['height'];
-        $bodyBottom = $y + $bubble['bodyHeight'];
-        $notchX = $x + (int) round($width * (self::MARK_NOTCH_X / self::MARK_WIDTH));
 
-        imagefilledpolygon($image, [
-            $x, $y,
-            $x + $width, $y,
-            $x + $width, $y + $height,
-            $notchX, $bodyBottom,
-            $x, $bodyBottom,
-        ], $white);
+        SlaminShareMark::fill(
+            $image,
+            $x,
+            $y,
+            $bubble['width'],
+            $bubble['height'],
+            $bubble['bodyHeight'],
+            $white,
+        );
 
         $nameBox = $this->textMetrics($nameFont, $bubble['nameSize'], $authorName);
         $textX = $x + $bubble['paddingX'];

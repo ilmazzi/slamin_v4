@@ -2,6 +2,7 @@
 
 namespace App\Http\Resources\Api\V1\Event;
 
+use Domain\Event\Enums\EventStatus;
 use Domain\Event\Models\Event;
 use Illuminate\Filesystem\FilesystemAdapter;
 use Illuminate\Http\Request;
@@ -40,6 +41,12 @@ class EventResource extends JsonResource
             'delivery_mode' => $this->delivery_mode?->value,
             'cover_image_path' => $this->cover_image_path,
             'cover_image_url' => $this->cover_image_path ? $disk->url($this->cover_image_path) : null,
+            'share_url' => $this->status === EventStatus::Published && $this->is_public
+                ? route('share.events.show', ['slug' => $this->slug])
+                : null,
+            'share_card_url' => $this->status === EventStatus::Published && $this->is_public
+                ? route('share.events.card', ['slug' => $this->slug])
+                : null,
             'has_cost' => $this->has_cost,
             'price' => $this->price,
             'currency' => $this->currency,

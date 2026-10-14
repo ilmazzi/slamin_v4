@@ -41,6 +41,11 @@ return [
         'report_submitted' => 'Segnalazione inviata',
         'open' => 'Apri evento',
     ],
+    'share_card' => [
+        'from' => 'eventi da :place',
+        'without_place' => 'eventi',
+        'online' => 'eventi online',
+    ],
     'prev_month' => 'Mese precedente',
     'next_month' => 'Mese successivo',
     'event' => 'evento',

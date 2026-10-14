@@ -113,11 +113,16 @@ async function shareWithFallback(shareTitle, shareUrl, file = null) {
   }
 }
 
-async function sharePoemCard(target, poemPageUrl) {
+const SHARE_CARD_TYPES = {
+  poem: 'poems',
+  event: 'events',
+}
+
+async function shareContentCard(target, pageUrl, plural) {
   const slug = encodeURIComponent(String(target?.slug ?? ''))
   const shareTitle = target?.title ?? ''
-  const sharePageUrl = target?.share_url || getApiUrl(`/share/poems/${slug}`) || poemPageUrl
-  const cardUrl = getApiUrl(`/api/v1/poems/${slug}/share-card`)
+  const sharePageUrl = target?.share_url || getApiUrl(`/share/${plural}/${slug}`) || pageUrl
+  const cardUrl = getApiUrl(`/api/v1/${plural}/${slug}/share-card`)
 
   let file = null
   try {
@@ -138,9 +143,10 @@ async function sharePoemCard(target, poemPageUrl) {
 async function defaultShare(target, { contentType, publicBasePath }) {
   const shareUrl = resolveContentUrl(target, contentType, publicBasePath)
   const shareTitle = target?.title ?? ''
+  const plural = SHARE_CARD_TYPES[String(contentType ?? '').toLowerCase()]
 
-  if (String(contentType ?? '').toLowerCase() === 'poem' && target?.slug) {
-    await sharePoemCard(target, shareUrl)
+  if (plural && target?.slug) {
+    await shareContentCard(target, shareUrl, plural)
     return
   }
 

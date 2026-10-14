@@ -50,6 +50,29 @@ it('returns a png share card for a published public poem', function () {
     expect(substr($response->getContent(), 0, 8))->toBe("\x89PNG\r\n\x1a\n");
 });
 
+it('stamps the official white and red logo in the top right', function () {
+    $poem = publishedSharePoem(shareCardAuthor());
+
+    $response = $this->get("/share/poems/{$poem->slug}/card.png");
+    $response->assertOk();
+
+    $rendered = imagecreatefromstring($response->getContent());
+    expect($rendered)->toBeInstanceOf(GdImage::class);
+
+    [$letterX, $letterY, $markX, $markY] = shareCardLogoSamplePoints(imagesx($rendered));
+    $letter = imagecolorat($rendered, $letterX, $letterY);
+    $mark = imagecolorat($rendered, $markX, $markY);
+    imagedestroy($rendered);
+
+    expect(($letter >> 16) & 0xFF)->toBeGreaterThan(240)
+        ->and(($letter >> 8) & 0xFF)->toBeGreaterThan(240)
+        ->and($letter & 0xFF)->toBeGreaterThan(240);
+
+    expect(($mark >> 16) & 0xFF)->toBeGreaterThan(210)
+        ->and(($mark >> 8) & 0xFF)->toBeLessThan(20)
+        ->and($mark & 0xFF)->toBeLessThan(40);
+});
+
 it('exposes the same png on the public api share-card route', function () {
     $poem = publishedSharePoem(shareCardAuthor());
 

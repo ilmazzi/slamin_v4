@@ -57,6 +57,7 @@ use App\Http\Controllers\Api\V1\PoetrySlam\UpdatePoetrySlamEntryController;
 use App\Http\Controllers\Api\V1\PoetrySlam\UpdatePoetrySlamRoundController;
 use App\Http\Controllers\Api\V1\PoetrySlam\UpsertPoetrySlamEntryScoresController;
 use App\Http\Controllers\Api\V1\PoetrySlam\UpsertPoetrySlamRoundAdvancementDecisionController;
+use App\Http\Controllers\Share\ShowEventShareCardController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware([
@@ -151,5 +152,6 @@ Route::middleware([
 });
 
 Route::get('/events', ListEventController::class)->name('events.index');
+Route::get('/events/{slug}/share-card', ShowEventShareCardController::class)->name('events.share-card');
 Route::get('/events/{slug}', ShowEventController::class)->name('events.show');
 Route::get('/event-categories', ListEventCategoriesController::class)->name('event-categories.index');
