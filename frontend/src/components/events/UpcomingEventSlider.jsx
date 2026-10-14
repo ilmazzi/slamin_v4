@@ -113,6 +113,7 @@ export default function UpcomingEventSlider({
         city: item.city || '—',
         dateLabel,
         imageUrl: item.image_url,
+        category: item.category || '',
         item,
       }
     })
@@ -165,6 +166,7 @@ export default function UpcomingEventSlider({
                     city={item.city}
                     dateLabel={item.dateLabel}
                     imageUrl={item.imageUrl}
+                    badge={item.category}
                     href={item.slug ? `/events/${encodeURIComponent(item.slug)}` : '/events'}
                     openAriaLabel={t('events.ui.open')}
                     item={item.item}

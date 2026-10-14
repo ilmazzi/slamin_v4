@@ -13,6 +13,7 @@ export default function SlideCard({
   dateLabel,
   imageUrl,
   imageAlt,
+  badge = '',
   href,
   openAriaLabel,
   onClick,
@@ -31,6 +32,7 @@ export default function SlideCard({
         ) : (
           <div className={styles.pictureFallback} aria-hidden="true" />
         )}
+        {badge ? <span className={styles.badge}>{badge}</span> : null}
       </div>
 
       <div className={styles.info}>
