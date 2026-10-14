@@ -190,13 +190,13 @@ overflow: hidden;
 .chevron {
   width: var(--header-chevron-width);
   height: var(--header-chevron-height);
-  transform: rotate(180deg);
+  transform: rotate(0deg);
   flex: 0 0 auto;
   transition: transform 160ms ease;
 }
 
 .languageSwitcher:focus-within .chevron {
-  transform: rotate(0deg);
+  transform: rotate(180deg);
 }
 
 .headerButton {

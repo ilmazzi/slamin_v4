@@ -11,7 +11,9 @@ const applyReplacements = (value, replacements) => {
     return value
   }
 
-  return Object.entries(replacements).reduce(
+  return Object.entries(replacements)
+    .sort(([a], [b]) => b.length - a.length)
+    .reduce(
     (current, [name, replacement]) => current.replaceAll(`:${name}`, String(replacement)),
     value,
   )
