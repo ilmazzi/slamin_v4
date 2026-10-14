@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Share;
 use App\Http\Controllers\Controller;
 use Domain\Event\Enums\EventStatus;
 use Domain\Event\Models\Event;
+use Domain\Share\Support\SharePublicUrl;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
@@ -20,7 +21,7 @@ class ShowEventSharePageController extends Controller
             ->where('is_public', true)
             ->firstOrFail();
 
-        $frontendUrl = rtrim((string) config('app.frontend_url'), '/').'/events/'.$event->slug;
+        $frontendUrl = SharePublicUrl::event($event->slug);
 
         if (! $this->isSocialCrawler($request)) {
             return redirect()->away($frontendUrl);

@@ -18,9 +18,9 @@ final class ShareCardLogo
 
     public const DISPLAY_WIDTH = 220;
 
-    public const MARGIN_TOP = 40;
+    public const MARGIN_LEFT = 48;
 
-    public const MARGIN_RIGHT = 48;
+    public const MARGIN_BOTTOM = 40;
 
     public const TEXT_GAP = 28;
 
@@ -29,9 +29,14 @@ final class ShareCardLogo
         return (int) round(self::DISPLAY_WIDTH * (self::SOURCE_HEIGHT / self::SOURCE_WIDTH));
     }
 
-    public static function reservedRight(): int
+    public static function destX(): int
     {
-        return self::MARGIN_RIGHT + self::DISPLAY_WIDTH + self::TEXT_GAP;
+        return self::MARGIN_LEFT;
+    }
+
+    public static function destY(int $canvasHeight): int
+    {
+        return $canvasHeight - self::MARGIN_BOTTOM - self::displayHeight();
     }
 
     public static function stamp(GdImage $canvas): void
@@ -39,8 +44,8 @@ final class ShareCardLogo
         $logo = self::load();
         $destW = self::DISPLAY_WIDTH;
         $destH = self::displayHeight();
-        $destX = imagesx($canvas) - self::MARGIN_RIGHT - $destW;
-        $destY = self::MARGIN_TOP;
+        $destX = self::destX();
+        $destY = self::destY(imagesy($canvas));
 
         imagealphablending($canvas, true);
         imagecopyresampled(

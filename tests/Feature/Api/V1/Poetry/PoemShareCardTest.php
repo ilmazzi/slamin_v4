@@ -50,7 +50,7 @@ it('returns a png share card for a published public poem', function () {
     expect(substr($response->getContent(), 0, 8))->toBe("\x89PNG\r\n\x1a\n");
 });
 
-it('stamps the official white and red logo in the top right', function () {
+it('stamps the official white and red logo in the bottom left', function () {
     $poem = publishedSharePoem(shareCardAuthor());
 
     $response = $this->get("/share/poems/{$poem->slug}/card.png");
@@ -59,7 +59,7 @@ it('stamps the official white and red logo in the top right', function () {
     $rendered = imagecreatefromstring($response->getContent());
     expect($rendered)->toBeInstanceOf(GdImage::class);
 
-    [$letterX, $letterY, $markX, $markY] = shareCardLogoSamplePoints(imagesx($rendered));
+    [$letterX, $letterY, $markX, $markY] = shareCardLogoSamplePoints(imagesx($rendered), imagesy($rendered));
     $letter = imagecolorat($rendered, $letterX, $letterY);
     $mark = imagecolorat($rendered, $markX, $markY);
     imagedestroy($rendered);
@@ -107,6 +107,15 @@ it('redirects humans from the share page to the frontend poem url', function () 
 
     $this->get("/share/poems/{$poem->slug}")
         ->assertRedirect("http://localhost:5174/poems/{$poem->slug}");
+});
+
+it('exposes the public poem page as share_url', function () {
+    config(['app.frontend_url' => 'https://staging.slamin.it']);
+    $poem = publishedSharePoem(shareCardAuthor());
+
+    $this->get("/api/v1/poems/{$poem->slug}")
+        ->assertOk()
+        ->assertJsonPath('data.poem.share_url', "https://staging.slamin.it/poems/{$poem->slug}");
 });
 
 it('returns open graph html for social crawlers', function () {

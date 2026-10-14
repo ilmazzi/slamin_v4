@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Share;
 use App\Http\Controllers\Controller;
 use Domain\Poetry\Enums\PoemStatus;
 use Domain\Poetry\Models\Poem;
+use Domain\Share\Support\SharePublicUrl;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
@@ -20,7 +21,7 @@ class ShowPoemSharePageController extends Controller
             ->where('is_public', true)
             ->firstOrFail();
 
-        $frontendUrl = rtrim((string) config('app.frontend_url'), '/').'/poems/'.$poem->slug;
+        $frontendUrl = SharePublicUrl::poem($poem->slug);
 
         if (! $this->isSocialCrawler($request)) {
             return redirect()->away($frontendUrl);

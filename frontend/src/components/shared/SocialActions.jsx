@@ -121,7 +121,6 @@ const SHARE_CARD_TYPES = {
 async function shareContentCard(target, pageUrl, plural) {
   const slug = encodeURIComponent(String(target?.slug ?? ''))
   const shareTitle = target?.title ?? ''
-  const sharePageUrl = target?.share_url || getApiUrl(`/share/${plural}/${slug}`) || pageUrl
   const cardUrl = getApiUrl(`/api/v1/${plural}/${slug}/share-card`)
 
   let file = null
@@ -137,7 +136,7 @@ async function shareContentCard(target, pageUrl, plural) {
     file = null
   }
 
-  await shareWithFallback(shareTitle, sharePageUrl, file)
+  await shareWithFallback(shareTitle, pageUrl, file)
 }
 
 async function defaultShare(target, { contentType, publicBasePath }) {

@@ -4,6 +4,7 @@ namespace App\Http\Resources\Api\V1\Poetry;
 
 use Domain\Poetry\Enums\PoemStatus;
 use Domain\Poetry\Models\Poem;
+use Domain\Share\Support\SharePublicUrl;
 use Illuminate\Filesystem\FilesystemAdapter;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
@@ -43,7 +44,7 @@ class PoemResource extends JsonResource
                 ? $disk->url($this->image_path)
                 : null,
             'share_url' => $this->status === PoemStatus::Published && $this->is_public
-                ? route('share.poems.show', ['slug' => $this->slug])
+                ? SharePublicUrl::poem($this->slug)
                 : null,
             'share_card_url' => $this->status === PoemStatus::Published && $this->is_public
                 ? route('share.poems.card', ['slug' => $this->slug])

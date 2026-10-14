@@ -82,10 +82,10 @@ class EventShareCardRenderer
 
         $hasCover = $cover instanceof GdImage;
         $titleTop = $hasCover ? self::IMAGE_HEIGHT + 48 : 96;
-        $titleMaxBottom = $bubble['y'] - 36;
+        $titleMaxBottom = min($bubble['y'] - 36, ShareCardLogo::destY(self::SIZE) - ShareCardLogo::TEXT_GAP);
         $titleMaxWidth = $hasCover
             ? max(420, self::SIZE - 136 - $bubble['width'])
-            : self::SIZE - 80 - ShareCardLogo::reservedRight();
+            : self::SIZE - 160;
 
         $title = trim((string) $event->title) ?: __('events.event_title');
         [$titleSize, $titleLines] = $this->fitLines($semibold, $title, $titleMaxWidth, $titleMaxBottom, $titleTop, 52, 32);

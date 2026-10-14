@@ -140,6 +140,7 @@ export default function App() {
 
           <Route path="/events/:eventId" element={<EventDetailPage />} />
           <Route path="/eventi/:eventId" element={<LegacyEventRedirect />} />
+          <Route path="/share/events/:slug" element={<ShareContentRedirect toBase="/events" />} />
 
           <Route path="/poems" element={<PoemsPage />} />
           <Route
@@ -151,6 +152,7 @@ export default function App() {
             }
           />
           <Route path="/poems/:slug" element={<PoemDetailPage />} />
+          <Route path="/share/poems/:slug" element={<ShareContentRedirect toBase="/poems" />} />
           <Route path="/articles" element={<ArticlePage />} />
           <Route
             path="/articles/create"
@@ -400,4 +402,13 @@ export default function App() {
 function LegacyEventRedirect() {
   const { eventId } = useParams()
   return <Navigate to={`/events/${eventId ?? ''}`} replace />
+}
+
+function ShareContentRedirect({ toBase }) {
+  const { slug } = useParams()
+  if (!slug) {
+    return <Navigate to={toBase} replace />
+  }
+
+  return <Navigate to={`${toBase}/${encodeURIComponent(slug)}`} replace />
 }

@@ -83,7 +83,7 @@ it('returns a png share card for a published public event', function () {
     expect(substr($response->getContent(), 0, 8))->toBe("\x89PNG\r\n\x1a\n");
 });
 
-it('stamps the official white and red logo in the top right', function () {
+it('stamps the official white and red logo in the bottom left', function () {
     $event = publishedShareEvent(eventShareAuthor());
 
     $response = $this->get("/share/events/{$event->slug}/card.png");
@@ -92,7 +92,7 @@ it('stamps the official white and red logo in the top right', function () {
     $rendered = imagecreatefromstring($response->getContent());
     expect($rendered)->toBeInstanceOf(GdImage::class);
 
-    [$letterX, $letterY, $markX, $markY] = shareCardLogoSamplePoints(imagesx($rendered));
+    [$letterX, $letterY, $markX, $markY] = shareCardLogoSamplePoints(imagesx($rendered), imagesy($rendered));
     $letter = imagecolorat($rendered, $letterX, $letterY);
     $mark = imagecolorat($rendered, $markX, $markY);
     imagedestroy($rendered);
@@ -129,7 +129,7 @@ it('renders the cover image when the event has one', function () {
     expect($rendered)->toBeInstanceOf(GdImage::class);
 
     $rgb = imagecolorat($rendered, 540, 80);
-    [, , $markX, $markY] = shareCardLogoSamplePoints(imagesx($rendered));
+    [, , $markX, $markY] = shareCardLogoSamplePoints(imagesx($rendered), imagesy($rendered));
     $mark = imagecolorat($rendered, $markX, $markY);
     imagedestroy($rendered);
 
@@ -172,6 +172,15 @@ it('redirects humans from the share page to the frontend event url', function ()
 
     $this->get("/share/events/{$event->slug}")
         ->assertRedirect("http://localhost:5174/events/{$event->slug}");
+});
+
+it('exposes the public event page as share_url', function () {
+    config(['app.frontend_url' => 'https://staging.slamin.it']);
+    $event = publishedShareEvent(eventShareAuthor());
+
+    $this->get("/api/v1/events/{$event->slug}")
+        ->assertOk()
+        ->assertJsonPath('data.event.share_url', "https://staging.slamin.it/events/{$event->slug}");
 });
 
 it('returns open graph html for social crawlers', function () {

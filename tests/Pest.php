@@ -55,10 +55,11 @@ function something()
  *
  * @return array{0: int, 1: int, 2: int, 3: int}
  */
-function shareCardLogoSamplePoints(int $canvasWidth): array
+function shareCardLogoSamplePoints(int $canvasWidth, ?int $canvasHeight = null): array
 {
-    $x = $canvasWidth - ShareCardLogo::MARGIN_RIGHT - ShareCardLogo::DISPLAY_WIDTH;
-    $y = ShareCardLogo::MARGIN_TOP;
+    $canvasHeight ??= $canvasWidth;
+    $x = ShareCardLogo::destX();
+    $y = ShareCardLogo::destY($canvasHeight);
     $scaleX = ShareCardLogo::DISPLAY_WIDTH / ShareCardLogo::SOURCE_WIDTH;
     $scaleY = ShareCardLogo::displayHeight() / ShareCardLogo::SOURCE_HEIGHT;
 

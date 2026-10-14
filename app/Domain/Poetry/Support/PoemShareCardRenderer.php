@@ -64,8 +64,8 @@ class PoemShareCardRenderer
 
         $paddingX = 80;
         $paddingTop = 96;
-        $textMaxWidth = self::SIZE - $paddingX - ShareCardLogo::reservedRight();
-        $textMaxBottom = $bubble['y'] - 48;
+        $textMaxWidth = self::SIZE - ($paddingX * 2);
+        $textMaxBottom = min($bubble['y'] - 48, ShareCardLogo::destY(self::SIZE) - ShareCardLogo::TEXT_GAP);
 
         $poemText = $this->poemBody($poem);
         [$fontSize, $lines] = $this->fitPoemLines(
