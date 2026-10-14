@@ -1,4 +1,40 @@
-import { apiGet, authApiGet } from './client.js'
+import { apiGet, authApiGet, authApiPost } from './client.js'
+
+function buildArticlePayload(article) {
+  const coverImage = article?.cover_image
+
+  if (!(typeof Blob !== 'undefined' && coverImage instanceof Blob)) {
+    return article
+  }
+
+  const formData = new FormData()
+
+  Object.entries(article ?? {}).forEach(([key, value]) => {
+    if (value === undefined || value === null || value === '') {
+      return
+    }
+
+    if (value instanceof Blob) {
+      formData.append(key, value)
+      return
+    }
+
+    if (typeof value === 'boolean') {
+      formData.append(key, value ? '1' : '0')
+      return
+    }
+
+    formData.append(key, String(value))
+  })
+
+  return formData
+}
+
+export async function createArticle(article, { token, signal } = {}) {
+  const payload = buildArticlePayload(article)
+  const { data } = await authApiPost('/api/v1/articles', payload, { token, signal })
+  return data?.article ?? null
+}
 
 export async function listArticleCategories({ signal } = {}) {
   const { data } = await apiGet('/api/v1/article-categories', { signal })

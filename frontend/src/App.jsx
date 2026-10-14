@@ -27,6 +27,7 @@ const EventDetailPage = lazy(() => import('./pages/Events/EventDetailPage.jsx'))
 const PoemsPage = lazy(() => import('./pages/Poems/PoemsPage.jsx'))
 const ArticlePage = lazy(() => import('./pages/Articles/ArticlePage.jsx'))
 const ArticleDetailPage = lazy(() => import('./pages/Articles/ArticleDetailPage.jsx'))
+const ArticleCreate = lazy(() => import('./pages/Articles/ArticleCreate.jsx'))
 const GigPage = lazy(() => import('./pages/Gigs/GigPage.jsx'))
 const MediaPage = lazy(() => import('./pages/Media/MediaPage.jsx'))
 const MediaUploadPage = lazy(() => import('./pages/Media/MediaUploadPage.jsx'))
@@ -151,10 +152,7 @@ export default function App() {
             path="/articles/create"
             element={
               <ProtectedRoute accountTypes={['poet_organizer']} redirectTo="/articles">
-                <PlaceholderPage
-                  titleKey="common.coming_soon.create_article_title"
-                  descriptionKey="common.coming_soon.create_article_description"
-                />
+                <ArticleCreate />
               </ProtectedRoute>
             }
           />

@@ -1,3 +1,4 @@
+import { resolvePublicUrl } from '../../app/api/url.js'
 import { formatShortPublishedDate } from '../../app/formatters/date.js'
 import PillButton from '../shared/PillButton.jsx'
 import SocialActions from '../shared/SocialActions.jsx'
@@ -13,6 +14,7 @@ function buildPoemMetrics(poem) {
 
 export default function PoemCatalogCard({ poem, locale, t }) {
   const authorName = poem?.author?.nickname ?? poem?.author?.display_name ?? t('poems.all.no_author')
+  const authorAvatar = resolvePublicUrl(poem?.author?.avatar_url)
   const publishedDate = formatShortPublishedDate(poem?.published_at, locale, '-')
   const excerpt = poem?.description || poem?.content || t('poems.all.no_excerpt')
   const title = poem?.title ?? t('poems.all.no_title')
@@ -23,7 +25,11 @@ export default function PoemCatalogCard({ poem, locale, t }) {
     <article className={styles.card}>
       <div className={styles.top}>
         <div className={styles.authorRow}>
-          <span className={styles.authorDot} aria-hidden="true" />
+          {authorAvatar ? (
+            <img src={authorAvatar} alt="" className={styles.authorDot} />
+          ) : (
+            <span className={styles.authorDot} aria-hidden="true" />
+          )}
           <span className={styles.authorName}>{authorName}</span>
         </div>
         <span className={styles.date}>{publishedDate}</span>

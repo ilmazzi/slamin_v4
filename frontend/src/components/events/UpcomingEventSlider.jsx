@@ -114,6 +114,8 @@ export default function UpcomingEventSlider({
         dateLabel,
         imageUrl: item.image_url,
         category: item.category || '',
+        organizerName: item.organizer_name || '',
+        organizerAvatarUrl: item.organizer_avatar_url,
         item,
       }
     })
@@ -167,6 +169,8 @@ export default function UpcomingEventSlider({
                     dateLabel={item.dateLabel}
                     imageUrl={item.imageUrl}
                     badge={item.category}
+                    organizerName={item.organizerName}
+                    organizerAvatarUrl={item.organizerAvatarUrl}
                     href={item.slug ? `/events/${encodeURIComponent(item.slug)}` : '/events'}
                     openAriaLabel={t('events.ui.open')}
                     item={item.item}

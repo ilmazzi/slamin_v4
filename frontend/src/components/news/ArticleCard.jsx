@@ -1,3 +1,4 @@
+import { resolvePublicUrl } from '../../app/api/url.js'
 import { formatShortPublishedDate } from '../../app/formatters/date.js'
 import { useArticleDetail } from '../../app/hooks/useArticleDetail.js'
 import { useI18n } from '../../app/hooks/useI18n.js'
@@ -32,6 +33,7 @@ export default function ArticleCard({ slug, onComments, onLoaded }) {
   }
 
   const authorLabel = article?.author?.display_name || article?.author?.nickname || 'Slamin'
+  const authorAvatar = resolvePublicUrl(article?.author?.avatar_url)
   const publishedDate = formatShortPublishedDate(article?.published_at, locale, '')
   const categoryLabel = article?.category?.name || t('articles.no_category')
   const coverUrl = article?.cover_image_url || ''
@@ -43,7 +45,11 @@ export default function ArticleCard({ slug, onComments, onLoaded }) {
     <article className={styles.card}>
       <header className={styles.topBar}>
         <div className={styles.author}>
-          <span className={styles.avatar} aria-hidden="true" />
+          {authorAvatar ? (
+            <img src={authorAvatar} alt="" className={styles.avatar} />
+          ) : (
+            <span className={styles.avatar} aria-hidden="true" />
+          )}
           <span className={styles.authorName}>{authorLabel}</span>
         </div>
 

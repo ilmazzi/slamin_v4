@@ -43,6 +43,9 @@ class ArticleResource extends JsonResource
                 'public_id' => $this->user?->public_id,
                 'nickname' => $this->user?->profile?->nickname,
                 'display_name' => $this->user?->profile?->display_name,
+                'avatar_url' => $this->user?->profile?->avatar_path
+                    ? $disk->url($this->user->profile->avatar_path)
+                    : null,
             ],
         ];
     }

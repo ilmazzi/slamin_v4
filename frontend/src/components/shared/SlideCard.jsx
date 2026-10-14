@@ -14,6 +14,8 @@ export default function SlideCard({
   imageUrl,
   imageAlt,
   badge = '',
+  organizerName = '',
+  organizerAvatarUrl = '',
   href,
   openAriaLabel,
   onClick,
@@ -22,6 +24,7 @@ export default function SlideCard({
 }) {
   const { t } = useI18n()
   const resolvedImage = imageUrl ? resolvePublicUrl(imageUrl) : ''
+  const resolvedOrganizerAvatar = resolvePublicUrl(organizerAvatarUrl)
   const hasSocial = Boolean(item?.id)
 
   return (
@@ -33,6 +36,16 @@ export default function SlideCard({
           <div className={styles.pictureFallback} aria-hidden="true" />
         )}
         {badge ? <span className={styles.badge}>{badge}</span> : null}
+        {organizerName ? (
+          <span className={styles.organizer}>
+            {resolvedOrganizerAvatar ? (
+              <img src={resolvedOrganizerAvatar} alt="" className={styles.organizerAvatar} />
+            ) : (
+              <span className={styles.organizerAvatar} aria-hidden="true" />
+            )}
+            <span className={styles.organizerName}>{organizerName}</span>
+          </span>
+        ) : null}
       </div>
 
       <div className={styles.info}>

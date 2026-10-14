@@ -48,6 +48,7 @@ export default function FeaturedDesktopArticle({ article, locale, t }) {
   const readingMinutes = estimateReadingMinutes(article)
   const publishedDate = formatShortPublishedDate(article?.published_at, locale, '-')
   const metrics = buildArticleMetrics(article)
+  const detailId = article?.slug ?? article?.id
 
   return (
     <section className={styles.featuredSection}>
@@ -87,7 +88,7 @@ export default function FeaturedDesktopArticle({ article, locale, t }) {
 
             <div className={styles.contentBottom}>
               <PillButton
-                href="/articles"
+                href={detailId ? `/articles/${detailId}` : '/articles'}
                 label={t('common.discover_more')}
                 variant="dark"
                 size="featuredCta"

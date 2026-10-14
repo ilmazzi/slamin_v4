@@ -15,6 +15,7 @@ export default function FeaturedPoemCard({ poem }) {
     poem?.author?.display_name ??
     'Slamin'
 
+  const authorAvatar = resolvePublicUrl(poem?.author?.avatar_url)
   const publishedLabel = poem?.published_at ?? ''
   const categoryName = poem?.category?.name ?? ''
   const typeName = poem?.type?.name ?? ''
@@ -31,7 +32,11 @@ export default function FeaturedPoemCard({ poem }) {
     <article className={styles.card}>
       <div className={styles.top}>
         <div className={styles.authorRow}>
-          <span className={styles.authorDot} aria-hidden="true" />
+          {authorAvatar ? (
+            <img src={authorAvatar} alt="" className={styles.authorDot} />
+          ) : (
+            <span className={styles.authorDot} aria-hidden="true" />
+          )}
           <p className={styles.authorName}>{authorName}</p>
         </div>
 

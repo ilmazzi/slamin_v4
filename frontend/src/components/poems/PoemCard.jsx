@@ -36,6 +36,7 @@ export default function PoemCard({ slug, onComments, onLoaded }) {
   }
 
   const authorLabel = poem?.author?.display_name || poem?.author?.nickname || 'Slamin'
+  const authorAvatar = resolvePublicUrl(poem?.author?.avatar_url)
   const publishedDate = formatShortPublishedDate(poem?.published_at, locale, '')
   const noCategoryLabel = t('poems.all.no_category')
   const categoryLabel = poem?.category?.name || noCategoryLabel
@@ -71,7 +72,11 @@ export default function PoemCard({ slug, onComments, onLoaded }) {
 
         {/* Figma: autore sotto il testo, su sfondo bianco (non nella barra nera) */}
         <div className={styles.authorRow}>
-          <span className={styles.authorAvatar} aria-hidden="true" />
+          {authorAvatar ? (
+            <img src={authorAvatar} alt="" className={styles.authorAvatar} />
+          ) : (
+            <span className={styles.authorAvatar} aria-hidden="true" />
+          )}
           <span className={styles.authorNameLight}>{authorLabel}</span>
         </div>
 
