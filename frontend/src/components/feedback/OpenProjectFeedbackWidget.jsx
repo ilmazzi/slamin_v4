@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react'
+import { useLocation } from 'react-router-dom'
 import { getApiUrl } from '../../app/api/url.js'
 import { useAuth } from '../../app/hooks/useAuth.js'
 import styles from './OpenProjectFeedbackWidget.module.css'
@@ -9,7 +10,9 @@ const feedbackRoute = import.meta.env.VITE_OPENPROJECT_FEEDBACK_ROUTE ?? '/api/f
 const widgetLabel = import.meta.env.VITE_OPENPROJECT_FEEDBACK_TEXT ?? 'Feedback'
 
 export default function OpenProjectFeedbackWidget() {
+  const { pathname } = useLocation()
   const { isAuthenticated, token } = useAuth()
+  const hiddenOnChat = pathname === '/chat' || pathname.startsWith('/chat/')
   const [isOpen, setIsOpen] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [status, setStatus] = useState(null)
@@ -24,6 +27,10 @@ export default function OpenProjectFeedbackWidget() {
   }
 
   if (authOnly && !isAuthenticated) {
+    return null
+  }
+
+  if (hiddenOnChat && !isOpen) {
     return null
   }
 

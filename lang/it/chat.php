@@ -35,6 +35,8 @@ return [
         'open' => 'Apri chat',
         'write' => 'Scrivi',
         'select_thread' => 'Scegli una conversazione.',
+        'open_list' => 'Conversazioni',
+        'close_list' => 'Chiudi elenco',
         'you' => 'Tu',
         'group_fallback' => 'Chat di gruppo',
         'load_error' => 'Impossibile caricare la chat.',

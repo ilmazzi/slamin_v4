@@ -35,6 +35,8 @@ return [
         'open' => 'Open chat',
         'write' => 'Message',
         'select_thread' => 'Choose a conversation.',
+        'open_list' => 'Conversations',
+        'close_list' => 'Close list',
         'you' => 'You',
         'group_fallback' => 'Group chat',
         'load_error' => 'Unable to load chat.',

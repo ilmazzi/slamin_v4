@@ -58,6 +58,7 @@ export default function ChatPage() {
   const [isLoadingMessages, setIsLoadingMessages] = useState(false)
   const [isSending, setIsSending] = useState(false)
   const [isStarting, setIsStarting] = useState(false)
+  const [isThreadListOpen, setIsThreadListOpen] = useState(!threadId)
   const [echoClient, setEchoClient] = useState(null)
   const selectedIdRef = useRef(null)
   const messagesPaneRef = useRef(null)
@@ -224,6 +225,7 @@ export default function ChatPage() {
         setUserQuery('')
         setUserResults([])
         setIsSearchOpen(false)
+        setIsThreadListOpen(false)
         await loadThreads()
         navigate(`/chat/${thread.id}`)
       }
@@ -261,12 +263,35 @@ export default function ChatPage() {
     () => threads.find((thread) => Number(thread.id) === selectedId) ?? null,
     [selectedId, threads],
   )
+  const isListOpen = isThreadListOpen
+
+  function closeThreadList() {
+    setIsThreadListOpen(false)
+  }
 
   return (
     <MainLayout showFooter={false} pageClassName={styles.shell} mainClassName={styles.main}>
       <section className={styles.page}>
-        <aside className={styles.sidebar}>
-          <h1 className={styles.title}>{t('chat.ui.title')}</h1>
+        {isListOpen ? (
+          <button
+            type="button"
+            className={styles.backdrop}
+            aria-label={t('chat.ui.close_list')}
+            onClick={closeThreadList}
+          />
+        ) : null}
+        <aside className={[styles.sidebar, isListOpen ? styles.sidebarOpen : ''].join(' ')}>
+          <div className={styles.sidebarHead}>
+            <h1 className={styles.title}>{t('chat.ui.title')}</h1>
+            <button
+              type="button"
+              className={styles.closeList}
+              onClick={closeThreadList}
+              aria-label={t('chat.ui.close_list')}
+            >
+              ×
+            </button>
+          </div>
           <div className={styles.userCombobox}>
             <input
               className={styles.startInput}
@@ -345,7 +370,10 @@ export default function ChatPage() {
                       styles.threadButton,
                       Number(thread.id) === selectedId ? styles.threadButtonActive : '',
                     ].join(' ')}
-                    onClick={() => navigate(`/chat/${thread.id}`)}
+                    onClick={() => {
+                      setIsThreadListOpen(false)
+                      navigate(`/chat/${thread.id}`)
+                    }}
                   >
                     {avatar ? (
                       <img src={avatar} alt="" className={styles.threadAvatar} />
@@ -367,10 +395,26 @@ export default function ChatPage() {
         <div className={styles.conversation}>
           {errorMessage ? <p className={styles.error}>{errorMessage}</p> : null}
           {!selectedId ? (
-            <p className={styles.status}>{t('chat.ui.select_thread')}</p>
+            <div className={styles.emptyConversation}>
+              <button
+                type="button"
+                className={styles.openList}
+                onClick={() => setIsThreadListOpen(true)}
+              >
+                {t('chat.ui.open_list')}
+              </button>
+              <p className={styles.status}>{t('chat.ui.select_thread')}</p>
+            </div>
           ) : (
             <>
               <header className={styles.conversationHead}>
+                <button
+                  type="button"
+                  className={styles.openList}
+                  onClick={() => setIsThreadListOpen(true)}
+                >
+                  {t('chat.ui.open_list')}
+                </button>
                 <h2>{selectedThread ? threadTitle(selectedThread, t) : t('chat.ui.title')}</h2>
               </header>
               <div className={styles.messages} ref={messagesPaneRef}>

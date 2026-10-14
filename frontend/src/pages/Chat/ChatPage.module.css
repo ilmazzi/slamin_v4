@@ -12,23 +12,38 @@
 }
 
 .page {
+  position: relative;
   display: grid;
-  grid-template-columns: minmax(240px, 320px) minmax(0, 1fr);
+  grid-template-columns: minmax(280px, 340px) minmax(0, 1fr);
   height: 100%;
   min-height: 0;
   overflow: hidden;
   background: #fff;
 }
 
+.backdrop,
+.closeList,
+.openList {
+  display: none;
+}
+
 .sidebar {
   display: flex;
   flex-direction: column;
   gap: 16px;
+  min-width: 0;
   min-height: 0;
   overflow: hidden;
-  padding: 28px 20px;
+  padding: 24px 20px;
   border-right: 1px solid #e5e4e7;
   background: #fafafa;
+}
+
+.sidebarHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
 }
 
 .title {
@@ -216,6 +231,9 @@
 }
 
 .conversationHead {
+  display: flex;
+  align-items: center;
+  gap: 12px;
   flex: 0 0 auto;
   padding: 20px 24px;
   border-bottom: 1px solid #e5e4e7;
@@ -223,7 +241,21 @@
 
 .conversationHead h2 {
   margin: 0;
+  min-width: 0;
   font-size: 1.4rem;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.emptyConversation {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 16px;
+  padding: 32px 24px;
 }
 
 .messages {
@@ -314,11 +346,68 @@
 @media (max-width: 768px) {
   .page {
     grid-template-columns: 1fr;
-    grid-template-rows: minmax(160px, 34vh) minmax(0, 1fr);
+  }
+
+  .backdrop {
+    display: block;
+    position: absolute;
+    inset: 0;
+    z-index: 15;
+    border: 0;
+    background: rgb(0 0 0 / 0.4);
+    cursor: pointer;
   }
 
   .sidebar {
-    border-right: 0;
-    border-bottom: 1px solid #e5e4e7;
+    position: absolute;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    z-index: 20;
+    width: min(320px, 88vw);
+    border-right: 1px solid #e5e4e7;
+    transform: translateX(-105%);
+    transition: transform 0.2s ease;
+    box-shadow: 12px 0 30px rgb(0 0 0 / 0.12);
+  }
+
+  .sidebarOpen {
+    transform: translateX(0);
+  }
+
+  .closeList,
+  .openList {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 auto;
+    min-height: 40px;
+    padding: 0 12px;
+    border: 1px solid #000;
+    border-radius: 999px;
+    background: #fff;
+    color: #000;
+    font: inherit;
+    font-weight: 700;
+    cursor: pointer;
+  }
+
+  .closeList {
+    width: 40px;
+    padding: 0;
+    font-size: 1.4rem;
+    line-height: 1;
+  }
+
+  .conversationHead,
+  .composer,
+  .emptyConversation,
+  .messages {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+
+  .send {
+    min-width: 88px;
   }
 }
