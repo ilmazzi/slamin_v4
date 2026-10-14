@@ -3,7 +3,8 @@ import { Link, useLocation } from 'react-router-dom'
 import { listChatThreads } from '../../app/api/chat.js'
 import { useAuth } from '../../app/hooks/useAuth.js'
 import { useI18n } from '../../app/hooks/useI18n.js'
-import { createEcho } from '../../app/realtime/echo.js'
+import { useRealtimeConfig } from '../../app/hooks/useRealtimeConfig.js'
+import { createEcho, isReverbConfigured } from '../../app/realtime/echo.js'
 import SlaminMark from '../brand/SlaminMark.jsx'
 import styles from './ChatWidget.module.css'
 
@@ -17,6 +18,7 @@ export default function ChatWidget() {
   const { t } = useI18n()
   const { pathname } = useLocation()
   const { isAuthenticated, token, user } = useAuth()
+  const realtime = useRealtimeConfig(isAuthenticated ? token : null)
   const [unread, setUnread] = useState(0)
   const hidden = isHiddenPath(pathname)
 
@@ -41,11 +43,11 @@ export default function ChatWidget() {
   }, [hidden, isAuthenticated, refreshUnread, token])
 
   useEffect(() => {
-    if (hidden || !isAuthenticated || !token || !user?.id) {
+    if (hidden || !isAuthenticated || !token || !user?.id || !isReverbConfigured(realtime)) {
       return undefined
     }
 
-    const echo = createEcho(token)
+    const echo = createEcho(token, realtime)
     if (!echo) {
       return undefined
     }
@@ -58,7 +60,7 @@ export default function ChatWidget() {
       echo.leave(`chat.user.${user.id}`)
       echo.disconnect()
     }
-  }, [hidden, isAuthenticated, refreshUnread, token, user?.id])
+  }, [hidden, isAuthenticated, realtime, refreshUnread, token, user?.id])
 
   if (hidden) {
     return null

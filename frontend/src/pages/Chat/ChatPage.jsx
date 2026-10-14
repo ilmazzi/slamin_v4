@@ -5,11 +5,13 @@ import {
   listChatMessages,
   listChatThreads,
   markChatThreadRead,
+  searchChatUsers,
   sendChatMessage,
 } from '../../app/api/chat.js'
 import { resolvePublicUrl } from '../../app/api/url.js'
 import { useAuth } from '../../app/hooks/useAuth.js'
 import { useI18n } from '../../app/hooks/useI18n.js'
+import { useRealtimeConfig } from '../../app/hooks/useRealtimeConfig.js'
 import { createEcho, isReverbConfigured } from '../../app/realtime/echo.js'
 import MainLayout from '../../components/layout/MainLayout.jsx'
 import styles from './ChatPage.module.css'
@@ -47,7 +49,10 @@ export default function ChatPage() {
   const [threads, setThreads] = useState([])
   const [messages, setMessages] = useState([])
   const [draft, setDraft] = useState('')
-  const [nicknameDraft, setNicknameDraft] = useState('')
+  const [userQuery, setUserQuery] = useState('')
+  const [userResults, setUserResults] = useState([])
+  const [isSearchingUsers, setIsSearchingUsers] = useState(false)
+  const [isSearchOpen, setIsSearchOpen] = useState(false)
   const [errorMessage, setErrorMessage] = useState('')
   const [isLoadingThreads, setIsLoadingThreads] = useState(true)
   const [isLoadingMessages, setIsLoadingMessages] = useState(false)
@@ -56,6 +61,7 @@ export default function ChatPage() {
   const [echoClient, setEchoClient] = useState(null)
   const selectedIdRef = useRef(null)
   const messagesEndRef = useRef(null)
+  const realtime = useRealtimeConfig(token)
   const selectedId = threadId ? Number(threadId) : null
   selectedIdRef.current = selectedId
 
@@ -124,11 +130,40 @@ export default function ChatPage() {
   }, [messages])
 
   useEffect(() => {
-    if (!token || !user?.id) {
+    const query = userQuery.trim()
+    if (!token || query.length < 2) {
       return undefined
     }
 
-    const echo = createEcho(token)
+    const controller = new AbortController()
+    const timer = window.setTimeout(() => {
+      setIsSearchingUsers(true)
+      searchChatUsers(query, { token, signal: controller.signal })
+        .then(setUserResults)
+        .catch((error) => {
+          if (error?.name !== 'AbortError') {
+            setUserResults([])
+          }
+        })
+        .finally(() => {
+          if (!controller.signal.aborted) {
+            setIsSearchingUsers(false)
+          }
+        })
+    }, 300)
+
+    return () => {
+      window.clearTimeout(timer)
+      controller.abort()
+    }
+  }, [token, userQuery])
+
+  useEffect(() => {
+    if (!token || !user?.id || !isReverbConfigured(realtime)) {
+      return undefined
+    }
+
+    const echo = createEcho(token, realtime)
     setEchoClient(echo)
     if (!echo) {
       return undefined
@@ -148,7 +183,7 @@ export default function ChatPage() {
       echo.disconnect()
       setEchoClient(null)
     }
-  }, [loadThreads, token, user?.id])
+  }, [loadThreads, realtime, token, user?.id])
 
   useEffect(() => {
     const echo = echoClient
@@ -172,19 +207,19 @@ export default function ChatPage() {
     }
   }, [echoClient, selectedId])
 
-  async function handleStartConversation(event) {
-    event.preventDefault()
-    const nickname = nicknameDraft.trim()
-    if (!nickname || isStarting) {
+  async function handleSelectUser(result) {
+    if (!result?.id || isStarting) {
       return
     }
 
     setIsStarting(true)
     setErrorMessage('')
     try {
-      const thread = await createDirectChatThread({ nickname }, { token })
+      const thread = await createDirectChatThread({ user_id: result.id }, { token })
       if (thread?.id) {
-        setNicknameDraft('')
+        setUserQuery('')
+        setUserResults([])
+        setIsSearchOpen(false)
         await loadThreads()
         navigate(`/chat/${thread.id}`)
       }
@@ -228,20 +263,66 @@ export default function ChatPage() {
       <section className={styles.page}>
         <aside className={styles.sidebar}>
           <h1 className={styles.title}>{t('chat.ui.title')}</h1>
-          <form className={styles.startForm} onSubmit={handleStartConversation}>
+          <div className={styles.userCombobox}>
             <input
               className={styles.startInput}
-              value={nicknameDraft}
-              onChange={(event) => setNicknameDraft(event.target.value)}
-              placeholder={t('chat.ui.nickname_placeholder')}
+              value={userQuery}
+              onChange={(event) => {
+                const value = event.target.value
+                setUserQuery(value)
+                setIsSearchOpen(true)
+                if (value.trim().length >= 2) {
+                  setIsSearchingUsers(true)
+                }
+              }}
+              onFocus={() => setIsSearchOpen(true)}
+              onBlur={() => {
+                window.setTimeout(() => setIsSearchOpen(false), 120)
+              }}
+              placeholder={t('chat.ui.search_placeholder')}
               autoComplete="off"
-              maxLength={40}
+              maxLength={100}
+              role="combobox"
+              aria-expanded={isSearchOpen && userQuery.trim().length >= 2}
+              aria-autocomplete="list"
+              disabled={isStarting}
             />
-            <button className={styles.startButton} type="submit" disabled={isStarting || !nicknameDraft.trim()}>
-              {isStarting ? t('common.loading') : t('chat.ui.start')}
-            </button>
-          </form>
-          {!isReverbConfigured() ? (
+            {isSearchOpen && userQuery.trim().length >= 2 ? (
+              <div className={styles.userSuggestions} role="listbox">
+                {isSearchingUsers ? (
+                  <div className={styles.userSuggestionStatus}>{t('chat.ui.searching_users')}</div>
+                ) : userResults.length ? (
+                  userResults.map((result) => {
+                    const avatar = resolvePublicUrl(result.avatar_url)
+                    return (
+                      <button
+                        type="button"
+                        key={result.id}
+                        className={styles.userSuggestion}
+                        role="option"
+                        onMouseDown={(event) => event.preventDefault()}
+                        onClick={() => handleSelectUser(result)}
+                        disabled={isStarting}
+                      >
+                        {avatar ? (
+                          <img src={avatar} alt="" className={styles.suggestionAvatar} />
+                        ) : (
+                          <span className={styles.suggestionAvatar} aria-hidden="true" />
+                        )}
+                        <span className={styles.suggestionMeta}>
+                          <span>{result.display_name || result.nickname}</span>
+                          {result.nickname ? <small>@{result.nickname}</small> : null}
+                        </span>
+                      </button>
+                    )
+                  })
+                ) : (
+                  <div className={styles.userSuggestionStatus}>{t('chat.ui.no_users_found')}</div>
+                )}
+              </div>
+            ) : null}
+          </div>
+          {realtime !== undefined && !isReverbConfigured(realtime) ? (
             <p className={styles.warning}>{t('chat.ui.realtime_unavailable')}</p>
           ) : null}
           {isLoadingThreads ? <p className={styles.status}>{t('common.loading')}</p> : null}

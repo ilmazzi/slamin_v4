@@ -1,5 +1,16 @@
 import { authApiGet, authApiPost, authApiRequest } from './client.js'
 
+export async function searchChatUsers(query, { token, signal } = {}) {
+  const params = new URLSearchParams({ q: String(query ?? '').trim() })
+  const { data } = await authApiGet(`/api/v1/chat/users?${params.toString()}`, {
+    token,
+    signal,
+    fallbackMessage: 'Unable to search users',
+  })
+
+  return Array.isArray(data?.users) ? data.users : []
+}
+
 export async function listChatThreads({ token, signal } = {}) {
   const { data } = await authApiGet('/api/v1/chat/threads', {
     token,

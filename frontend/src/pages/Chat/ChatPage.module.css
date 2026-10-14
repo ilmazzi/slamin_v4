@@ -20,14 +20,12 @@
   font-weight: 800;
 }
 
-.startForm {
-  display: flex;
-  gap: 8px;
+.userCombobox {
+  position: relative;
 }
 
 .startInput {
-  flex: 1 1 auto;
-  min-width: 0;
+  width: 100%;
   min-height: 44px;
   padding: 0 14px;
   border: 1px solid #000;
@@ -35,22 +33,77 @@
   font: inherit;
 }
 
-.startButton {
-  flex: 0 0 auto;
-  min-height: 44px;
-  padding: 0 14px;
+.userSuggestions {
+  position: absolute;
+  z-index: 20;
+  top: calc(100% + 6px);
+  left: 0;
+  width: 100%;
+  overflow: hidden;
+  border: 1px solid #b8b8b8;
+  border-radius: 12px;
+  background: #fff;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.14);
+}
+
+.userSuggestion {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
   border: 0;
-  border-radius: 999px;
-  background: #000;
-  color: #fff;
-  font: inherit;
-  font-weight: 800;
+  border-bottom: 1px solid #e2e2e2;
+  background: #fff;
+  color: #111;
+  text-align: left;
   cursor: pointer;
 }
 
-.startButton:disabled {
-  opacity: 0.5;
+.userSuggestion:last-child {
+  border-bottom: 0;
+}
+
+.userSuggestion:hover,
+.userSuggestion:focus-visible {
+  background: #f3f3f3;
+}
+
+.userSuggestion:disabled {
+  opacity: 0.6;
   cursor: wait;
+}
+
+.suggestionAvatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 999px;
+  background: #d9d9d9;
+  object-fit: cover;
+  flex: 0 0 auto;
+}
+
+.suggestionMeta {
+  display: grid;
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
+.suggestionMeta span,
+.suggestionMeta small {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.userSuggestion small,
+.userSuggestionStatus {
+  color: rgba(0, 0, 0, 0.62);
+}
+
+.userSuggestionStatus {
+  padding: 12px 14px;
+  font-size: 14px;
 }
 
 .warning,

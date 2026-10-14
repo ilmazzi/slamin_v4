@@ -5,18 +5,22 @@ use App\Http\Controllers\Api\V1\Chat\DeleteChatMessageReactionController;
 use App\Http\Controllers\Api\V1\Chat\ListChatMessagesController;
 use App\Http\Controllers\Api\V1\Chat\ListChatThreadsController;
 use App\Http\Controllers\Api\V1\Chat\MarkChatThreadReadController;
+use App\Http\Controllers\Api\V1\Chat\RemoveChatThreadMemberController;
+use App\Http\Controllers\Api\V1\Chat\SearchChatUsersController;
 use App\Http\Controllers\Api\V1\Chat\ShowChatThreadController;
+use App\Http\Controllers\Api\V1\Chat\ShowRealtimeConfigController;
 use App\Http\Controllers\Api\V1\Chat\StoreChatMessageController;
 use App\Http\Controllers\Api\V1\Chat\StoreChatMessageReactionController;
 use App\Http\Controllers\Api\V1\Chat\StoreDirectChatThreadController;
 use App\Http\Controllers\Api\V1\Chat\StoreGroupChatThreadController;
-use App\Http\Controllers\Api\V1\Chat\RemoveChatThreadMemberController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware([
     'auth:sanctum',
     'account.verified',
 ])->group(function () {
+    Route::get('/realtime', ShowRealtimeConfigController::class)->name('realtime.show');
+    Route::get('/chat/users', SearchChatUsersController::class)->name('chat.users.search');
     Route::get('/chat/threads', ListChatThreadsController::class)->name('chat.threads.index');
     Route::post('/chat/direct-threads', StoreDirectChatThreadController::class)->name('chat.direct-threads.store');
     Route::post('/chat/group-threads', StoreGroupChatThreadController::class)->name('chat.group-threads.store');

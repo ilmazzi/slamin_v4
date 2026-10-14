@@ -551,6 +551,77 @@ it('opens a direct thread from a profile nickname', function () {
         ->assertJsonPath('data.thread.other_user.id', $secondUser->id);
 });
 
+it('returns realtime config from the authenticated api', function () {
+    $user = User::factory()->create();
+    Sanctum::actingAs($user);
+
+    config([
+        'broadcasting.default' => 'null',
+        'broadcasting.connections.reverb.key' => 'test-key',
+        'broadcasting.connections.reverb.options.host' => 'ws.example.test',
+    ]);
+
+    $this->getJson('/api/v1/realtime')
+        ->assertOk()
+        ->assertJsonPath('data.realtime.enabled', false)
+        ->assertJsonPath('data.realtime.key', null);
+
+    config([
+        'broadcasting.default' => 'reverb',
+        'broadcasting.connections.reverb.key' => 'live-key',
+        'broadcasting.connections.reverb.options.host' => 'ws.staging.slamin.it',
+        'broadcasting.connections.reverb.options.port' => 443,
+        'broadcasting.connections.reverb.options.scheme' => 'https',
+    ]);
+
+    $this->getJson('/api/v1/realtime')
+        ->assertOk()
+        ->assertJsonPath('data.realtime.enabled', true)
+        ->assertJsonPath('data.realtime.key', 'live-key')
+        ->assertJsonPath('data.realtime.host', 'ws.staging.slamin.it')
+        ->assertJsonPath('data.realtime.port', 443)
+        ->assertJsonPath('data.realtime.scheme', 'https');
+});
+
+it('searches public verified users for new chat threads', function () {
+    $firstUser = User::factory()->create();
+    $matching = User::factory()->create();
+    $privateUser = User::factory()->create();
+    $unverified = User::factory()->unverified()->create();
+
+    Profile::query()->where('user_id', $matching->id)->update([
+        'display_name' => 'Ada Chat',
+        'nickname' => 'ada-chat',
+        'is_public' => true,
+    ]);
+    Profile::query()->where('user_id', $privateUser->id)->update([
+        'display_name' => 'Ada Private',
+        'nickname' => 'ada-private',
+        'is_public' => false,
+    ]);
+    Profile::query()->where('user_id', $unverified->id)->update([
+        'display_name' => 'Ada Unverified',
+        'nickname' => 'ada-unverified',
+        'is_public' => true,
+    ]);
+    Profile::query()->where('user_id', $firstUser->id)->update([
+        'display_name' => 'Ada Self',
+        'nickname' => 'ada-self',
+        'is_public' => true,
+    ]);
+
+    Sanctum::actingAs($firstUser);
+
+    $this->getJson('/api/v1/chat/users?q=Ada')
+        ->assertOk()
+        ->assertJsonCount(1, 'data.users')
+        ->assertJsonPath('data.users.0.id', $matching->id)
+        ->assertJsonPath('data.users.0.nickname', 'ada-chat')
+        ->assertJsonMissing(['email' => $matching->email]);
+
+    $this->getJson('/api/v1/chat/users?q=a')->assertUnprocessable();
+});
+
 it('authorizes private chat channels for members only', function () {
     config(['broadcasting.default' => 'reverb']);
     Broadcast::purge();
