@@ -90,7 +90,7 @@
   line-height: 1;
 }
 
-@media (max-width: 768px) {
+@media (max-width: 1023px) {
   .section {
     grid-template-columns: 1fr;
     gap: 24px;
@@ -99,33 +99,35 @@
 
 
   .left {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) auto;
-    align-items: start;
-    column-gap: 10px;
-    row-gap: 0;
+    align-items: flex-start;
+    gap: 16px;
   }
+
   .title {
     font-size: 45px;
   }
 
   .userPill {
-    width: 133px !important;
-    gap: 5px;
-    padding: 5px 10px 5px 5px;
+    width: auto;
+    max-width: 100%;
+    gap: 10px;
+    padding: 6px 16px 6px 6px;
   }
 
   .avatar {
-    width: 15px;
-    height: 15px;
+    width: 32px;
+    height: 32px;
   }
 
   .userName {
-    font-size: 10px;
+    overflow: hidden;
+    font-size: 16px;
+    white-space: nowrap;
+    text-overflow: ellipsis;
   }
 
   .arrow {
-    font-size: 8px;
+    font-size: 14px;
   }
 
   .metrics {
@@ -135,16 +137,25 @@
   }
 
   .metricPill {
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: center;
+    gap: 6px;
+    min-width: 0;
     min-height: 87px;
-    padding: 6px 14px 10px;
+    padding: 12px 16px;
     border-radius: 20px;
   }
 
   .metricValue {
-    font-size: 40px;
+    font-size: 36px;
   }
 
   .metricLabel {
-    font-size: 20px;
+    max-width: 100%;
+    overflow: hidden;
+    font-size: 16px;
+    white-space: nowrap;
+    text-overflow: ellipsis;
   }
 }

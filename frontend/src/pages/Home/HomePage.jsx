@@ -18,7 +18,7 @@ import HomeForumPromo from '../../components/home/HomeForumPromo.jsx'
 import HomeHero from '../../components/home/HomeHero.jsx'
 import HomeIntro from '../../components/home/HomeIntro.jsx'
 import HomeMedia from '../../components/home/HomeMedia.jsx'
-import HomePublishPromo from '../../components/home/HomePublishPromo.jsx'
+// import HomePublishPromo from '../../components/home/HomePublishPromo.jsx'
 import HomeStats from '../../components/home/HomeStats.jsx'
 import { useI18n } from '../../app/hooks/useI18n.js'
 import styles from './HomePage.module.css'
@@ -176,11 +176,11 @@ export function HomePage({ variant = 'guest', user = null }) {
 
         {variant === 'auth' && user ? <HomeDashboardPromoSection /> : null}
 
-        <HomePublishPromo
+        {/* <HomePublishPromo
           title={t('home.publish_cta.title')}
           subtitle={t('home.publish_cta.subtitle')}
           ctaLabel={t('home.publish_cta.button_label')}
-        />
+        /> */}
 
         <ContentReportModal
           key={reportModalItem?.id ?? 'home-media-report-closed'}

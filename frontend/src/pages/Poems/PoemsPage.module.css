@@ -37,10 +37,6 @@
   justify-content: flex-start;
 }
 
-.uploadButton {
-  flex: 0 0 auto;
-}
-
 @media (max-width: 768px) {
   .filtersSection {
     padding: 0 24px 28px;
@@ -60,9 +56,5 @@
   .paginationWrap :global(section) {
     text-align: center;
     justify-content: center;
-  }
-
-  .uploadButton {
-    width: 100%;
   }
 }

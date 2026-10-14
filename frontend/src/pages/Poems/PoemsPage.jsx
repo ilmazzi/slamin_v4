@@ -13,7 +13,6 @@ import AllPoemsSection from '../../components/poems/AllPoemsSection.jsx'
 import PoemsFilterBar from '../../components/poems/PoemsFilterBar.jsx'
 import HomeDashboardPromoSection from '../../components/home/HomeDashboardPromoSection.jsx'
 import Pagination from '../../components/shared/Pagination.jsx'
-import PillButton from '../../components/shared/PillButton.jsx'
 import ContentReportModal from '../../components/shared/ContentReportModal.jsx'
 import AppToast from '../../components/shared/AppToast.jsx'
 
@@ -163,7 +162,7 @@ export default function PoemsPage() {
           ctaLabel={t('poems.upload_poem')}
           ctaHref="/poems/create"
           hideTitle
-          hideCta
+          hideCta={!canCreatePoem}
         />
 
         <section className={styles.filtersSection}>
@@ -212,15 +211,6 @@ export default function PoemsPage() {
               />
             ) : null}
           </div>
-
-          {canCreatePoem ? (
-            <PillButton
-              label={t('poems.upload_poem')}
-              href="/poems/create"
-              variant="dark"
-              className={styles.uploadButton}
-            />
-          ) : null}
         </div>
       </div>
 
