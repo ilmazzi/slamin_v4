@@ -16,6 +16,8 @@ return [
         'save_error' => 'Error while saving.',
         'private' => 'This profile is private.',
         'edit' => 'Edit profile',
+        'write' => 'Message',
+        'write_error' => 'Unable to open the chat.',
         'view_public' => 'See how others see you',
         'avatar' => 'Profile photo',
         'avatar_hint' => 'JPG or PNG, max 2MB',

@@ -2,6 +2,7 @@
 
 namespace Domain\Chat\Actions;
 
+use App\Events\ChatMessageUpdated;
 use Domain\Chat\DTOs\ManageChatMessageReactionData;
 use Domain\Chat\Models\ChatMessage;
 use Illuminate\Support\Facades\DB;
@@ -27,6 +28,10 @@ class DeleteChatMessageReactionAction
                 metadata: [
                     'source' => 'chat_message_reaction_delete',
                 ],
+            );
+
+            ChatMessageUpdated::dispatch(
+                $message->load(['user.profile', 'replyTo.user.profile', 'reactions.user.profile', 'attachments']),
             );
         });
     }

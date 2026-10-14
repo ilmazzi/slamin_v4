@@ -2,10 +2,12 @@
 
 namespace App\Http\Resources\Api\V1\Chat;
 
+use Domain\Chat\Models\ChatMessage;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
+use Illuminate\Support\Facades\Storage;
 
-/** @mixin \Domain\Chat\Models\ChatMessage */
+/** @mixin ChatMessage */
 class ChatMessageResource extends JsonResource
 {
     public function toArray(Request $request): array
@@ -31,6 +33,9 @@ class ChatMessageResource extends JsonResource
                 'id' => $this->user?->id,
                 'nickname' => $this->user?->profile?->nickname,
                 'display_name' => $this->user?->profile?->display_name,
+                'avatar_url' => $this->user?->profile?->avatar_path
+                    ? Storage::disk('public')->url($this->user->profile->avatar_path)
+                    : null,
             ],
             'reply_to' => $this->replyTo ? [
                 'id' => $this->replyTo->id,
@@ -39,6 +44,9 @@ class ChatMessageResource extends JsonResource
                     'id' => $this->replyTo->user?->id,
                     'nickname' => $this->replyTo->user?->profile?->nickname,
                     'display_name' => $this->replyTo->user?->profile?->display_name,
+                    'avatar_url' => $this->replyTo->user?->profile?->avatar_path
+                        ? Storage::disk('public')->url($this->replyTo->user->profile->avatar_path)
+                        : null,
                 ],
             ] : null,
             'reactions' => $groupedReactions,

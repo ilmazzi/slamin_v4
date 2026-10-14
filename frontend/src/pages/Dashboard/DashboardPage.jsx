@@ -231,8 +231,8 @@ export default function DashboardPage({ user }) {
           {resolvedCommunityCards.map((card) => {
             const Icon = communityIconById[card.id] || CommunityFriendsIcon
 
-            return (
-              <article key={card.id} className={styles.communityCard}>
+            const cardBody = (
+              <>
                 <span className={styles.communityIconWrap} aria-hidden="true">
                   <Icon className={styles.communityIcon} />
                 </span>
@@ -241,6 +241,20 @@ export default function DashboardPage({ user }) {
                   <span className={styles.communityCardTitle}>{card.title}</span>
                   <span className={styles.communityCardSubtitle}>{card.subtitle}</span>
                 </div>
+              </>
+            )
+
+            if (card.id === 'messages') {
+              return (
+                <Link key={card.id} to="/chat" className={styles.communityCard}>
+                  {cardBody}
+                </Link>
+              )
+            }
+
+            return (
+              <article key={card.id} className={styles.communityCard}>
+                {cardBody}
               </article>
             )
           })}

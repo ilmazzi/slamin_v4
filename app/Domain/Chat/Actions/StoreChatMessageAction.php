@@ -2,6 +2,7 @@
 
 namespace Domain\Chat\Actions;
 
+use App\Events\ChatMessageSent;
 use Domain\Chat\DTOs\StoreChatMessageData;
 use Domain\Chat\Enums\ChatMessageType;
 use Domain\Chat\Models\ChatMessage;
@@ -14,8 +15,7 @@ class StoreChatMessageAction
         private readonly NotifyChatMessageRecipientsAction $notifyChatMessageRecipientsAction,
         private readonly NotifyChatMessageReplyAction $notifyChatMessageReplyAction,
         private readonly StoreChatMessageAttachmentsAction $storeChatMessageAttachmentsAction,
-    ) {
-    }
+    ) {}
 
     public function execute(ChatThread $thread, int $userId, StoreChatMessageData $data): ChatMessage
     {
@@ -63,7 +63,10 @@ class StoreChatMessageAction
             $this->notifyChatMessageRecipientsAction->execute($thread, $message);
             $this->notifyChatMessageReplyAction->execute($message);
 
-            return $message->load(['user.profile', 'replyTo.user.profile', 'reactions.user.profile', 'attachments']);
+            $message->load(['user.profile', 'replyTo.user.profile', 'reactions.user.profile', 'attachments', 'thread.memberRecords']);
+            ChatMessageSent::dispatch($message);
+
+            return $message;
         });
     }
 }

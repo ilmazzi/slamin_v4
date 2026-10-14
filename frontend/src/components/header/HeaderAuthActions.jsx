@@ -28,6 +28,7 @@ export default function HeaderAuthActions({
   notificationsAriaLabel = 'Notifiche',
   myProfileLabel = 'Il mio profilo',
   editProfileLabel = 'Modifica profilo',
+  chatLabel = 'Chat',
   logoutLabel = 'Logout',
 }) {
   const { logout } = useAuth()
@@ -287,6 +288,16 @@ export default function HeaderAuthActions({
           >
             <span className={styles.authMenuArrow} aria-hidden="true">›</span>
             <span>{editProfileLabel}</span>
+          </Link>
+          <Link
+            to="/chat"
+            className={styles.authMenuLink}
+            data-tone="red"
+            role="menuitem"
+            onClick={() => setIsProfileMenuOpen(false)}
+          >
+            <span className={styles.authMenuArrow} aria-hidden="true">›</span>
+            <span>{chatLabel}</span>
           </Link>
           {showAdmin ? (
             <Link

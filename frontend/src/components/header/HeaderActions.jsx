@@ -31,6 +31,7 @@ export default function HeaderActions(props) {
           notificationsAriaLabel={t('header.notifications_aria')}
           myProfileLabel={t('header.profile_menu.profile')}
           editProfileLabel={t('header.profile_menu.edit')}
+          chatLabel={t('header.profile_menu.chat')}
           logoutLabel={t('header.profile_menu.logout')}
         />
       ) : (

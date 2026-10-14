@@ -1,13 +1,18 @@
 <?php
 
+use App\Events\ChatMessageSent;
+use Domain\Chat\Models\ChatMessageAttachment;
 use Domain\Chat\Models\ChatThread;
 use Domain\Group\Enums\GroupMemberRole;
 use Domain\Group\Enums\GroupMemberStatus;
 use Domain\Group\Enums\GroupVisibility;
 use Domain\Group\Models\Group;
+use Domain\Profile\Models\Profile;
 use Domain\User\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Broadcast;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Storage;
 use Laravel\Sanctum\Sanctum;
 
@@ -196,7 +201,7 @@ it('supports attachments on chat messages', function () {
         ->assertJsonPath('data.message.attachments.0.original_name', 'poster.png')
         ->assertJsonPath('data.message.attachments.0.mime_type', 'image/png');
 
-    $storedPath = \Domain\Chat\Models\ChatMessageAttachment::query()->value('path');
+    $storedPath = ChatMessageAttachment::query()->value('path');
 
     expect($storedPath)->not->toBeNull();
     Storage::disk('public')->assertExists($storedPath);
@@ -500,4 +505,88 @@ it('does not list group attached threads for users without active group membersh
     $this->getJson('/api/v1/chat/threads')
         ->assertOk()
         ->assertJsonCount(0, 'data.threads');
+});
+
+it('dispatches a realtime event when a chat message is sent', function () {
+    Event::fake([ChatMessageSent::class]);
+
+    $firstUser = User::factory()->create();
+    $secondUser = User::factory()->create();
+
+    Sanctum::actingAs($firstUser);
+
+    $threadId = $this->postJson('/api/v1/chat/direct-threads', [
+        'user_id' => $secondUser->id,
+    ])->json('data.thread.id');
+
+    $this->postJson("/api/v1/chat/threads/{$threadId}/messages", [
+        'content' => 'Realtime',
+    ])->assertCreated();
+
+    Event::assertDispatched(ChatMessageSent::class, function (ChatMessageSent $event) use ($threadId, $secondUser) {
+        $channels = collect($event->broadcastOn())->map(fn ($channel) => $channel->name);
+
+        return (int) $event->message->chat_thread_id === (int) $threadId
+            && $event->message->content === 'Realtime'
+            && $channels->contains('private-chat.'.$threadId)
+            && $channels->contains('private-chat.user.'.$secondUser->id);
+    });
+});
+
+it('opens a direct thread from a profile nickname', function () {
+    $firstUser = User::factory()->create();
+    $secondUser = User::factory()->create();
+
+    Profile::query()->where('user_id', $secondUser->id)->update([
+        'nickname' => 'poetessa',
+    ]);
+
+    Sanctum::actingAs($firstUser);
+
+    $this->postJson('/api/v1/chat/direct-threads', [
+        'nickname' => 'poetessa',
+    ])
+        ->assertCreated()
+        ->assertJsonPath('data.thread.type', 'direct')
+        ->assertJsonPath('data.thread.other_user.id', $secondUser->id);
+});
+
+it('authorizes private chat channels for members only', function () {
+    config(['broadcasting.default' => 'reverb']);
+    Broadcast::purge();
+    require base_path('routes/channels.php');
+
+    $firstUser = User::factory()->create();
+    $secondUser = User::factory()->create();
+    $outsider = User::factory()->create();
+
+    Sanctum::actingAs($firstUser);
+
+    $threadId = $this->postJson('/api/v1/chat/direct-threads', [
+        'user_id' => $secondUser->id,
+    ])->json('data.thread.id');
+
+    $this->getJson("/api/v1/chat/threads/{$threadId}")->assertOk();
+
+    $this->postJson('/broadcasting/auth', [
+        'socket_id' => '1234.5678',
+        'channel_name' => 'private-chat.'.$threadId,
+    ])->assertOk()->assertJsonStructure(['auth']);
+
+    $this->postJson('/broadcasting/auth', [
+        'socket_id' => '1234.5678',
+        'channel_name' => 'private-chat.user.'.$firstUser->id,
+    ])->assertOk()->assertJsonStructure(['auth']);
+
+    Sanctum::actingAs($outsider);
+
+    $this->postJson('/broadcasting/auth', [
+        'socket_id' => '1234.5678',
+        'channel_name' => 'private-chat.'.$threadId,
+    ])->assertForbidden();
+
+    $this->postJson('/broadcasting/auth', [
+        'socket_id' => '1234.5678',
+        'channel_name' => 'private-chat.user.'.$firstUser->id,
+    ])->assertForbidden();
 });

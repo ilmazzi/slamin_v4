@@ -14,7 +14,8 @@ class StoreDirectChatThreadRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'user_id' => ['required', 'integer', 'exists:users,id'],
+            'user_id' => ['required_without:nickname', 'integer', 'exists:users,id'],
+            'nickname' => ['required_without:user_id', 'string', 'max:255'],
         ];
     }
 }

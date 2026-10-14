@@ -8,6 +8,7 @@ const DashboardPage = lazy(() => import('./pages/Dashboard/DashboardPage.jsx'))
 const OpenProjectFeedbackWidget = lazy(() =>
   import('./components/feedback/OpenProjectFeedbackWidget.jsx'),
 )
+const ChatWidget = lazy(() => import('./components/chat/ChatWidget.jsx'))
 const HomePage = lazy(() =>
   import('./pages/Home/HomePage.jsx').then((module) => ({ default: module.HomePage })),
 )
@@ -34,6 +35,7 @@ const MediaUploadPage = lazy(() => import('./pages/Media/MediaUploadPage.jsx'))
 const MediaDetailPage = lazy(() => import('./pages/Media/MediaDetailPage.jsx'))
 const PoemDetailPage = lazy(() => import('./pages/Poems/PoemDetailPage.jsx'))
 const PoemCreate = lazy(() => import('./pages/Poems/PoemCreate.jsx'))
+const ChatPage = lazy(() => import('./pages/Chat/ChatPage.jsx'))
 const PlaceholderPage = lazy(() => import('./pages/shared/PlaceholderPage.jsx'))
 const TranslationsAdminPage = lazy(() => import('./pages/Admin/TranslationsAdminPage.jsx'))
 const AdminSettingsPage = lazy(() => import('./pages/Admin/AdminSettingsPage.jsx'))
@@ -192,6 +194,22 @@ export default function App() {
             }
           />
           <Route path="/u/:nickname" element={<PublicProfilePage />} />
+          <Route
+            path="/chat"
+            element={
+              <ProtectedRoute>
+                <ChatPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/chat/:threadId"
+            element={
+              <ProtectedRoute>
+                <ChatPage />
+              </ProtectedRoute>
+            }
+          />
           <Route
             path="/forum"
             element={
@@ -370,6 +388,7 @@ export default function App() {
         </Routes>
       </Suspense>
       <Suspense fallback={null}>
+        <ChatWidget />
         <OpenProjectFeedbackWidget />
       </Suspense>
     </>

@@ -16,7 +16,7 @@ function initialsFromProfile(profile) {
   return `${parts[0][0] ?? ''}${parts[1][0] ?? ''}`.toUpperCase()
 }
 
-export default function ProfileCard({ profile, t, showOwnerActions = false }) {
+export default function ProfileCard({ profile, t, showOwnerActions = false, onWrite = null, isWriting = false }) {
   if (!profile) {
     return null
   }
@@ -87,6 +87,12 @@ export default function ProfileCard({ profile, t, showOwnerActions = false }) {
           <Link className={styles.primaryLink} to="/profile/edit">
             {t('profile.page.edit')}
           </Link>
+        </div>
+      ) : onWrite ? (
+        <div className={styles.actions}>
+          <button type="button" className={styles.primaryLink} onClick={onWrite} disabled={isWriting}>
+            {isWriting ? t('common.loading') : t('profile.page.write')}
+          </button>
         </div>
       ) : null}
     </article>

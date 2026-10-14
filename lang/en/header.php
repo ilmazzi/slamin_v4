@@ -18,6 +18,7 @@ return [
         'profile' => 'My profile',
         'edit' => 'Edit profile',
         'admin' => 'Administration',
+        'chat' => 'Chat',
         'logout' => 'Logout',
     ],
     'menu' => [

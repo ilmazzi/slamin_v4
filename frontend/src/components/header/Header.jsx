@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
+import SlaminMark from '../brand/SlaminMark.jsx'
 import HeaderActions from './HeaderActions.jsx'
 import HeaderLogo from './HeaderLogo.jsx'
 import styles from './Header.module.css'
@@ -327,9 +328,7 @@ export default function Header({
               ))}
             </select>
           </div>
-          <svg className={styles.menuRedMark} width="27" height="39" viewBox="0 0 27 39" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-            <path d="M0 0V29.3142H12.2315L27 39V29.3142V9.68174V0H0Z" fill="#E30613" />
-          </svg>
+          <SlaminMark className={styles.menuRedMark} />
         </div>
       </nav>
     </header>

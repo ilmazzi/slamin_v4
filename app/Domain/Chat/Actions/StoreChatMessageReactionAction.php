@@ -2,6 +2,7 @@
 
 namespace Domain\Chat\Actions;
 
+use App\Events\ChatMessageUpdated;
 use Domain\Chat\DTOs\ManageChatMessageReactionData;
 use Domain\Chat\Models\ChatMessage;
 use Domain\Chat\Models\ChatMessageReaction;
@@ -11,8 +12,7 @@ class StoreChatMessageReactionAction
 {
     public function __construct(
         private readonly NotifyChatMessageReactionAction $notifyChatMessageReactionAction,
-    ) {
-    }
+    ) {}
 
     public function execute(ChatMessage $message, int $userId, ManageChatMessageReactionData $data): ChatMessageReaction
     {
@@ -38,6 +38,9 @@ class StoreChatMessageReactionAction
 
             if ($reaction->wasRecentlyCreated) {
                 $this->notifyChatMessageReactionAction->execute($reaction);
+                ChatMessageUpdated::dispatch(
+                    $message->load(['user.profile', 'replyTo.user.profile', 'reactions.user.profile', 'attachments']),
+                );
             }
 
             return $reaction->load(['user.profile', 'message.user.profile']);

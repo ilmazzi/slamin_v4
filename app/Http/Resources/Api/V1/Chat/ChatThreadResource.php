@@ -2,11 +2,13 @@
 
 namespace App\Http\Resources\Api\V1\Chat;
 
+use Domain\Chat\Models\ChatThread;
 use Domain\Chat\Models\ChatThreadMember;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
+use Illuminate\Support\Facades\Storage;
 
-/** @mixin \Domain\Chat\Models\ChatThread */
+/** @mixin ChatThread */
 class ChatThreadResource extends JsonResource
 {
     public function toArray(Request $request): array
@@ -43,11 +45,17 @@ class ChatThreadResource extends JsonResource
                 'id' => $otherMember->id,
                 'nickname' => $otherMember->profile?->nickname,
                 'display_name' => $otherMember->profile?->display_name,
+                'avatar_url' => $otherMember->profile?->avatar_path
+                    ? Storage::disk('public')->url($otherMember->profile->avatar_path)
+                    : null,
             ] : null,
             'members' => $this->members->map(fn ($member) => [
                 'id' => $member->id,
                 'nickname' => $member->profile?->nickname,
                 'display_name' => $member->profile?->display_name,
+                'avatar_url' => $member->profile?->avatar_path
+                    ? Storage::disk('public')->url($member->profile->avatar_path)
+                    : null,
             ])->values(),
             'last_message' => $this->latestMessage ? new ChatMessageResource($this->latestMessage) : null,
             'unread_count' => $unreadCount,

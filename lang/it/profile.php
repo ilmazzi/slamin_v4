@@ -16,6 +16,8 @@ return [
         'save_error' => 'Errore durante il salvataggio.',
         'private' => 'Questo profilo e privato.',
         'edit' => 'Modifica profilo',
+        'write' => 'Scrivi in chat',
+        'write_error' => 'Impossibile aprire la chat.',
         'view_public' => 'Vedi come ti vedono gli altri',
         'avatar' => 'Foto profilo',
         'avatar_hint' => 'JPG o PNG, max 2MB',

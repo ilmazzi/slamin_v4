@@ -1,0 +1,75 @@
+import { useCallback, useEffect, useState } from 'react'
+import { Link, useLocation } from 'react-router-dom'
+import { listChatThreads } from '../../app/api/chat.js'
+import { useAuth } from '../../app/hooks/useAuth.js'
+import { useI18n } from '../../app/hooks/useI18n.js'
+import { createEcho } from '../../app/realtime/echo.js'
+import SlaminMark from '../brand/SlaminMark.jsx'
+import styles from './ChatWidget.module.css'
+
+function isHiddenPath(pathname) {
+  return ['/chat', '/login', '/register', '/forgot-password', '/verify-email'].some(
+    (path) => pathname === path || pathname.startsWith(`${path}/`),
+  )
+}
+
+export default function ChatWidget() {
+  const { t } = useI18n()
+  const { pathname } = useLocation()
+  const { isAuthenticated, token, user } = useAuth()
+  const [unread, setUnread] = useState(0)
+  const hidden = isHiddenPath(pathname)
+
+  const refreshUnread = useCallback((signal) => {
+    if (!token) {
+      return Promise.resolve()
+    }
+
+    return listChatThreads({ token, signal }).then((threads) => {
+      setUnread(threads.reduce((sum, thread) => sum + Number(thread.unread_count || 0), 0))
+    })
+  }, [token])
+
+  useEffect(() => {
+    if (hidden || !isAuthenticated || !token) {
+      return undefined
+    }
+
+    const controller = new AbortController()
+    refreshUnread(controller.signal).catch(() => null)
+    return () => controller.abort()
+  }, [hidden, isAuthenticated, refreshUnread, token])
+
+  useEffect(() => {
+    if (hidden || !isAuthenticated || !token || !user?.id) {
+      return undefined
+    }
+
+    const echo = createEcho(token)
+    if (!echo) {
+      return undefined
+    }
+
+    echo.private(`chat.user.${user.id}`).listen('.message.sent', () => {
+      refreshUnread().catch(() => null)
+    })
+
+    return () => {
+      echo.leave(`chat.user.${user.id}`)
+      echo.disconnect()
+    }
+  }, [hidden, isAuthenticated, refreshUnread, token, user?.id])
+
+  if (hidden) {
+    return null
+  }
+
+  return (
+    <Link to="/chat" className={styles.widget} aria-label={t('chat.ui.open')}>
+      <SlaminMark className={styles.mark} />
+      {unread > 0 ? (
+        <span className={styles.badge}>{unread > 99 ? '99+' : unread}</span>
+      ) : null}
+    </Link>
+  )
+}
