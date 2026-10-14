@@ -154,11 +154,17 @@
   list-style: none;
   margin: 0;
   padding: 0;
-  display: grid;
-  gap: 8px;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  gap: 4px;
   flex: 1 1 auto;
   min-height: 0;
   overflow-y: auto;
+}
+
+.threadList > li {
+  flex: 0 0 auto;
 }
 
 .threadButton {
@@ -166,12 +172,20 @@
   align-items: center;
   gap: 10px;
   width: 100%;
-  padding: 10px;
+  padding: 8px 10px;
   border: 0;
   border-radius: 14px;
   background: transparent;
+  color: #111;
+  -webkit-appearance: none;
+  appearance: none;
   text-align: left;
   cursor: pointer;
+}
+
+.threadButton strong,
+.threadButton small {
+  color: inherit;
 }
 
 .threadButtonActive {
@@ -409,5 +423,17 @@
 
   .send {
     min-width: 88px;
+  }
+
+  .threadButton,
+  .threadButton strong,
+  .threadButton small {
+    color: #111;
+  }
+
+  .threadButtonActive,
+  .threadButtonActive strong,
+  .threadButtonActive small {
+    color: #fff;
   }
 }
