@@ -12,6 +12,7 @@ const ChatWidget = lazy(() => import('./components/chat/ChatWidget.jsx'))
 const HomePage = lazy(() =>
   import('./pages/Home/HomePage.jsx').then((module) => ({ default: module.HomePage })),
 )
+const SearchPage = lazy(() => import('./pages/Search/SearchPage.jsx'))
 const LoginPage = lazy(() =>
   import('./pages/Login/LoginPage.jsx').then((module) => ({ default: module.LoginPage })),
 )
@@ -81,6 +82,7 @@ export default function App() {
             path="/"
             element={<HomePage variant={isAuthenticated ? 'auth' : 'guest'} user={user} />}
           />
+          <Route path="/search" element={<SearchPage />} />
 
           <Route
             path="/login"
