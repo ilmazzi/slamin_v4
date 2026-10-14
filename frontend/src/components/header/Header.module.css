@@ -731,9 +731,7 @@ overflow: hidden;
   }
 
   .adminButton {
-    min-height: 40px;
-    padding: 0 10px;
-    font-size: 12px;
+    display: none;
   }
 
   .dashboardButtonIcon {
@@ -878,9 +876,7 @@ overflow: hidden;
   }
 
   .adminButton {
-    min-height: 40px;
-    padding: 0 10px;
-    font-size: 12px;
+    display: none;
   }
 
   .menuIcon {
