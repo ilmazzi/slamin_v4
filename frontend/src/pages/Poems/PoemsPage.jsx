@@ -214,7 +214,7 @@ export default function PoemsPage() {
         </div>
       </div>
 
-      <HomeDashboardPromoSection compactTop={true} />
+      <HomeDashboardPromoSection />
 
       <ContentReportModal
         isOpen={Boolean(reportModalItem)}

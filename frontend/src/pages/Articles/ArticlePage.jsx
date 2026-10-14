@@ -180,7 +180,7 @@ export default function ArticlePage() {
           />
         ) : null}
 
-        <HomeDashboardPromoSection compactTop={true} />
+        <HomeDashboardPromoSection />
 
         <ContentReportModal
           isOpen={Boolean(reportModalItem)}
