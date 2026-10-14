@@ -244,7 +244,7 @@ export default function Header({
           </div>
         </div>
 
-        <div className={styles.menuSection}>
+       {/* <div className={styles.menuSection}>
           <h3 className={styles.menuSectionTitle}>{t('header.menu.community_title')}</h3>
           <div className={styles.menuSectionList}>
             {communityItems.map((item) => (
@@ -260,8 +260,8 @@ export default function Header({
             ))}
           </div>
         </div>
-
-        <div className={styles.menuSection}>
+*/}
+        {/*<div className={styles.menuSection}>
           <h3 className={styles.menuSectionTitle}>{t('header.menu.info_title')}</h3>
           <div className={styles.menuSectionList}>
             {infoItems.map((item) => (
@@ -276,7 +276,7 @@ export default function Header({
               </Link>
             ))}
           </div>
-        </div>
+        </div>*/}
 
         {canSeeTranslations || canSeeAdminMenu ? (
           <div className={styles.menuSection}>

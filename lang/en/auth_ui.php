@@ -37,4 +37,13 @@ return [
     'logout_success' => 'Logout successful',
     'reset_link_failed' => 'Unable to send reset link',
     'email_verification_required' => 'Email verification required',
+    'verify_email_title' => 'Verify your email',
+    'verify_email_check_inbox' => 'We sent you a verification link. Please also check your spam folder.',
+    'verify_email_verifying' => 'Verifying your email…',
+    'verify_email_success' => 'Email verified. You can now use every Slam In feature.',
+    'verify_email_error' => 'We could not verify your email. The link may have expired.',
+    'verify_email_resend' => 'Send the link again',
+    'verify_email_resending' => 'Sending…',
+    'verify_email_resent' => 'A new verification link has been sent.',
+    'verify_email_dashboard' => 'Go to dashboard',
 ];

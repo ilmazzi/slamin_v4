@@ -1,4 +1,34 @@
-import { authApiGet, authApiPatch } from './client.js'
+import { authApiGet, authApiPatch, authApiPost } from './client.js'
+
+export async function getMailSettings({ token, signal } = {}) {
+  const { data } = await authApiGet('/api/v1/admin/mail-settings', {
+    token,
+    signal,
+    fallbackMessage: 'Unable to load mail settings',
+  })
+
+  return data?.settings ?? null
+}
+
+export async function updateMailSettings(payload, { token, signal } = {}) {
+  const { data } = await authApiPatch('/api/v1/admin/mail-settings', payload, {
+    token,
+    signal,
+    fallbackMessage: 'Unable to save mail settings',
+  })
+
+  return data?.settings ?? null
+}
+
+export async function testMailSettings(email, { token, signal } = {}) {
+  const { data } = await authApiPost('/api/v1/admin/mail-settings/test', { email }, {
+    token,
+    signal,
+    fallbackMessage: 'Unable to send test email',
+  })
+
+  return data?.message ?? ''
+}
 
 export async function listContentPublicationSettings({ token, signal } = {}) {
   const { data } = await authApiGet('/api/v1/admin/content-publication-settings', {

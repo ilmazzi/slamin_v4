@@ -43,12 +43,13 @@ export async function listEvents({ page = 1, perPage = 10, token: paramsToken } 
 
 export async function listAllPublicEvents({
   signal,
+  token,
   maxPages = MAX_FETCH_PAGES,
   perPage = MAX_PER_PAGE,
 } = {}) {
   return collectPaginatedItems(
     ({ page: nextPage, perPage: nextPerPage, signal: nextSignal }) =>
-      listEvents({ page: nextPage, perPage: nextPerPage }, { signal: nextSignal }),
+      listEvents({ page: nextPage, perPage: nextPerPage, token }, { signal: nextSignal }),
     { signal, maxPages, perPage },
   )
 }

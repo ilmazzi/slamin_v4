@@ -4,9 +4,11 @@ namespace App\Providers;
 
 use App\Support\Responses\ApiResponse;
 use Carbon\CarbonImmutable;
+use Domain\Admin\Actions\ApplyMailSettingsAction;
 use Domain\Audit\Actions\StoreAuditLogAction;
 use Domain\Audit\Support\AuditLogger;
 use Domain\I18n\Support\DatabaseTranslationLoader;
+use Domain\Media\Actions\ResolveMediaSettingsAction;
 use Domain\User\Models\User;
 use Illuminate\Auth\Notifications\VerifyEmail;
 use Illuminate\Cache\RateLimiting\Limit;
@@ -16,6 +18,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Validation\Rules\Password;
+use Throwable;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -30,6 +33,8 @@ class AppServiceProvider extends ServiceProvider
             );
         });
 
+        $this->app->scoped(ResolveMediaSettingsAction::class);
+
         $this->app->extend('translation.loader', function ($fileLoader) {
             return new DatabaseTranslationLoader($fileLoader);
         });
@@ -42,6 +47,19 @@ class AppServiceProvider extends ServiceProvider
     {
 
         $this->configureDefaults();
+
+        $this->app->beforeResolving('mail.manager', function ($abstract, $parameters, $app) {
+            if ($app->resolved('mail.manager')) {
+                return;
+            }
+
+            try {
+                $app->make(ApplyMailSettingsAction::class)->execute();
+            } catch (Throwable $exception) {
+                report($exception);
+            }
+        });
+
         RateLimiter::for('verification-notification', function (Request $request) {
             $userId = $request->user()?->getKey() ?? $request->ip();
 

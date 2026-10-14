@@ -32,6 +32,8 @@ function makeEmailVerifyPayload(User $user, ?int $expires = null): array
 }
 
 it('registers a user and returns a bearer token with profile payload', function () {
+    Notification::fake();
+
     $response = $this->postJson('/api/v1/register', [
         'email' => 'new-user@example.com',
         'password' => 'super-secure-password',
@@ -46,12 +48,18 @@ it('registers a user and returns a bearer token with profile payload', function 
         ->assertCreated()
         ->assertJsonPath('data.token_type', 'Bearer')
         ->assertJsonPath('data.user.email', 'new-user@example.com')
+        ->assertJsonPath('data.user.email_verified', false)
         ->assertJsonPath('data.user.profile.nickname', 'new_user')
         ->assertJsonPath('errors', null);
 
     $this->assertDatabaseHas('users', [
         'email' => 'new-user@example.com',
     ]);
+
+    Notification::assertSentTo(
+        User::query()->where('email', 'new-user@example.com')->firstOrFail(),
+        VerifyEmail::class,
+    );
 });
 
 it('logs in an existing user and returns token with user payload', function () {

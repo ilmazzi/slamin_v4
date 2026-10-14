@@ -14,6 +14,8 @@ class EventResource extends JsonResource
     public function toArray(Request $request): array
     {
         $disk = Storage::disk('public'); /** @var FilesystemAdapter $disk */
+        $authUserId = auth('sanctum')->id();
+        $isOwner = $authUserId !== null && (int) $authUserId === (int) $this->user_id;
 
         return [
             'id' => $this->id,
@@ -99,8 +101,8 @@ class EventResource extends JsonResource
                 'meeting_url' => $this->onlineDetail->meeting_url,
                 'timezone' => $this->onlineDetail->timezone,
             ] : null,
-            'group_ids' => $this->groupLinks->pluck('group_id')->values(),
-            'participant_invites' => $this->participantInvites->map(fn ($invite) => [
+            'group_ids' => $this->when($isOwner, fn () => $this->groupLinks->pluck('group_id')->values()),
+            'participant_invites' => $this->when($isOwner, fn () => $this->participantInvites->map(fn ($invite) => [
                 'id' => $invite->id,
                 'user_id' => $invite->user_id,
                 'name' => $invite->name,
@@ -108,8 +110,8 @@ class EventResource extends JsonResource
                 'role' => $invite->role,
                 'invite_type' => $invite->invite_type,
                 'status' => $invite->status,
-            ])->values(),
-            'audience_invites' => $this->audienceInvites->map(fn ($invite) => [
+            ])->values()),
+            'audience_invites' => $this->when($isOwner, fn () => $this->audienceInvites->map(fn ($invite) => [
                 'id' => $invite->id,
                 'user_id' => $invite->user_id,
                 'name' => $invite->name,
@@ -122,15 +124,14 @@ class EventResource extends JsonResource
                     'nickname' => $invite->user->profile?->nickname,
                     'display_name' => $invite->user->profile?->display_name,
                 ] : null,
-            ])->values(),
+            ])->values()),
             'author' => [
                 'id' => $this->user?->id,
                 'public_id' => $this->user?->public_id,
                 'nickname' => $this->user?->profile?->nickname,
                 'display_name' => $this->user?->profile?->display_name,
             ],
-            'is_owner' => auth('sanctum')->id() !== null
-                && (int) auth('sanctum')->id() === (int) $this->user_id,
+            'is_owner' => $isOwner,
             'likes_count' => (int) ($this->likes_count ?? 0),
             'comments_count' => (int) ($this->comments_count ?? 0),
             'bookmarks_count' => (int) ($this->bookmarks_count ?? 0),

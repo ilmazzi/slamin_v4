@@ -51,7 +51,7 @@ class GetUiTranslationBundleAction
             'locale' => $locale,
             'default_locale' => $defaultLocale,
             'available_locales' => $availableLocales,
-            'available_languages' => $this->availableLanguages(),
+            'available_languages' => $this->cachedAvailableLanguages(),
             'translations' => $translations,
         ];
     }
@@ -91,6 +91,18 @@ class GetUiTranslationBundleAction
                 ->all();
         } catch (Throwable) {
             return [];
+        }
+    }
+
+    /**
+     * @return list<array{code: string, name: string, flag: string}>
+     */
+    private function cachedAvailableLanguages(): array
+    {
+        try {
+            return Cache::remember(I18nCache::key('languages.active'), 3600, fn (): array => $this->availableLanguages());
+        } catch (Throwable) {
+            return $this->availableLanguages();
         }
     }
 

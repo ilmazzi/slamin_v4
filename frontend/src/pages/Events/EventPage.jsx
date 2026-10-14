@@ -1,4 +1,4 @@
-import { lazy, Suspense } from 'react'
+import { lazy, Suspense, useEffect, useState } from 'react'
 import MainLayout from '../../components/layout/MainLayout.jsx'
 import PageHero from '../../components/PageHero.jsx'
 import shellStyles from '../shared/ContentPageShell.module.css'
@@ -12,6 +12,8 @@ import PersonalEventsCalendar from '../../components/PersonalEventsCalendar.jsx'
 import HomeDashboardPromoSection from '../../components/home/HomeDashboardPromoSection.jsx'
 import ContentReportModal from '../../components/shared/ContentReportModal.jsx'
 import AppToast from '../../components/shared/AppToast.jsx'
+import { listAllPublicEvents } from '../../app/api/events.js'
+import { normalizeEventsForUi } from '../../app/normalizers/event.js'
 
 const UpcomingEventSlider = lazy(() => import('../../components/events/UpcomingEventSlider.jsx'))
 
@@ -19,6 +21,9 @@ export default function EventPage() {
   const { t } = useI18n()
   const { token, user } = useAuth()
   const canCreateEvent = user?.account_type === 'poet_organizer'
+  const [publicEvents, setPublicEvents] = useState([])
+  const [eventsLoading, setEventsLoading] = useState(true)
+  const [eventsError, setEventsError] = useState('')
   const {
     reportModalItem,
     toastMessage,
@@ -43,6 +48,30 @@ export default function EventPage() {
     },
   })
 
+  useEffect(() => {
+    const controller = new AbortController()
+
+    async function loadEvents() {
+      setEventsLoading(true)
+      setEventsError('')
+
+      try {
+        const rows = await listAllPublicEvents({ token, signal: controller.signal })
+        setPublicEvents(normalizeEventsForUi(rows))
+      } catch (error) {
+        if (error?.name !== 'AbortError') {
+          setEventsError(t('common.no_results'))
+          setPublicEvents([])
+        }
+      } finally {
+        if (!controller.signal.aborted) setEventsLoading(false)
+      }
+    }
+
+    loadEvents()
+    return () => controller.abort()
+  }, [t, token])
+
   return (
     <MainLayout themeTone="event">
       <div className={[shellStyles.eventPage, styles.eventPage].join(' ')}>
@@ -54,9 +83,13 @@ export default function EventPage() {
           ctaHref="/events/create"
           hideCta={!canCreateEvent}
         />
-        <EventMap />
+        <EventMap events={publicEvents} isLoading={eventsLoading} error={eventsError} />
         <Suspense fallback={null}>
-          <UpcomingEventSlider />
+          <UpcomingEventSlider
+            events={publicEvents.slice(0, 9)}
+            isLoading={eventsLoading}
+            error={eventsError}
+          />
         </Suspense>
         {token ? <PersonalEventsCalendar tone="event" showVisibilityToggle={false} /> : null}
 

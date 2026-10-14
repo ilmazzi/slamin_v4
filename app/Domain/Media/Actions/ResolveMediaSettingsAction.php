@@ -3,9 +3,12 @@
 namespace Domain\Media\Actions;
 
 use Domain\Media\Models\MediaSetting;
+use Illuminate\Support\Facades\Cache;
 
 class ResolveMediaSettingsAction
 {
+    public const CACHE_KEY = 'media_settings.resolved';
+
     public const SECRET_KEYS = [
         'peertube_admin_password',
         'stripe_secret_key',
@@ -37,15 +40,20 @@ class ResolveMediaSettingsAction
         'stripe_api_base_url' => 'https://api.stripe.com',
     ];
 
+    /**
+     * @var array<string, mixed>|null
+     */
+    private ?array $resolved = null;
+
     public function execute(): array
     {
-        $settings = [];
+        return $this->resolved ??= Cache::rememberForever(self::CACHE_KEY, fn (): array => $this->load());
+    }
 
-        foreach (self::DEFAULTS as $key => $default) {
-            $settings[$key] = MediaSetting::getValue($key, $default);
-        }
-
-        return $settings;
+    public function flush(): void
+    {
+        $this->resolved = null;
+        Cache::forget(self::CACHE_KEY);
     }
 
     /**
@@ -58,6 +66,26 @@ class ResolveMediaSettingsAction
         foreach (self::SECRET_KEYS as $key) {
             $settings[$key.'_set'] = filled($settings[$key] ?? null);
             $settings[$key] = null;
+        }
+
+        return $settings;
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function load(): array
+    {
+        $stored = MediaSetting::query()
+            ->whereIn('key', array_keys(self::DEFAULTS))
+            ->get()
+            ->keyBy('key');
+
+        $settings = [];
+
+        foreach (self::DEFAULTS as $key => $default) {
+            $setting = $stored->get($key);
+            $settings[$key] = $setting ? $setting->resolvedValue($default) : $default;
         }
 
         return $settings;

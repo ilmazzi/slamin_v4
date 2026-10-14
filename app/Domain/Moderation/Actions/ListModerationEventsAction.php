@@ -12,14 +12,7 @@ class ListModerationEventsAction
     public function execute(ListModerationEventsData $data): LengthAwarePaginator
     {
         $query = Event::query()
-            ->with([
-                'user.profile',
-                'category.translations',
-                'festival',
-                'occurrences',
-                'venueDetail',
-                'onlineDetail',
-            ])
+            ->with(Event::RESOURCE_RELATIONS)
             ->orderByRaw(
                 "case when status = ? then 0 when status = ? then 1 else 2 end",
                 [EventStatus::PendingReview->value, EventStatus::Rejected->value]

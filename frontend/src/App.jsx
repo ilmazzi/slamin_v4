@@ -20,6 +20,7 @@ const RegisterPage = lazy(() =>
 const ForgotPasswordPage = lazy(() =>
   import('./pages/Auth/ForgotPasswordPage.jsx').then((module) => ({ default: module.ForgotPasswordPage })),
 )
+const VerifyEmailPage = lazy(() => import('./pages/Auth/VerifyEmailPage.jsx'))
 const EventPage = lazy(() => import('./pages/Events/EventPage.jsx'))
 const EventCreatePage = lazy(() => import('./pages/Events/EventCreatePage.jsx'))
 const EventDetailPage = lazy(() => import('./pages/Events/EventDetailPage.jsx'))
@@ -81,15 +82,20 @@ export default function App() {
           <Route
             path="/login"
             element={
-              isAuthenticated ? <Navigate to="/dashboard" replace /> : <LoginPage />
+              isAuthenticated
+                ? <Navigate to={user?.email_verified ? '/dashboard' : '/verify-email'} replace />
+                : <LoginPage />
             }
           />
           <Route
             path="/register"
             element={
-              isAuthenticated ? <Navigate to="/dashboard" replace /> : <RegisterPage />
+              isAuthenticated
+                ? <Navigate to={user?.email_verified ? '/dashboard' : '/verify-email'} replace />
+                : <RegisterPage />
             }
           />
+          <Route path="/verify-email" element={<VerifyEmailPage />} />
           <Route
             path="/forgot-password"
             element={

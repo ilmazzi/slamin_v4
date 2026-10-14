@@ -18,6 +18,8 @@ final class AuthUserPayload
         return [
             'public_id' => $user->public_id,
             'email' => $user->email,
+            'email_verified_at' => $user->email_verified_at?->toISOString(),
+            'email_verified' => $user->hasVerifiedEmail(),
             'status' => $user->status,
             'account_type' => $user->account_type?->value,
             'roles' => $user->roles->pluck('name')->filter()->values()->all(),

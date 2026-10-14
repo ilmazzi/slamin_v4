@@ -38,4 +38,13 @@ return [
     'logout_success' => 'Logout effettuato',
     'reset_link_failed' => 'Impossibile inviare il link di reset',
     'email_verification_required' => 'Verifica email richiesta',
+    'verify_email_title' => 'Verifica la tua email',
+    'verify_email_check_inbox' => 'Ti abbiamo inviato un link di verifica. Controlla anche la cartella spam.',
+    'verify_email_verifying' => 'Verifica dell’email in corso…',
+    'verify_email_success' => 'Email verificata. Ora puoi usare tutte le funzioni di Slam In.',
+    'verify_email_error' => 'Non è stato possibile verificare l’email. Il link potrebbe essere scaduto.',
+    'verify_email_resend' => 'Invia di nuovo il link',
+    'verify_email_resending' => 'Invio in corso…',
+    'verify_email_resent' => 'Nuovo link di verifica inviato.',
+    'verify_email_dashboard' => 'Vai alla dashboard',
 ];

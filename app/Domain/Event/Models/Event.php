@@ -28,6 +28,24 @@ class Event extends Model
 {
     use SoftDeletes;
 
+    /**
+     * Relations read by EventResource.
+     */
+    public const RESOURCE_RELATIONS = [
+        'user.profile',
+        'category.translations',
+        'festival',
+        'occurrences',
+        'recurrence',
+        'availabilityPoll',
+        'availabilityOptions.votes',
+        'venueDetail',
+        'onlineDetail',
+        'groupLinks',
+        'participantInvites',
+        'audienceInvites.user.profile',
+    ];
+
     protected $fillable = [
         'user_id',
         'event_category_id',

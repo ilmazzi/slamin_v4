@@ -1,6 +1,12 @@
 import { useCallback, useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { listContentPublicationSettings, updateContentPublicationSetting } from '../../app/api/admin.js'
+import {
+  getMailSettings,
+  listContentPublicationSettings,
+  testMailSettings,
+  updateContentPublicationSetting,
+  updateMailSettings,
+} from '../../app/api/admin.js'
 import { getMediaSettings, testPeerTubeConnection, updateMediaSettings } from '../../app/api/media.js'
 import { useAuth } from '../../app/hooks/useAuth.js'
 import { useI18n } from '../../app/hooks/useI18n.js'
@@ -49,14 +55,32 @@ function formFromSettings(settings) {
   }
 }
 
+function smtpFormFromSettings(settings, defaultTestEmail = '') {
+  return {
+    enabled: Boolean(settings?.enabled),
+    host: settings?.host ?? '',
+    port: String(settings?.port ?? 587),
+    scheme: settings?.scheme ?? 'smtp',
+    username: settings?.username ?? '',
+    password: '',
+    password_set: Boolean(settings?.password_set),
+    from_address: settings?.from_address ?? '',
+    from_name: settings?.from_name ?? '',
+    test_email: defaultTestEmail,
+  }
+}
+
 export default function AdminSettingsPage() {
   const { t } = useI18n()
-  const { token } = useAuth()
+  const { token, user } = useAuth()
   const [form, setForm] = useState(() => formFromSettings(null))
+  const [smtpForm, setSmtpForm] = useState(() => smtpFormFromSettings(null))
   const [publicationSettings, setPublicationSettings] = useState([])
   const [isLoading, setIsLoading] = useState(true)
   const [isSaving, setIsSaving] = useState(false)
   const [isSavingModeration, setIsSavingModeration] = useState(false)
+  const [isSavingMail, setIsSavingMail] = useState(false)
+  const [isTestingMail, setIsTestingMail] = useState(false)
   const [isTesting, setIsTesting] = useState(false)
   const [error, setError] = useState('')
   const [message, setMessage] = useState('')
@@ -85,6 +109,23 @@ export default function AdminSettingsPage() {
     return payload
   }
 
+  const buildSmtpPayload = () => {
+    const payload = {
+      enabled: Boolean(smtpForm.enabled),
+      host: toNullable(smtpForm.host),
+      port: toInt(smtpForm.port, 587),
+      scheme: smtpForm.scheme || null,
+      username: toNullable(smtpForm.username),
+      from_address: toNullable(smtpForm.from_address),
+      from_name: toNullable(smtpForm.from_name),
+    }
+
+    const password = String(smtpForm.password ?? '')
+    if (password) payload.password = password
+
+    return payload
+  }
+
   const loadSettings = useCallback(async () => {
     if (!token) {
       return
@@ -94,18 +135,20 @@ export default function AdminSettingsPage() {
     setError('')
 
     try {
-      const [settings, publication] = await Promise.all([
+      const [settings, publication, mailSettings] = await Promise.all([
         getMediaSettings({ token }),
         listContentPublicationSettings({ token }),
+        getMailSettings({ token }),
       ])
       setForm(formFromSettings(settings))
       setPublicationSettings(publication)
+      setSmtpForm(smtpFormFromSettings(mailSettings, user?.email ?? ''))
     } catch (loadError) {
       setError(loadError?.message || t('admin.settings.load_error'))
     } finally {
       setIsLoading(false)
     }
-  }, [token, t])
+  }, [token, t, user?.email])
 
   useEffect(() => {
     loadSettings()
@@ -117,6 +160,58 @@ export default function AdminSettingsPage() {
       ...current,
       [name]: type === 'checkbox' ? checked : value,
     }))
+  }
+
+  const onSmtpFieldChange = (event) => {
+    const { name, value, type, checked } = event.target
+    setSmtpForm((current) => ({
+      ...current,
+      [name]: type === 'checkbox' ? checked : value,
+    }))
+  }
+
+  const handleSaveMail = async (event) => {
+    event.preventDefault()
+    if (!token) return
+
+    setIsSavingMail(true)
+    setError('')
+    setMessage('')
+
+    try {
+      const settings = await updateMailSettings(buildSmtpPayload(), { token })
+      setSmtpForm((current) => ({
+        ...smtpFormFromSettings(settings, current.test_email),
+        test_email: current.test_email,
+      }))
+      setMessage(t('admin.settings.smtp_saved'))
+    } catch (saveError) {
+      setError(saveError?.message || t('admin.settings.smtp_save_error'))
+    } finally {
+      setIsSavingMail(false)
+    }
+  }
+
+  const handleTestMail = async () => {
+    if (!token || !smtpForm.test_email) return
+
+    setIsTestingMail(true)
+    setError('')
+    setMessage('')
+
+    try {
+      const settings = await updateMailSettings(buildSmtpPayload(), { token })
+      setSmtpForm((current) => ({
+        ...smtpFormFromSettings(settings, current.test_email),
+        test_email: current.test_email,
+      }))
+      await testMailSettings(smtpForm.test_email, { token })
+      setMessage(t('admin.settings.smtp_test_sent'))
+    } catch (testError) {
+      setError(testError?.message || t('admin.settings.smtp_test_error'))
+    } finally {
+      setIsTestingMail(false)
+    }
   }
 
   const handleSubmit = async (event) => {
@@ -270,6 +365,137 @@ export default function AdminSettingsPage() {
             <div className={styles.cardActions}>
               <button type="submit" disabled={isLoading || isSavingModeration || publicationSettings.length === 0}>
                 {isSavingModeration ? t('admin.settings.saving') : t('admin.settings.moderation_save')}
+              </button>
+            </div>
+          </section>
+        </form>
+
+        <form className={styles.form} onSubmit={handleSaveMail}>
+          <section className={styles.card}>
+            <h2>{t('admin.settings.smtp_title')}</h2>
+            <p className={styles.help}>{t('admin.settings.smtp_help')}</p>
+
+            <label className={styles.check}>
+              <input
+                type="checkbox"
+                name="enabled"
+                checked={smtpForm.enabled}
+                onChange={onSmtpFieldChange}
+                disabled={isLoading || isSavingMail}
+              />
+              <span>{t('admin.settings.smtp_enabled')}</span>
+            </label>
+
+            <div className={styles.grid}>
+              <label className={`${styles.field} ${styles.full}`}>
+                <span>{t('admin.settings.smtp_host')}</span>
+                <input
+                  name="host"
+                  value={smtpForm.host}
+                  onChange={onSmtpFieldChange}
+                  placeholder="smtp.example.com"
+                  required={smtpForm.enabled}
+                  disabled={isLoading || isSavingMail}
+                />
+              </label>
+
+              <label className={styles.field}>
+                <span>{t('admin.settings.smtp_port')}</span>
+                <input
+                  name="port"
+                  type="number"
+                  min="1"
+                  max="65535"
+                  value={smtpForm.port}
+                  onChange={onSmtpFieldChange}
+                  required={smtpForm.enabled}
+                  disabled={isLoading || isSavingMail}
+                />
+              </label>
+
+              <label className={styles.field}>
+                <span>{t('admin.settings.smtp_scheme')}</span>
+                <select
+                  name="scheme"
+                  value={smtpForm.scheme}
+                  onChange={onSmtpFieldChange}
+                  disabled={isLoading || isSavingMail}
+                >
+                  <option value="smtp">{t('admin.settings.smtp_scheme_starttls')}</option>
+                  <option value="smtps">{t('admin.settings.smtp_scheme_smtps')}</option>
+                </select>
+              </label>
+
+              <label className={styles.field}>
+                <span>{t('admin.settings.smtp_username')}</span>
+                <input
+                  name="username"
+                  value={smtpForm.username}
+                  onChange={onSmtpFieldChange}
+                  autoComplete="off"
+                  disabled={isLoading || isSavingMail}
+                />
+              </label>
+
+              <label className={styles.field}>
+                <span>{t('admin.settings.smtp_password')}</span>
+                <input
+                  name="password"
+                  type="password"
+                  value={smtpForm.password}
+                  onChange={onSmtpFieldChange}
+                  autoComplete="new-password"
+                  placeholder={t('admin.settings.password_placeholder')}
+                  disabled={isLoading || isSavingMail}
+                />
+                {smtpForm.password_set ? <small>{t('admin.settings.password_set')}</small> : null}
+              </label>
+
+              <label className={styles.field}>
+                <span>{t('admin.settings.smtp_from_address')}</span>
+                <input
+                  name="from_address"
+                  type="email"
+                  value={smtpForm.from_address}
+                  onChange={onSmtpFieldChange}
+                  required={smtpForm.enabled}
+                  disabled={isLoading || isSavingMail}
+                />
+              </label>
+
+              <label className={styles.field}>
+                <span>{t('admin.settings.smtp_from_name')}</span>
+                <input
+                  name="from_name"
+                  value={smtpForm.from_name}
+                  onChange={onSmtpFieldChange}
+                  disabled={isLoading || isSavingMail}
+                />
+              </label>
+
+              <label className={`${styles.field} ${styles.full}`}>
+                <span>{t('admin.settings.smtp_test_email')}</span>
+                <input
+                  name="test_email"
+                  type="email"
+                  value={smtpForm.test_email}
+                  onChange={onSmtpFieldChange}
+                  disabled={isLoading || isSavingMail || isTestingMail}
+                />
+              </label>
+            </div>
+
+            <div className={styles.cardActions}>
+              <button
+                type="button"
+                className={styles.secondary}
+                onClick={handleTestMail}
+                disabled={isLoading || isSavingMail || isTestingMail || !smtpForm.enabled || !smtpForm.test_email}
+              >
+                {isTestingMail ? t('admin.settings.smtp_testing') : t('admin.settings.smtp_test')}
+              </button>
+              <button type="submit" disabled={isLoading || isSavingMail}>
+                {isSavingMail ? t('admin.settings.saving') : t('admin.settings.smtp_save')}
               </button>
             </div>
           </section>

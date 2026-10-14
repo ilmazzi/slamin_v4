@@ -62,18 +62,30 @@ class DatabaseTranslationLoader implements Loader
      */
     private function loadGroup(string $locale, string $group): array
     {
+        $cacheKey = I18nCache::key('laravel.'.$locale.'.'.$group);
+
+        try {
+            $cached = Cache::get($cacheKey);
+        } catch (Throwable) {
+            $cached = null;
+        }
+
+        if (is_array($cached)) {
+            return $cached;
+        }
+
         if (! $this->databaseReady()) {
             return [];
         }
 
-        $defaultLocale = $this->defaultLocale();
-        $cacheKey = I18nCache::key('laravel.'.$locale.'.'.$group);
+        $translations = $this->buildGroup($locale, $group, $this->defaultLocale());
 
         try {
-            return Cache::remember($cacheKey, 3600, fn (): array => $this->buildGroup($locale, $group, $defaultLocale));
+            Cache::put($cacheKey, $translations, 3600);
         } catch (Throwable) {
-            return $this->buildGroup($locale, $group, $defaultLocale);
         }
+
+        return $translations;
     }
 
     /**

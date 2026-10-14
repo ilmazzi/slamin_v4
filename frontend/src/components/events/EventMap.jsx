@@ -3,10 +3,6 @@ import L from 'leaflet'
 import { MapContainer, Marker, useMapEvents } from 'react-leaflet'
 import OsmTileLayer from '../../app/maps/OsmTileLayer.jsx'
 import {
-  listAllPublicEvents,
-} from '../../app/api/events.js'
-import { normalizeEventsForUi } from '../../app/normalizers/event.js'
-import {
   DEFAULT_EVENT_MAP_CENTER,
   computeCenterFromEvents,
   matchesClientFilters,
@@ -179,13 +175,12 @@ function MapWheelZoomGuard() {
 
   return null
 }
-export default function EventMap() {
+export default function EventMap({ events: allEvents = [], isLoading = false, error = '' }) {
   const { t } = useI18n()
-  /** Elenco normalizzato (tutte le pagine API), filtrato in `events` lato client. */
-  const [allEvents, setAllEvents] = useState([])
-  const [center, setCenter] = useState(DEFAULT_CENTER)
-  const [isLoading, setIsLoading] = useState(true)
-  const [error, setError] = useState('')
+  const center = useMemo(
+    () => (allEvents.length ? computeCenterFromEvents(allEvents) : DEFAULT_CENTER),
+    [allEvents],
+  )
   const [selectedId, setSelectedId] = useState(null)
   const [selectedType, setSelectedType] = useState('')
   const [searchQuery, setSearchQuery] = useState('')
@@ -207,36 +202,6 @@ export default function EventMap() {
     const onResize = () => setIsMobile(window.innerWidth <= 768)
     window.addEventListener('resize', onResize)
     return () => window.removeEventListener('resize', onResize)
-  }, [])
-
-  useEffect(() => {
-    const controller = new AbortController()
-
-    async function loadMapEvents() {
-      setIsLoading(true)
-      setError('')
-
-      try {
-        const raw = await listAllPublicEvents({ signal: controller.signal })
-        const normalized = normalizeEventsForUi(raw)
-        setAllEvents(normalized)
-        setCenter(computeCenterFromEvents(normalized))
-      } catch (err) {
-        if (err?.name !== 'AbortError') {
-          setError('Impossibile caricare la mappa eventi.')
-          setAllEvents([])
-          setCenter(DEFAULT_CENTER)
-        }
-      } finally {
-        if (!controller.signal.aborted) {
-          setIsLoading(false)
-        }
-      }
-    }
-
-    loadMapEvents()
-
-    return () => controller.abort()
   }, [])
 
   const events = useMemo(

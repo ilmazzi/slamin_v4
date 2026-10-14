@@ -1,0 +1,54 @@
+.page {
+  min-height: 65vh;
+  display: grid;
+  place-items: center;
+  padding: 48px var(--page-inline-padding) 72px;
+}
+
+.card {
+  width: min(100%, 560px);
+  display: grid;
+  gap: 18px;
+  padding: 32px;
+  border: 1px solid var(--color-border);
+  border-radius: 20px;
+  background: var(--color-white);
+  text-align: center;
+}
+
+.card h1,
+.card p {
+  margin: 0;
+}
+
+.message {
+  color: #0f7a3f;
+}
+
+.error {
+  color: #8f1f1f;
+}
+
+.actions {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+}
+
+.actions button,
+.actions a {
+  border: 0;
+  border-radius: 999px;
+  background: var(--color-black);
+  color: var(--color-white);
+  padding: 12px 18px;
+  font: inherit;
+  font-weight: 700;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.actions button:disabled {
+  opacity: 0.5;
+  cursor: wait;
+}

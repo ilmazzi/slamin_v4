@@ -64,7 +64,7 @@ export function RegisterPage() {
       }
 
       await login(data.token, data.user)
-      navigate('/dashboard', { replace: true })
+      navigate('/verify-email', { replace: true })
     } catch {
       setErrorMessage(t('common.no_results'))
     } finally {

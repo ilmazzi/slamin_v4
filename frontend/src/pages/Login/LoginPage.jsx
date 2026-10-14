@@ -79,7 +79,7 @@ export function LoginPage() {
       }
 
       await login(token, user)
-      navigate('/dashboard', { replace: true })
+      navigate(user.email_verified || user.email_verified_at ? '/dashboard' : '/verify-email', { replace: true })
     } catch {
       setErrorMessage(t('common.no_results'))
     } finally {

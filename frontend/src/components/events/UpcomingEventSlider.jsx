@@ -9,12 +9,17 @@ import styles from './UpcomingSlider.module.css'
 const DESKTOP_BREAKPOINT = 1024
 const UPCOMING_PER_PAGE = 9
 
-export default function UpcomingEventSlider() {
+export default function UpcomingEventSlider({
+  events: providedEvents = null,
+  isLoading: providedLoading = false,
+  error: providedError = '',
+}) {
   const { t, locale } = useI18n()
   const { token } = useAuth()
-  const [events, setEvents] = useState([])
-  const [isLoading, setIsLoading] = useState(true)
-  const [error, setError] = useState('')
+  const hasProvidedEvents = Array.isArray(providedEvents)
+  const [fetchedEvents, setFetchedEvents] = useState([])
+  const [fetchLoading, setFetchLoading] = useState(!hasProvidedEvents)
+  const [fetchError, setFetchError] = useState('')
   const [slideStart, setSlideStart] = useState(0)
   const [isDesktop, setIsDesktop] = useState(
     typeof window !== 'undefined' ? window.innerWidth >= DESKTOP_BREAKPOINT : true,
@@ -29,11 +34,13 @@ export default function UpcomingEventSlider() {
   }, [])
 
   useEffect(() => {
+    if (hasProvidedEvents) return undefined
+
     const controller = new AbortController()
 
     async function loadUpcoming() {
-      setIsLoading(true)
-      setError('')
+      setFetchLoading(true)
+      setFetchError('')
 
       try {
         const { items: raw } = await listEvents(
@@ -41,22 +48,26 @@ export default function UpcomingEventSlider() {
           { signal: controller.signal },
         )
         const normalized = normalizeEventsForUi(raw)
-        setEvents(normalized)
+        setFetchedEvents(normalized)
       } catch (err) {
         if (err?.name !== 'AbortError') {
-          setError(t('common.no_results'))
-          setEvents([])
+          setFetchError(t('common.no_results'))
+          setFetchedEvents([])
         }
       } finally {
         if (!controller.signal.aborted) {
-          setIsLoading(false)
+          setFetchLoading(false)
         }
       }
     }
 
     loadUpcoming()
     return () => controller.abort()
-  }, [t, token])
+  }, [hasProvidedEvents, t, token])
+
+  const events = hasProvidedEvents ? providedEvents : fetchedEvents
+  const isLoading = hasProvidedEvents ? providedLoading : fetchLoading
+  const error = hasProvidedEvents ? providedError : fetchError
 
   const cardsPerView = isDesktop ? 3 : 1
   const maxSlideStart = Math.max(0, events.length - cardsPerView)

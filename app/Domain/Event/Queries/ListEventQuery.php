@@ -13,14 +13,9 @@ class ListEventQuery
     {
         $query = Event::query()
             ->with([
-                'user.profile',
                 'category.translations',
-                'festival',
                 'occurrences',
-                'availabilityPoll',
-                'availabilityOptions.votes',
                 'venueDetail',
-                'onlineDetail',
             ])
             ->where('status', EventStatus::Published)
             ->where('is_public', true)

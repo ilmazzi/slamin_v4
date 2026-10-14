@@ -17,7 +17,9 @@ class ChatThreadResource extends JsonResource
             ? $this->members->firstWhere('id', '!=', $currentUserId)
             : null;
         $lastReadAt = $currentMember instanceof ChatThreadMember ? $currentMember->last_read_at : null;
-        $unreadCount = $this->relationLoaded('messages')
+        $unreadCount = array_key_exists('unread_count', $this->resource->getAttributes())
+            ? (int) $this->unread_count
+            : ($this->relationLoaded('messages')
             ? $this->messages
                 ->where('user_id', '!=', $currentUserId)
                 ->filter(fn ($message) => $lastReadAt === null || $message->created_at?->gt($lastReadAt))
@@ -25,7 +27,7 @@ class ChatThreadResource extends JsonResource
             : $this->messages()
                 ->where('user_id', '!=', $currentUserId)
                 ->when($lastReadAt, fn ($query) => $query->where('created_at', '>', $lastReadAt))
-                ->count();
+                ->count());
 
         return [
             'id' => $this->id,

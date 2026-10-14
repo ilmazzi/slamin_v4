@@ -10,16 +10,7 @@ class ListMyEventQuery
     public function execute(int $userId, int $perPage = 10): LengthAwarePaginator
     {
         return Event::query()
-            ->with([
-                'user.profile',
-                'category.translations',
-                'festival',
-                'occurrences',
-                'availabilityPoll',
-                'availabilityOptions.votes',
-                'venueDetail',
-                'onlineDetail',
-            ])
+            ->with(Event::RESOURCE_RELATIONS)
             ->withEngagement($userId)
             ->where(function ($query) use ($userId): void {
                 $query

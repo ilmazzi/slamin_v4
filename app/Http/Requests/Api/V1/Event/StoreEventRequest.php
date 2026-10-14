@@ -349,19 +349,29 @@ class StoreEventRequest extends FormRequest
                     $groupIds = [];
                 }
 
+                $numericGroupIds = collect($groupIds)
+                    ->filter(fn ($groupId): bool => is_numeric($groupId))
+                    ->map(fn ($groupId): int => (int) $groupId)
+                    ->unique()
+                    ->values();
+
+                $manageableGroupIds = $numericGroupIds->isEmpty()
+                    ? collect()
+                    : GroupMember::query()
+                        ->whereIn('group_id', $numericGroupIds->all())
+                        ->where('user_id', $this->user()->id)
+                        ->where('status', GroupMemberStatus::Active)
+                        ->whereIn('role', [
+                            GroupMemberRole::Owner,
+                            GroupMemberRole::Admin,
+                            GroupMemberRole::Moderator,
+                        ])
+                        ->pluck('group_id')
+                        ->map(fn ($groupId): int => (int) $groupId);
+
                 $invalidGroupIds = collect($groupIds)
-                    ->filter(function ($groupId): bool {
-                        return ! GroupMember::query()
-                            ->where('group_id', $groupId)
-                            ->where('user_id', $this->user()->id)
-                            ->where('status', GroupMemberStatus::Active)
-                            ->whereIn('role', [
-                                GroupMemberRole::Owner,
-                                GroupMemberRole::Admin,
-                                GroupMemberRole::Moderator,
-                            ])
-                            ->exists();
-                    })
+                    ->filter(fn ($groupId): bool => ! is_numeric($groupId)
+                        || ! $manageableGroupIds->contains((int) $groupId))
                     ->values();
 
                 if ($invalidGroupIds->isNotEmpty()) {

@@ -55,6 +55,8 @@ export function normalizeSessionUser(apiUser) {
     id: apiUser.id ?? apiUser.public_id,
     public_id: apiUser.public_id,
     email: apiUser.email,
+    email_verified_at: apiUser.email_verified_at ?? null,
+    email_verified: Boolean(apiUser.email_verified ?? apiUser.email_verified_at),
     status: apiUser.status,
     roles: Array.isArray(apiUser.roles) ? apiUser.roles : [],
     name: nickname || displayName || apiUser.email || '',

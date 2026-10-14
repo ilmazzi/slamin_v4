@@ -14,7 +14,7 @@ class SyncPoetrySlamEntriesFromEventAction
     public function execute(PoetrySlam $poetrySlam): Collection
     {
         $poetrySlam->loadMissing([
-            'event.participantInvites.user',
+            'event.participantInvites.user.profile',
             'entries',
         ]);
 

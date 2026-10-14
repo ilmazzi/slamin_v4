@@ -1,17 +1,21 @@
 <?php
 
+use App\Http\Resources\Api\V1\Event\EventSummaryResource;
 use App\Mail\EventExternalAudienceInviteMail;
 use App\Mail\EventExternalParticipantInviteMail;
 use Domain\Engagement\Models\Bookmark;
 use Domain\Engagement\Models\Like;
+use Domain\Event\DTOs\ListEventData;
 use Domain\Event\Models\Event;
 use Domain\Event\Models\EventAudienceInvite;
 use Domain\Event\Models\EventAvailabilityOption;
 use Domain\Event\Models\EventCategory;
 use Domain\Event\Models\EventParticipantInvite;
+use Domain\Event\Queries\ListEventQuery;
 use Domain\User\Models\Role;
 use Domain\User\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
 use Laravel\Sanctum\Sanctum;
 
@@ -154,6 +158,55 @@ it('lists only published public events and supports owner-only draft view on sho
         ->assertOk()
         ->assertJsonPath('data.event.slug', 'evento-privato')
         ->assertJsonPath('data.event.is_owner', true);
+});
+
+it('uses a bounded query count and does not expose invitations in the public event list', function () {
+    $owner = eventWorkflowOrganizer();
+    $category = eventWorkflowCategory();
+
+    foreach (range(1, 5) as $index) {
+        $event = Event::query()->create([
+            'user_id' => $owner->id,
+            'event_category_id' => $category->id,
+            'title' => "Evento {$index}",
+            'slug' => "evento-{$index}",
+            'description' => 'Pubblico',
+            'schedule_mode' => 'fixed',
+            'delivery_mode' => 'online',
+            'status' => 'published',
+            'is_public' => true,
+            'published_at' => now(),
+        ]);
+
+        $event->participantInvites()->create([
+            'invite_type' => 'external',
+            'name' => 'Private guest',
+            'email' => "private-{$index}@example.test",
+            'role' => 'artist',
+            'status' => 'pending',
+        ]);
+    }
+
+    $queryCount = 0;
+    DB::listen(function () use (&$queryCount): void {
+        $queryCount++;
+    });
+
+    $events = app(ListEventQuery::class)->execute(new ListEventData(10, null, null));
+    EventSummaryResource::collection($events->items())->resolve();
+
+    expect($queryCount)->toBeLessThanOrEqual(6);
+
+    $this->getJson('/api/v1/events')
+        ->assertOk()
+        ->assertJsonMissingPath('data.0.participant_invites')
+        ->assertJsonMissing(['email' => 'private-1@example.test']);
+
+    $this->getJson('/api/v1/events/evento-1')
+        ->assertOk()
+        ->assertJsonMissingPath('data.event.participant_invites')
+        ->assertJsonMissingPath('data.event.audience_invites')
+        ->assertJsonMissing(['email' => 'private-1@example.test']);
 });
 
 it('allows invited users to vote and unvote availability options', function () {

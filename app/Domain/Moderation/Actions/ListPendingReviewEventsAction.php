@@ -11,14 +11,7 @@ class ListPendingReviewEventsAction
     public function execute(int $perPage = 10): LengthAwarePaginator
     {
         return Event::query()
-            ->with([
-                'user.profile',
-                'category.translations',
-                'festival',
-                'occurrences',
-                'venueDetail',
-                'onlineDetail',
-            ])
+            ->with(Event::RESOURCE_RELATIONS)
             ->where('status', EventStatus::PendingReview)
             ->orderByDesc('updated_at')
             ->orderByDesc('created_at')

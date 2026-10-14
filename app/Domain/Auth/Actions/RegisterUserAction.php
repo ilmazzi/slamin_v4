@@ -7,12 +7,13 @@ use Domain\User\Models\User;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Throwable;
 
 class RegisterUserAction
 {
     public function execute(RegisterUserData $data): array
     {
-        return DB::transaction(function () use ($data): array {
+        $result = DB::transaction(function () use ($data): array {
             $user = User::create([
                 'email' => $data->email,
                 'password' => Hash::make($data->password),
@@ -24,8 +25,6 @@ class RegisterUserAction
                 'display_name' => $data->displayName,
                 'preferred_locale' => $data->preferredLocale,
             ]);
-
-            event(new Registered($user));
 
             $token = $user->createToken('auth_token')->plainTextToken;
 
@@ -57,5 +56,13 @@ class RegisterUserAction
                 'user' => $user,
             ];
         });
+
+        try {
+            event(new Registered($result['user']));
+        } catch (Throwable $exception) {
+            report($exception);
+        }
+
+        return $result;
     }
 }
