@@ -28,7 +28,7 @@ class RenderEventShareCardAction
         $primary = $event->occurrences->firstWhere('is_primary', true) ?? $event->occurrences->first();
 
         $cacheKey = sprintf(
-            'event-share-card:v3:%d:%s:%s:%s:%s:%s',
+            'event-share-card:v4:%d:%s:%s:%s:%s:%s',
             $event->id,
             $event->updated_at?->timestamp ?? 0,
             $event->user?->profile?->updated_at?->timestamp ?? 0,

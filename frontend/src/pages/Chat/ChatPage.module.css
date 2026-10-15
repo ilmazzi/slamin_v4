@@ -283,16 +283,19 @@
 }
 
 .bubble {
+  align-self: flex-start;
   max-width: min(640px, 90%);
   padding: 10px 14px;
+  border: 1px solid color-mix(in srgb, var(--color-red) 28%, #fff);
   border-radius: 16px;
-  background: #f3f3f3;
+  background: color-mix(in srgb, var(--color-red) 10%, #fff);
+  color: #000;
 }
 
 .bubbleMine {
   align-self: flex-end;
-  background: #000;
-  color: #fff;
+  border-color: #e5e4e7;
+  background: #fff;
 }
 
 .bubbleHead {

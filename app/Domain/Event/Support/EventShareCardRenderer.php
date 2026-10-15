@@ -76,12 +76,12 @@ class EventShareCardRenderer
         $placeLine = $this->placeLine($event);
         $bubble = $this->measureMark($semibold, $regular, $organizer, $placeLine);
 
-        if ($cover instanceof GdImage) {
-            $this->drawCover($image, $cover, 0, 0, self::SIZE, self::IMAGE_HEIGHT);
-        }
+        $coverBox = $cover instanceof GdImage
+            ? $this->drawCover($image, $cover, 0, 0, self::SIZE, self::IMAGE_HEIGHT)
+            : null;
 
-        $hasCover = $cover instanceof GdImage;
-        $titleTop = $hasCover ? self::IMAGE_HEIGHT + 48 : 96;
+        $hasCover = $coverBox !== null && $coverBox['height'] > 0;
+        $titleTop = $hasCover ? $coverBox['y'] + $coverBox['height'] + 48 : 96;
         $titleMaxBottom = min($bubble['y'] - 36, ShareCardLogo::destY(self::SIZE) - ShareCardLogo::TEXT_GAP);
         $titleMaxWidth = $hasCover
             ? max(420, self::SIZE - 136 - $bubble['width'])
@@ -147,30 +147,26 @@ class EventShareCardRenderer
         return $png;
     }
 
-    private function drawCover(GdImage $dest, GdImage $src, int $dx, int $dy, int $dw, int $dh): void
+    /**
+     * @return array{x: int, y: int, width: int, height: int}
+     */
+    private function drawCover(GdImage $dest, GdImage $src, int $boxX, int $boxY, int $boxW, int $boxH): array
     {
         $sw = imagesx($src);
         $sh = imagesy($src);
-        if ($sw < 1 || $sh < 1) {
-            return;
+        if ($sw < 1 || $sh < 1 || $boxW < 1 || $boxH < 1) {
+            return ['x' => $boxX, 'y' => $boxY, 'width' => 0, 'height' => 0];
         }
 
-        $srcAspect = $sw / $sh;
-        $dstAspect = $dw / $dh;
+        $scale = min($boxW / $sw, $boxH / $sh);
+        $dw = max(1, (int) round($sw * $scale));
+        $dh = max(1, (int) round($sh * $scale));
+        $dx = $boxX + (int) round(($boxW - $dw) / 2);
+        $dy = $boxY;
 
-        if ($srcAspect > $dstAspect) {
-            $cropH = $sh;
-            $cropW = (int) round($sh * $dstAspect);
-            $srcX = (int) (($sw - $cropW) / 2);
-            $srcY = 0;
-        } else {
-            $cropW = $sw;
-            $cropH = (int) round($sw / $dstAspect);
-            $srcX = 0;
-            $srcY = (int) (($sh - $cropH) / 2);
-        }
+        imagecopyresampled($dest, $src, $dx, $dy, 0, 0, $dw, $dh, $sw, $sh);
 
-        imagecopyresampled($dest, $src, $dx, $dy, $srcX, $srcY, $dw, $dh, max(1, $cropW), max(1, $cropH));
+        return ['x' => $dx, 'y' => $dy, 'width' => $dw, 'height' => $dh];
     }
 
     private function loadCover(?string $path): ?GdImage

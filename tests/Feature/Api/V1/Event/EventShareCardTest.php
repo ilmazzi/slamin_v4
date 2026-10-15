@@ -142,6 +142,39 @@ it('renders the cover image when the event has one', function () {
         ->and($mark & 0xFF)->toBeLessThan(40);
 });
 
+it('fits a portrait cover without cropping it', function () {
+    Storage::fake('public');
+
+    $canvas = imagecreatetruecolor(400, 800);
+    imagefilledrectangle($canvas, 0, 0, 400, 800, imagecolorallocate($canvas, 220, 40, 40));
+    ob_start();
+    imagejpeg($canvas, null, 90);
+    $jpeg = (string) ob_get_clean();
+    imagedestroy($canvas);
+    Storage::disk('public')->put('events/locandina-verticale.jpg', $jpeg);
+
+    $event = publishedShareEvent(eventShareAuthor(), [
+        'slug' => 'slam-locandina-verticale',
+        'cover_image_path' => 'events/locandina-verticale.jpg',
+    ]);
+
+    $response = $this->get("/share/events/{$event->slug}/card.png");
+    $response->assertOk()->assertHeader('Content-Type', 'image/png');
+
+    $rendered = imagecreatefromstring($response->getContent());
+    expect($rendered)->toBeInstanceOf(GdImage::class);
+
+    $center = imagecolorat($rendered, 540, 80);
+    $gutter = imagecolorat($rendered, 24, 80);
+    imagedestroy($rendered);
+
+    expect(($center >> 16) & 0xFF)->toBeGreaterThan(180)
+        ->and(($center >> 8) & 0xFF)->toBeLessThan(80);
+
+    expect(($gutter >> 16) & 0xFF)->toBeLessThan(180)
+        ->and(($gutter >> 8) & 0xFF)->toBeGreaterThan(180);
+});
+
 it('exposes the same png on the public api share-card route', function () {
     $event = publishedShareEvent(eventShareAuthor());
 
