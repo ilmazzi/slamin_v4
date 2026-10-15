@@ -97,4 +97,14 @@ return [
         'saturday' => 'Sabato',
         'sunday' => 'Domenica',
     ],
+    'share_panel' => [
+        'title' => 'Condividi',
+        'close' => 'Chiudi',
+        'email' => 'Email',
+        'copy_link' => 'Copia link',
+        'copied' => 'Link copiato',
+        'download_image' => 'Scarica immagine',
+        'download_hint' => 'Per Instagram e le storie',
+        'download_failed' => 'Impossibile scaricare l\'immagine',
+    ],
 ];

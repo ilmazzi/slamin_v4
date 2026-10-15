@@ -168,6 +168,7 @@ export default function App() {
             }
           />
           <Route path="/articles/:slug" element={<ArticleDetailPage />} />
+          <Route path="/share/articles/:slug" element={<ShareContentRedirect toBase="/articles" />} />
           <Route
             path="/gigs"
             element={
@@ -234,6 +235,7 @@ export default function App() {
             }
           />
           <Route path="/media/:mediaId" element={<MediaDetailPage />} />
+          <Route path="/share/media/:slug" element={<ShareContentRedirect toBase="/media" />} />
           <Route
             path="/profile"
             element={

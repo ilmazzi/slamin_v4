@@ -1,0 +1,235 @@
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: rgb(0 0 0 / 0.4);
+  cursor: default;
+}
+
+.panel {
+  width: min(460px, 100%);
+  max-height: 100%;
+  overflow-y: auto;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  padding: 26px;
+  border-radius: 20px;
+  background: #fff;
+  color: #000;
+  font-family: 'Switzer', sans-serif;
+  text-align: left;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.title {
+  margin: 0;
+  font-size: 26px;
+  line-height: 1.1;
+  font-weight: 700;
+}
+
+.close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border: 0;
+  border-radius: 999px;
+  background: #f1f1f1;
+  color: #000;
+  cursor: pointer;
+}
+
+.close svg {
+  width: 20px;
+  height: 20px;
+}
+
+.subject {
+  margin: -8px 0 0;
+  font-size: 15px;
+  line-height: 1.35;
+  font-weight: 300;
+  color: rgb(0 0 0 / 0.75);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.targets {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.target {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  color: #000;
+  text-decoration: none;
+}
+
+.targetIcon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 52px;
+  height: 52px;
+  border-radius: 999px;
+  background: var(--share-target-color, #000);
+  color: #fff;
+  transition: transform 0.15s ease;
+}
+
+.target:hover .targetIcon,
+.target:focus-visible .targetIcon {
+  transform: scale(1.06);
+}
+
+.targetIcon svg {
+  width: 24px;
+  height: 24px;
+}
+
+.glyph {
+  font-size: 22px;
+  line-height: 1;
+  font-weight: 800;
+}
+
+.targetLabel {
+  font-size: 13px;
+  line-height: 1.2;
+}
+
+.whatsapp {
+  --share-target-color: #25d366;
+}
+
+.telegram {
+  --share-target-color: #229ed9;
+}
+
+.facebook {
+  --share-target-color: #1877f2;
+}
+
+.x {
+  --share-target-color: #000;
+}
+
+.linkedin {
+  --share-target-color: #0a66c2;
+}
+
+.email {
+  --share-target-color: #6574de;
+}
+
+.linkRow {
+  display: flex;
+  gap: 8px;
+}
+
+.linkInput {
+  flex: 1 1 auto;
+  min-width: 0;
+  box-sizing: border-box;
+  padding: 10px 14px;
+  border: 1px solid #d0d0d0;
+  border-radius: 999px;
+  font: inherit;
+  font-size: 13px;
+  color: rgb(0 0 0 / 0.8);
+}
+
+.copyButton,
+.downloadButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  border: 0;
+  font: inherit;
+  cursor: pointer;
+}
+
+.copyButton {
+  flex: 0 0 auto;
+  padding: 10px 16px;
+  border-radius: 999px;
+  background: #000;
+  color: #fff;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.copyButton svg,
+.downloadButton svg {
+  width: 18px;
+  height: 18px;
+  flex: 0 0 auto;
+}
+
+.downloadButton {
+  width: 100%;
+  padding: 12px 16px;
+  border: 1px solid #d0d0d0;
+  border-radius: 14px;
+  background: #fff;
+  color: #000;
+  text-align: left;
+}
+
+.downloadButton:disabled {
+  cursor: wait;
+  opacity: 0.7;
+}
+
+.downloadText {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.downloadText strong {
+  font-size: 14px;
+}
+
+.downloadText small {
+  font-size: 12px;
+  font-weight: 300;
+  color: rgb(0 0 0 / 0.65);
+}
+
+@media (max-width: 480px) {
+  .panel {
+    padding: 22px;
+    border-radius: 16px;
+  }
+
+  .linkRow {
+    flex-direction: column;
+  }
+
+  .copyButton {
+    justify-content: center;
+  }
+}
