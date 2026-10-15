@@ -12,8 +12,6 @@ use Illuminate\Support\Facades\DB;
 class StoreChatMessageAction
 {
     public function __construct(
-        private readonly NotifyChatMessageRecipientsAction $notifyChatMessageRecipientsAction,
-        private readonly NotifyChatMessageReplyAction $notifyChatMessageReplyAction,
         private readonly StoreChatMessageAttachmentsAction $storeChatMessageAttachmentsAction,
     ) {}
 
@@ -59,9 +57,6 @@ class StoreChatMessageAction
                     'source' => 'chat_message_store',
                 ],
             );
-
-            $this->notifyChatMessageRecipientsAction->execute($thread, $message);
-            $this->notifyChatMessageReplyAction->execute($message);
 
             $message->load(['user.profile', 'replyTo.user.profile', 'reactions.user.profile', 'attachments', 'thread.memberRecords']);
             ChatMessageSent::dispatch($message);

@@ -31,7 +31,7 @@ export function useNotifications({ token, userId, enabled = true }) {
     setStatus((current) => (current === 'ready' ? current : 'loading'))
 
     try {
-      const result = await listNotifications({ perPage: LIST_SIZE }, { token, signal: controller.signal })
+      const result = await listNotifications({ perPage: LIST_SIZE, unreadOnly: true }, { token, signal: controller.signal })
       setItems(result.items)
       listLoadedRef.current = true
       setStatus('ready')
@@ -118,22 +118,19 @@ export function useNotifications({ token, userId, enabled = true }) {
       return
     }
 
-    const readAt = new Date().toISOString()
-    setItems((current) => current.map((item) => (
-      item.id === notification.id ? { ...item, read_at: readAt } : item
-    )))
+    setItems((current) => current.filter((item) => item.id !== notification.id))
     setUnreadCount((count) => Math.max(0, count - 1))
 
     try {
       await markNotificationAsRead(notification.id, { token })
     } catch {
       refreshCount().catch(() => null)
+      loadList()
     }
-  }, [refreshCount, token])
+  }, [loadList, refreshCount, token])
 
   const markAllRead = useCallback(async () => {
-    const readAt = new Date().toISOString()
-    setItems((current) => current.map((item) => (item.read_at ? item : { ...item, read_at: readAt })))
+    setItems([])
     setUnreadCount(0)
 
     try {

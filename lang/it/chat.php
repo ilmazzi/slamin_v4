@@ -7,19 +7,6 @@ return [
         'cannot_remove_thread_creator' => 'Non puoi rimuovere il creatore della chat di gruppo.',
         'unknown_nickname' => 'Questo utente non esiste.',
     ],
-    'labels' => [
-        'group_chat_fallback' => 'Chat di gruppo',
-    ],
-    'notifications' => [
-        'direct_message_title' => 'Nuovo messaggio',
-        'direct_message_message' => ':user ti ha scritto in chat.',
-        'group_message_title' => 'Nuovo messaggio di gruppo',
-        'group_message_message' => ':user ha inviato un messaggio in ":thread".',
-        'reply_title' => 'Nuova risposta',
-        'reply_message' => ':user ha risposto a un tuo messaggio in ":thread".',
-        'reaction_title' => 'Nuova reazione',
-        'reaction_message' => ':user ha reagito al tuo messaggio con :emoji.',
-    ],
     'ui' => [
         'title' => 'Chat',
         'empty_threads' => 'Nessuna conversazione. Cerca un utente per iniziare.',

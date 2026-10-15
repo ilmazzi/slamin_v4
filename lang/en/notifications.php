@@ -7,7 +7,7 @@ return [
     'loading' => 'Loading…',
     'load_error' => 'Unable to load notifications.',
     'retry' => 'Retry',
-    'empty' => 'No notifications yet.',
+    'empty' => 'No unread notifications.',
     'unread' => 'Unread',
     'just_now' => 'Just now',
     'someone' => 'A user',

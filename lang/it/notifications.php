@@ -7,7 +7,7 @@ return [
     'loading' => 'Caricamento…',
     'load_error' => 'Impossibile caricare le notifiche.',
     'retry' => 'Riprova',
-    'empty' => 'Nessuna notifica per ora.',
+    'empty' => 'Nessuna notifica da leggere.',
     'unread' => 'Non letta',
     'just_now' => 'Adesso',
     'someone' => 'Un utente',

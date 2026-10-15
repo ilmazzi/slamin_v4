@@ -9,6 +9,7 @@ use Domain\Group\Enums\GroupVisibility;
 use Domain\Group\Models\Group;
 use Domain\Profile\Models\Profile;
 use Domain\User\Models\User;
+use Illuminate\Contracts\Broadcasting\ShouldBroadcastNow;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Broadcast;
@@ -96,7 +97,7 @@ it('sends direct messages and marks the thread as read', function () {
         ->assertJsonCount(1, 'data.messages')
         ->assertJsonPath('data.messages.0.content', 'Ciao, ci sei?');
 
-    $this->assertDatabaseHas('notifications', [
+    $this->assertDatabaseMissing('notifications', [
         'user_id' => $secondUser->id,
         'type' => 'chat_message_received',
     ]);
@@ -138,7 +139,7 @@ it('supports replies inside the same thread and notifies the original author', f
         ->assertJsonPath('data.message.reply_to.id', $originalMessageId)
         ->assertJsonPath('data.message.reply_to.content', 'Messaggio originale');
 
-    $this->assertDatabaseHas('notifications', [
+    $this->assertDatabaseMissing('notifications', [
         'user_id' => $firstUser->id,
         'type' => 'chat_message_replied',
     ]);
@@ -168,7 +169,7 @@ it('supports emoji reactions on chat messages', function () {
         ->assertJsonPath('data.message.reactions.0.count', 1)
         ->assertJsonPath('data.message.reactions.0.reacted_by_current_user', true);
 
-    $this->assertDatabaseHas('notifications', [
+    $this->assertDatabaseMissing('notifications', [
         'user_id' => $firstUser->id,
         'type' => 'chat_message_reacted',
     ]);
@@ -279,7 +280,7 @@ it('allows members of a free group chat to read and send messages', function () 
         ->assertCreated()
         ->assertJsonPath('data.message.content', 'Eccomi dentro la chat libera');
 
-    $this->assertDatabaseHas('notifications', [
+    $this->assertDatabaseMissing('notifications', [
         'user_id' => $owner->id,
         'type' => 'chat_message_received',
     ]);
@@ -464,7 +465,7 @@ it('adds active public joiners to the group chat thread', function () {
         ->assertCreated()
         ->assertJsonPath('data.message.content', 'Ciao gruppo!');
 
-    $this->assertDatabaseHas('notifications', [
+    $this->assertDatabaseMissing('notifications', [
         'user_id' => $owner->id,
         'type' => 'chat_message_received',
     ]);
@@ -528,7 +529,7 @@ it('dispatches a realtime event when a chat message is sent', function () {
 
         return (int) $event->message->chat_thread_id === (int) $threadId
             && $event->message->content === 'Realtime'
-            && $event instanceof \Illuminate\Contracts\Broadcasting\ShouldBroadcastNow
+            && $event instanceof ShouldBroadcastNow
             && $channels->contains('private-chat.'.$threadId)
             && $channels->contains('private-chat.user.'.$secondUser->id);
     });

@@ -10,10 +10,6 @@ use Illuminate\Support\Facades\DB;
 
 class StoreChatMessageReactionAction
 {
-    public function __construct(
-        private readonly NotifyChatMessageReactionAction $notifyChatMessageReactionAction,
-    ) {}
-
     public function execute(ChatMessage $message, int $userId, ManageChatMessageReactionData $data): ChatMessageReaction
     {
         return DB::transaction(function () use ($message, $userId, $data) {
@@ -37,7 +33,6 @@ class StoreChatMessageReactionAction
             );
 
             if ($reaction->wasRecentlyCreated) {
-                $this->notifyChatMessageReactionAction->execute($reaction);
                 ChatMessageUpdated::dispatch(
                     $message->load(['user.profile', 'replyTo.user.profile', 'reactions.user.profile', 'attachments']),
                 );

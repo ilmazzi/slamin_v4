@@ -75,10 +75,6 @@ export function notificationLink(notification) {
   if (data.gig_id) {
     return `/gigs/${data.gig_id}`
   }
-  if (data.chat_thread_id) {
-    return `/chat/${data.chat_thread_id}`
-  }
-
   const commentablePath = COMMENTABLE_PATHS[data.commentable_type]
   if (commentablePath && data.commentable_slug) {
     return `${commentablePath}/${encodeURIComponent(data.commentable_slug)}`

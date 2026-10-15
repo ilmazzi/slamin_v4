@@ -7,19 +7,6 @@ return [
         'cannot_remove_thread_creator' => 'You cannot remove the creator of the group chat.',
         'unknown_nickname' => 'This user does not exist.',
     ],
-    'labels' => [
-        'group_chat_fallback' => 'Group chat',
-    ],
-    'notifications' => [
-        'direct_message_title' => 'New message',
-        'direct_message_message' => ':user sent you a chat message.',
-        'group_message_title' => 'New group message',
-        'group_message_message' => ':user sent a message in ":thread".',
-        'reply_title' => 'New reply',
-        'reply_message' => ':user replied to one of your messages in ":thread".',
-        'reaction_title' => 'New reaction',
-        'reaction_message' => ':user reacted to your message with :emoji.',
-    ],
     'ui' => [
         'title' => 'Chat',
         'empty_threads' => 'No conversations yet. Search a user to start one.',
