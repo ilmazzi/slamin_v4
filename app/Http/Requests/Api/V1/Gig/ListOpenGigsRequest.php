@@ -18,6 +18,7 @@ class ListOpenGigsRequest extends FormRequest
         return [
             'q' => ['nullable', 'string', 'max:100'],
             'type' => ['nullable', Rule::enum(GigType::class)],
+            'event_id' => ['nullable', 'integer', 'min:1'],
             'sort' => ['nullable', Rule::in(['newest', 'oldest', 'deadline'])],
             'per_page' => ['nullable', 'integer', 'min:1', 'max:50'],
             'page' => ['nullable', 'integer', 'min:1'],

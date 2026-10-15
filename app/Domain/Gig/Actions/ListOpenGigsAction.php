@@ -22,6 +22,12 @@ class ListOpenGigsAction
             ->where('gigs.status', GigStatus::Open->value)
             ->withPublicParent();
 
+        if ($data->eventId !== null) {
+            $query
+                ->where('gigs.giggable_type', Event::class)
+                ->where('gigs.giggable_id', $data->eventId);
+        }
+
         if ($data->type !== null) {
             $query->where('gigs.type', $data->type->value);
         }

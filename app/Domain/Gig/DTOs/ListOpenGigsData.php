@@ -12,6 +12,7 @@ class ListOpenGigsData
         public readonly ?GigType $type,
         public readonly string $sort,
         public readonly int $perPage,
+        public readonly ?int $eventId = null,
     ) {}
 
     public static function fromRequest(ListOpenGigsRequest $request): self
@@ -24,6 +25,7 @@ class ListOpenGigsData
             type: $type ? GigType::from($type) : null,
             sort: (string) ($request->validated('sort') ?? 'newest'),
             perPage: (int) ($request->validated('per_page') ?? 10),
+            eventId: $request->validated('event_id') !== null ? (int) $request->validated('event_id') : null,
         );
     }
 }

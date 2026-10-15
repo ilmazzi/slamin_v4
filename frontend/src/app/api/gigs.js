@@ -10,12 +10,15 @@ function readPaginated(data, meta, key) {
 }
 
 export async function listOpenGigs(
-  { page = 1, perPage = 10, search = '', type = '', sort = 'newest' } = {},
+  { page = 1, perPage = 10, search = '', type = '', sort = 'newest', eventId = null } = {},
   { token, signal } = {},
 ) {
   const params = new URLSearchParams()
   params.set('page', String(page))
   params.set('per_page', String(perPage))
+  if (eventId) {
+    params.set('event_id', String(eventId))
+  }
   if (search) {
     params.set('q', String(search))
   }

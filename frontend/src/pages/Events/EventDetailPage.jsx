@@ -26,6 +26,7 @@ import { useContentFeedbackUi } from '../../app/hooks/useContentFeedbackUi.js'
 import { createEventReport } from '../../app/api/reports.js'
 import { scheduleScrollToComments } from '../../app/utils/scrollToComments.js'
 import HomeDashboardPromo from '../../components/home/HomeDashboardPromo.jsx'
+import EventGigsHighlight from '../../components/gigs/EventGigsHighlight.jsx'
 import {
   ArticleIcon,
   CalendarIcon,
@@ -396,6 +397,8 @@ function EventDetailContent({ t, locale, token, user, isAuthenticated }) {
                 </div>
               </div>
             </div>
+
+            <EventGigsHighlight eventId={event.id} token={token} t={t} locale={locale} />
 
             <div className={styles.middle}>
               <div className={styles.mapWrap}>

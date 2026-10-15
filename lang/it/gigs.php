@@ -105,6 +105,12 @@ return [
         'yes' => 'Sì',
         'no' => 'No',
     ],
+    'event_highlight' => [
+        'title_one' => '1 ingaggio aperto per questo evento',
+        'title_other' => ':count ingaggi aperti per questo evento',
+        'lead' => 'Scopri i dettagli e candidati.',
+        'all' => 'Vedi tutti gli ingaggi',
+    ],
     'detail' => [
         'not_found' => 'Ingaggio non disponibile.',
         'position' => 'Posizione richiesta',

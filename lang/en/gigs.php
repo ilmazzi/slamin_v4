@@ -105,6 +105,12 @@ return [
         'yes' => 'Yes',
         'no' => 'No',
     ],
+    'event_highlight' => [
+        'title_one' => '1 open gig for this event',
+        'title_other' => ':count open gigs for this event',
+        'lead' => 'Check the details and apply.',
+        'all' => 'See all gigs',
+    ],
     'detail' => [
         'not_found' => 'Gig not available.',
         'position' => 'Position',

@@ -134,6 +134,30 @@ it('filters, searches and paginates open gigs', function () {
         ->assertStatus(422);
 });
 
+it('filters open gigs by event without leaking hidden ones', function () {
+    $owner = catalogUser();
+    Sanctum::actingAs(catalogUser());
+
+    $event = catalogEvent($owner);
+    $openGig = catalogGig($event, ['type' => 'mc_host']);
+    catalogGig($event, ['status' => 'draft']);
+    catalogGig(catalogEvent($owner));
+    $privateEvent = catalogEvent($owner, ['is_public' => false]);
+    catalogGig($privateEvent);
+
+    $this->getJson(route('api.v1.gigs.open', ['event_id' => $event->id]))
+        ->assertOk()
+        ->assertJsonCount(1, 'data.gigs')
+        ->assertJsonPath('data.gigs.0.id', $openGig->id);
+
+    $this->getJson(route('api.v1.gigs.open', ['event_id' => $privateEvent->id]))
+        ->assertOk()
+        ->assertJsonCount(0, 'data.gigs');
+
+    $this->getJson(route('api.v1.gigs.open', ['event_id' => 'abc']))
+        ->assertStatus(422);
+});
+
 it('exposes the viewer application in the catalog', function () {
     $owner = catalogUser();
     $candidate = catalogUser();
