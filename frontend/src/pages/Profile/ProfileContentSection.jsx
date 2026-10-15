@@ -38,7 +38,7 @@ function SectionItems({ kind, items, t, locale }) {
     return (
       <div className={styles.grid}>
         {items.map((event) => (
-          <SlideCard key={event.id} {...eventSlideCardProps(normalizeEventForUi(event), { t, locale })} />
+          <SlideCard key={event.id} compact {...eventSlideCardProps(normalizeEventForUi(event), { t, locale })} />
         ))}
       </div>
     )
