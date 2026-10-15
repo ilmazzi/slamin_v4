@@ -1,8 +1,9 @@
 export const LOCALE_STORAGE_KEY = 'slamin.locale'
+export const DEFAULT_LOCALE = 'it'
 
 export function getClientLocale() {
   if (typeof window === 'undefined') {
-    return 'it'
+    return DEFAULT_LOCALE
   }
 
   const stored = String(window.localStorage.getItem(LOCALE_STORAGE_KEY) || '')
@@ -10,21 +11,7 @@ export function getClientLocale() {
     .toLowerCase()
     .slice(0, 10)
 
-  if (stored) {
-    return stored
-  }
-
-  const documentLocale = String(document.documentElement.lang || '')
-    .trim()
-    .toLowerCase()
-    .slice(0, 10)
-
-  const browserLocale = String(navigator.language || '')
-    .trim()
-    .toLowerCase()
-    .slice(0, 10)
-
-  return documentLocale || browserLocale || 'it'
+  return stored || DEFAULT_LOCALE
 }
 
 export function localeHeaders() {

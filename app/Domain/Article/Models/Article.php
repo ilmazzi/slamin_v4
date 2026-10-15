@@ -4,18 +4,22 @@ namespace Domain\Article\Models;
 
 use Domain\Article\Enums\ArticleStatus;
 use Domain\Comment\Models\Comment;
+use Domain\ContentTranslation\Concerns\HasContentTranslations;
+use Domain\ContentTranslation\Contracts\TranslatableContent;
 use Domain\Engagement\Models\Bookmark;
 use Domain\Engagement\Models\Like;
 use Domain\Moderation\Models\ModerationDecision;
 use Domain\Report\Models\Report;
 use Domain\User\Models\User;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
-class Article extends Model
+class Article extends Model implements TranslatableContent
 {
+    use HasContentTranslations;
     use SoftDeletes;
 
     protected $fillable = [
@@ -41,6 +45,19 @@ class Article extends Model
         'is_featured' => 'boolean',
         'featured_rank' => 'integer',
     ];
+
+    public function scopeVisibleTo(Builder $query, ?int $viewerId): Builder
+    {
+        return $query->where(function (Builder $query) use ($viewerId) {
+            $query->where(fn (Builder $query) => $query
+                ->where('status', ArticleStatus::Published)
+                ->where('is_public', true));
+
+            if ($viewerId) {
+                $query->orWhere('user_id', $viewerId);
+            }
+        });
+    }
 
     public function user(): BelongsTo
     {

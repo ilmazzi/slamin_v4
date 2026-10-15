@@ -1,6 +1,6 @@
 import { createContext, createElement, useContext, useEffect, useRef, useState } from 'react'
 import { getApiUrl } from '../api/url'
-import { getClientLocale, localeHeaders, LOCALE_STORAGE_KEY } from '../i18n/locale.js'
+import { DEFAULT_LOCALE, getClientLocale, localeHeaders, LOCALE_STORAGE_KEY } from '../i18n/locale.js'
 
 const resolveKeyPath = (source, key) => {
   return key.split('.').reduce((acc, part) => acc?.[part], source)
@@ -39,8 +39,8 @@ const I18nContext = createContext(null)
 function useI18nState() {
   const [locale, setLocale] = useState(getClientLocale)
   const [translations, setTranslations] = useState({})
-  const [fallbackLocale, setFallbackLocale] = useState('en')
-  const fallbackLocaleRef = useRef('en')
+  const [fallbackLocale, setFallbackLocale] = useState(DEFAULT_LOCALE)
+  const fallbackLocaleRef = useRef(DEFAULT_LOCALE)
   const [availableLocales, setAvailableLocales] = useState([])
 
   const getLocaleCode = (entry) => (typeof entry === 'string' ? entry : entry?.code)

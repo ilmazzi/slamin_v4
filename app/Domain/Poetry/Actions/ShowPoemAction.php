@@ -2,7 +2,6 @@
 
 namespace Domain\Poetry\Actions;
 
-use Domain\Poetry\Enums\PoemStatus;
 use Domain\Poetry\Models\Poem;
 
 class ShowPoemAction
@@ -13,20 +12,7 @@ class ShowPoemAction
             ->with(['user.profile', 'category.translations', 'type.translations'])
             ->withCount(['likes', 'bookmarks'])
             ->where('slug', $slug)
-            ->where(function ($query) use ($authUserId) {
-                if ($authUserId) {
-                    $query->where('user_id', $authUserId)
-                        ->orWhere(function ($query) {
-                            $query->where('status', PoemStatus::Published)
-                                ->where('is_public', true);
-                        });
-
-                    return;
-                }
-
-                $query->where('status', PoemStatus::Published)
-                    ->where('is_public', true);
-            });
+            ->visibleTo($authUserId);
 
         if ($authUserId) {
             $query->withExists([

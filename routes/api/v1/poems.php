@@ -32,6 +32,7 @@ use App\Http\Controllers\Api\V1\Poetry\AdminUpdatePoemCategoryController;
 use App\Http\Controllers\Api\V1\Poetry\AdminUpdatePoemTypeController;
 use App\Http\Controllers\Api\V1\Poetry\BookmarkPoemController;
 use App\Http\Controllers\Api\V1\Poetry\DeletePoemController;
+use App\Http\Controllers\Api\V1\Poetry\DeletePoemTranslationController;
 use App\Http\Controllers\Api\V1\Poetry\LikePoemController;
 use App\Http\Controllers\Api\V1\Poetry\ListFeaturedPoemsController;
 use App\Http\Controllers\Api\V1\Poetry\ListMyPoemsController;
@@ -40,10 +41,13 @@ use App\Http\Controllers\Api\V1\Poetry\ListPoemController;
 use App\Http\Controllers\Api\V1\Poetry\ListPoemTypesController;
 use App\Http\Controllers\Api\V1\Poetry\RemoveBookmarkPoemController;
 use App\Http\Controllers\Api\V1\Poetry\ShowPoemController;
+use App\Http\Controllers\Api\V1\Poetry\ShowPoemTranslationController;
 use App\Http\Controllers\Api\V1\Poetry\StorePoemController;
 use App\Http\Controllers\Api\V1\Poetry\UnlikePoemController;
 use App\Http\Controllers\Api\V1\Poetry\UpdatePoemController;
+use App\Http\Controllers\Api\V1\Poetry\UpsertPoemTranslationController;
 use App\Http\Controllers\Share\ShowPoemShareCardController;
+use Domain\ContentTranslation\Models\ContentTranslation;
 use Illuminate\Support\Facades\Route;
 
 /* Poem routes for poet organizer */
@@ -56,6 +60,12 @@ Route::middleware([
     Route::get('/my/poems', ListMyPoemsController::class)->name('poems.my');
     Route::patch('/poems/{poem}', UpdatePoemController::class)->name('poems.update');
     Route::delete('/poems/{poem}', DeletePoemController::class)->name('poems.delete');
+    Route::put('/poems/{poem}/translations/{locale}', UpsertPoemTranslationController::class)
+        ->where('locale', ContentTranslation::LOCALE_PATTERN)
+        ->name('poems.translations.upsert');
+    Route::delete('/poems/{poem}/translations/{locale}', DeletePoemTranslationController::class)
+        ->where('locale', ContentTranslation::LOCALE_PATTERN)
+        ->name('poems.translations.delete');
     Route::get('/poems/{poem}/translation-gigs', ListPoemTranslationGigsController::class)->name('api.v1.poems.translation-gigs.index');
     Route::post('/poems/{poem}/translation-gigs', StorePoemTranslationGigController::class)->name('api.v1.poems.translation-gigs.store');
     Route::patch('/poems/{poem}/translation-gigs/{gig}', UpdatePoemTranslationGigController::class)->name('api.v1.poems.translation-gigs.update');
@@ -113,6 +123,9 @@ Route::middleware([
 Route::get('/poems', ListPoemController::class)->name('poems.index');
 Route::get('/featured-poems', ListFeaturedPoemsController::class)->name('featured-poems.index');
 Route::get('/poems/{slug}/share-card', ShowPoemShareCardController::class)->name('poems.share-card');
+Route::get('/poems/{slug}/translations/{locale}', ShowPoemTranslationController::class)
+    ->where('locale', ContentTranslation::LOCALE_PATTERN)
+    ->name('poems.translations.show');
 Route::get('/poems/{slug}', ShowPoemController::class)->name('poems.show');
 Route::get('/poem-categories', ListPoemCategoriesController::class)->name('poem-categories.index');
 Route::get('/poem-types', ListPoemTypesController::class)->name('poem-types.index');

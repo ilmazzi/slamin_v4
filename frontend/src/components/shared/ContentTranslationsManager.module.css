@@ -1,0 +1,204 @@
+.manager {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  width: 100%;
+  box-sizing: border-box;
+  padding: 24px;
+  border: 1px solid #000;
+  border-radius: 20px;
+  background: #fff;
+  color: #000;
+  font-family: var(--font-family-sans);
+}
+
+.header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px 24px;
+}
+
+.title {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 800;
+}
+
+.lead {
+  margin: 6px 0 0;
+  max-width: 60ch;
+  font-size: 15px;
+  line-height: 1.4;
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  border-top: 1px solid #000;
+}
+
+.row {
+  display: grid;
+  grid-template-columns: minmax(110px, auto) minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 8px 16px;
+  padding: 12px 0;
+  border-bottom: 1px solid #000;
+}
+
+.rowLanguage {
+  font-weight: 800;
+}
+
+.rowTitle {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rowActions {
+  display: inline-flex;
+  gap: 14px;
+}
+
+.empty,
+.hint {
+  margin: 0;
+  font-size: 15px;
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.label {
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.fixedValue {
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.input {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 10px 14px;
+  border: 1px solid #000;
+  border-radius: 12px;
+  background: #fff;
+  color: #000;
+  font: inherit;
+  font-size: 16px;
+}
+
+.summary {
+  min-height: 90px;
+  resize: vertical;
+}
+
+.content {
+  min-height: 240px;
+  resize: vertical;
+  white-space: pre-wrap;
+}
+
+.formActions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+.primaryButton,
+.secondaryButton {
+  min-height: 42px;
+  padding: 8px 20px;
+  border: 1px solid #000;
+  border-radius: 999px;
+  font: inherit;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.primaryButton {
+  background: #000;
+  color: #fff;
+}
+
+.secondaryButton {
+  background: #fff;
+  color: #000;
+}
+
+.textButton {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  font-weight: 700;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+
+.primaryButton:disabled,
+.secondaryButton:disabled,
+.textButton:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+
+.input:focus-visible,
+.primaryButton:focus-visible,
+.secondaryButton:focus-visible,
+.textButton:focus-visible {
+  outline: 2px solid #000;
+  outline-offset: 2px;
+}
+
+.error,
+.notice {
+  margin: 0;
+  font-weight: 600;
+}
+
+.error {
+  color: #b00020;
+}
+
+@media (max-width: 600px) {
+  .manager {
+    padding: 18px;
+  }
+
+  .row {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+
+  .rowTitle {
+    grid-column: 1 / -1;
+    grid-row: 2;
+  }
+
+  .formActions > button {
+    flex: 1 1 auto;
+  }
+}

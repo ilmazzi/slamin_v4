@@ -2,16 +2,19 @@
 
 namespace App\Http\Resources\Api\V1\Article;
 
+use App\Http\Resources\Api\V1\ContentTranslation\ContentTranslationResource;
+use Domain\Article\Models\Article;
+use Illuminate\Filesystem\FilesystemAdapter;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 use Illuminate\Support\Facades\Storage;
 
-/** @mixin \Domain\Article\Models\Article */
+/** @mixin Article */
 class ArticleResource extends JsonResource
 {
     public function toArray(Request $request): array
     {
-        $disk = Storage::disk('public'); /** @var \Illuminate\Filesystem\FilesystemAdapter $disk */
+        $disk = Storage::disk('public'); /** @var FilesystemAdapter $disk */
 
         return [
             'id' => $this->id,
@@ -38,6 +41,12 @@ class ArticleResource extends JsonResource
             'views_count' => (int) ($this->views_count ?? 0),
             'is_liked' => (bool) ($this->is_liked ?? false),
             'is_bookmarked' => (bool) ($this->is_bookmarked ?? false),
+            'translations' => $this->whenLoaded('translations', fn () => $this->translations
+                ->map(fn ($translation) => ['locale' => $translation->locale, 'title' => $translation->title])
+                ->values()),
+            'translation' => $this->whenLoaded('currentTranslation', fn () => $this->currentTranslation
+                ? new ContentTranslationResource($this->currentTranslation)
+                : null),
             'author' => [
                 'id' => $this->user?->id,
                 'public_id' => $this->user?->public_id,

@@ -2,6 +2,7 @@
 
 namespace App\Http\Resources\Api\V1\Poetry;
 
+use App\Http\Resources\Api\V1\ContentTranslation\ContentTranslationResource;
 use Domain\Poetry\Enums\PoemStatus;
 use Domain\Poetry\Models\Poem;
 use Domain\Share\Support\SharePublicUrl;
@@ -64,6 +65,13 @@ class PoemResource extends JsonResource
             'views_count' => (int) ($this->views_count ?? 0),
             'is_liked' => (bool) ($this->is_liked ?? false),
             'is_bookmarked' => (bool) ($this->is_bookmarked ?? false),
+
+            'translations' => $this->whenLoaded('translations', fn () => $this->translations
+                ->map(fn ($translation) => ['locale' => $translation->locale, 'title' => $translation->title])
+                ->values()),
+            'translation' => $this->whenLoaded('currentTranslation', fn () => $this->currentTranslation
+                ? new ContentTranslationResource($this->currentTranslation)
+                : null),
 
             'author' => [
                 'id' => $this->user?->id,

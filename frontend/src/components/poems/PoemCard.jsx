@@ -6,12 +6,22 @@ import SocialActions from '../shared/SocialActions.jsx'
 import styles from './PoemCard.module.css'
 import { usePoemDetail } from '../../app/hooks/usePoemDetail.js'
 import { useMediaQuery } from '../../app/hooks/useMediaQuery.js'
+import { useAuth } from '../../app/hooks/useAuth.js'
+import {
+  useContentTranslationView,
+  withoutTranslation,
+  withSavedTranslation,
+} from '../../app/hooks/useContentTranslationView.js'
+import ContentLanguageSwitcher from '../shared/ContentLanguageSwitcher.jsx'
+import ContentTranslationsManager from '../shared/ContentTranslationsManager.jsx'
 import { useEffect } from 'react'
 
 export default function PoemCard({ slug, onComments, onLoaded }) {
   const { t, locale } = useI18n()
+  const { user } = useAuth()
   const isMobileStrip = useMediaQuery('(max-width: 768px)')
-  const { data: poem, isLoading, error } = usePoemDetail(slug)
+  const { data: poem, isLoading, error, setData } = usePoemDetail(slug)
+  const translationView = useContentTranslationView('poem', poem)
 
   useEffect(() => {
     if (poem) {
@@ -45,13 +55,19 @@ export default function PoemCard({ slug, onComments, onLoaded }) {
   const viewsCount = Number.isFinite(Number(poem?.views_count)) ? Number(poem.views_count) : 0
   const likesCount = Number.isFinite(Number(poem?.likes_count)) ? Number(poem.likes_count) : 0
   const commentsCount = Number.isFinite(Number(poem?.comments_count)) ? Number(poem.comments_count) : 0
+  const translation = translationView.translation
+  const displayTitle = translation?.title ?? poem.title
+  const displayContent = translation?.content ?? poem.content
+  const contentLang = translation?.locale ?? poem.language ?? undefined
+  const isOwner = Boolean(user?.id) && Number(user.id) === Number(poem?.author?.id)
 
   return (
     <section className={styles.poemCard}>
       <article className={styles.card}>
         <div className={styles.top}>
+          <ContentLanguageSwitcher item={poem} view={translationView} />
           <div className={styles.titleRow}>
-            <h1 className={styles.title}>&ldquo;{poem.title}&rdquo;</h1>
+            <h1 className={styles.title} lang={contentLang}>&ldquo;{displayTitle}&rdquo;</h1>
             <div className={styles.categoryColumn}>
               <span className={styles.categoryPill}>{categoryLabel}</span>
             </div>
@@ -64,10 +80,10 @@ export default function PoemCard({ slug, onComments, onLoaded }) {
           </div>
         ) : null}
 
-        <div className={styles.corpo}>
+        <div className={styles.corpo} lang={contentLang}>
           {poem.excerpt ? <p className={styles.lead}>{poem.excerpt}</p> : null}
-          {poem.excerpt && poem.content ? <div className={styles.rule} aria-hidden="true" /> : null}
-          {poem.content ? <div className={styles.bodyText}>{poem.content}</div> : null}
+          {poem.excerpt && displayContent ? <div className={styles.rule} aria-hidden="true" /> : null}
+          {displayContent ? <div className={styles.bodyText}>{displayContent}</div> : null}
         </div>
 
         {/* Figma: autore sotto il testo, su sfondo bianco (non nella barra nera) */}
@@ -119,6 +135,22 @@ export default function PoemCard({ slug, onComments, onLoaded }) {
           </div>
         </footer>
       </article>
+      {isOwner ? (
+        <div className={styles.translationsManager}>
+          <ContentTranslationsManager
+            contentType="poem"
+            item={poem}
+            onSaved={(saved) => {
+              setData((prev) => withSavedTranslation(prev, saved))
+              translationView.remember(saved)
+            }}
+            onDeleted={(deletedLocale) => {
+              setData((prev) => withoutTranslation(prev, deletedLocale))
+              translationView.forget(deletedLocale)
+            }}
+          />
+        </div>
+      ) : null}
     </section>
   )
 }

@@ -2,7 +2,6 @@
 
 namespace Domain\Article\Actions;
 
-use Domain\Article\Enums\ArticleStatus;
 use Domain\Article\Models\Article;
 
 class ShowArticleAction
@@ -13,20 +12,7 @@ class ShowArticleAction
             ->with(['user.profile', 'category.translations'])
             ->withCount(['likes', 'bookmarks'])
             ->where('slug', $slug)
-            ->where(function ($query) use ($authUserId) {
-                if ($authUserId) {
-                    $query->where('user_id', $authUserId)
-                        ->orWhere(function ($query) {
-                            $query->where('status', ArticleStatus::Published)
-                                ->where('is_public', true);
-                        });
-
-                    return;
-                }
-
-                $query->where('status', ArticleStatus::Published)
-                    ->where('is_public', true);
-            });
+            ->visibleTo($authUserId);
 
         if ($authUserId) {
             $query->withExists([

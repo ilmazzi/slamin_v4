@@ -3,25 +3,27 @@
 namespace Domain\Poetry\Models;
 
 use Domain\Comment\Models\Comment;
-use Domain\Poetry\Enums\PoemStatus;
-use Domain\Report\Models\Report;
-use Domain\User\Models\User;
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\SoftDeletes;
-use Illuminate\Database\Eloquent\Relations\MorphMany;
-use Domain\Engagement\Models\Like;
+use Domain\ContentTranslation\Concerns\HasContentTranslations;
+use Domain\ContentTranslation\Contracts\TranslatableContent;
 use Domain\Engagement\Models\Bookmark;
-use Domain\Poetry\Models\PoemCategory;
-use Domain\Poetry\Models\PoemType;
-use Domain\Moderation\Models\ModerationDecision;
+use Domain\Engagement\Models\Like;
 use Domain\Gig\Models\Gig;
 use Domain\Gig\Models\TranslationJob;
+use Domain\Moderation\Models\ModerationDecision;
+use Domain\Poetry\Enums\PoemStatus;
 use Domain\PoetrySlam\Models\PoetrySlamEntry;
+use Domain\Report\Models\Report;
+use Domain\User\Models\User;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
-class Poem extends Model
+class Poem extends Model implements TranslatableContent
 {
+    use HasContentTranslations;
     use SoftDeletes;
 
     protected $fillable = [
@@ -48,6 +50,19 @@ class Poem extends Model
         'is_featured' => 'boolean',
         'featured_rank' => 'integer',
     ];
+
+    public function scopeVisibleTo(Builder $query, ?int $viewerId): Builder
+    {
+        return $query->where(function (Builder $query) use ($viewerId) {
+            $query->where(fn (Builder $query) => $query
+                ->where('status', PoemStatus::Published)
+                ->where('is_public', true));
+
+            if ($viewerId) {
+                $query->orWhere('user_id', $viewerId);
+            }
+        });
+    }
 
     public function user(): BelongsTo
     {
@@ -88,6 +103,7 @@ class Poem extends Model
     {
         return $this->morphMany(Report::class, 'reportable');
     }
+
     public function entries(): HasMany
     {
         return $this->hasMany(PoetrySlamEntry::class);

@@ -155,6 +155,16 @@ border-bottom: 30px solid black;
   padding: 34px 34px 46px;
 }
 
+.languageSwitcher {
+  margin-bottom: 24px;
+}
+
+.translationsManager {
+  width: 100%;
+  max-width: 1280px;
+  margin: 40px auto 0;
+}
+
 .title {
   margin: 0 0 24px;
   font-family: 'Switzer', sans-serif;

@@ -3,12 +3,22 @@ import { formatShortPublishedDate } from '../../app/formatters/date.js'
 import { useArticleDetail } from '../../app/hooks/useArticleDetail.js'
 import { useI18n } from '../../app/hooks/useI18n.js'
 import SocialActions from '../shared/SocialActions.jsx'
+import { useAuth } from '../../app/hooks/useAuth.js'
+import {
+  useContentTranslationView,
+  withoutTranslation,
+  withSavedTranslation,
+} from '../../app/hooks/useContentTranslationView.js'
+import ContentLanguageSwitcher from '../shared/ContentLanguageSwitcher.jsx'
+import ContentTranslationsManager from '../shared/ContentTranslationsManager.jsx'
 import styles from './ArticleCard.module.css'
 import { useEffect } from 'react'
 
 export default function ArticleCard({ slug, onComments, onLoaded }) {
   const { t, locale } = useI18n()
-  const { data: article, isLoading, error } = useArticleDetail(slug)
+  const { user } = useAuth()
+  const { data: article, isLoading, error, setData } = useArticleDetail(slug)
+  const translationView = useContentTranslationView('article', article)
 
   useEffect(() => {
     if (article) {
@@ -40,8 +50,15 @@ export default function ArticleCard({ slug, onComments, onLoaded }) {
   const viewsCount = Number.isFinite(Number(article?.views_count)) ? Number(article.views_count) : 0
   const likesCount = Number.isFinite(Number(article?.likes_count)) ? Number(article.likes_count) : 0
   const commentsCount = Number.isFinite(Number(article?.comments_count)) ? Number(article.comments_count) : 0
+  const translation = translationView.translation
+  const displayTitle = translation?.title ?? article.title
+  const displayExcerpt = translation ? translation.summary : article.excerpt
+  const displayContent = translation?.content ?? article.content
+  const contentLang = translation?.locale ?? article.language ?? undefined
+  const isOwner = Boolean(user?.id) && Number(user.id) === Number(article?.author?.id)
 
   return (
+    <>
     <article className={styles.card}>
       <header className={styles.topBar}>
         <div className={styles.author}>
@@ -86,20 +103,39 @@ export default function ArticleCard({ slug, onComments, onLoaded }) {
       </header>
 
       <div className={styles.inner}>
-        <h1 className={styles.title}>{article.title}</h1>
+        <ContentLanguageSwitcher item={article} view={translationView} className={styles.languageSwitcher} />
+        <h1 className={styles.title} lang={contentLang}>{displayTitle}</h1>
 
         <div className={styles.contentGrid}>
           <div className={styles.coverWrap}>
             {coverUrl ? <img src={coverUrl} alt="" className={styles.cover} /> : <div className={styles.coverPlaceholder} aria-hidden="true" />}
           </div>
 
-          <div className={styles.copy}>
-            {article.excerpt ? <p className={styles.lead}>{article.excerpt}</p> : null}
+          <div className={styles.copy} lang={contentLang}>
+            {displayExcerpt ? <p className={styles.lead}>{displayExcerpt}</p> : null}
             <div className={styles.rule} aria-hidden="true" />
-            {article.content ? <div className={styles.bodyText}>{article.content}</div> : null}
+            {displayContent ? <div className={styles.bodyText}>{displayContent}</div> : null}
           </div>
         </div>
       </div>
     </article>
+    {isOwner ? (
+      <div className={styles.translationsManager}>
+        <ContentTranslationsManager
+          contentType="article"
+          item={article}
+          withSummary
+          onSaved={(saved) => {
+            setData((prev) => withSavedTranslation(prev, saved))
+            translationView.remember(saved)
+          }}
+          onDeleted={(deletedLocale) => {
+            setData((prev) => withoutTranslation(prev, deletedLocale))
+            translationView.forget(deletedLocale)
+          }}
+        />
+      </div>
+    ) : null}
+    </>
   )
 }
