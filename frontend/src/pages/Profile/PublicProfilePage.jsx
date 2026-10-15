@@ -169,6 +169,10 @@ export default function PublicProfilePage() {
         </section>
       ) : null}
 
+      {(profile.sections ?? []).map((kind) => (
+        <ProfileContentSection key={kind} kind={kind} nickname={profile.nickname} token={token} />
+      ))}
+
       <RecentActivities
         data={activities}
         page={activitiesPage}
@@ -176,10 +180,6 @@ export default function PublicProfilePage() {
         isLoading={isLoadingActivities}
         emptyText={t('profile.page.activities_empty')}
       />
-
-      {(profile.sections ?? []).map((kind) => (
-        <ProfileContentSection key={kind} kind={kind} nickname={profile.nickname} token={token} />
-      ))}
     </MainLayout>
   )
 }

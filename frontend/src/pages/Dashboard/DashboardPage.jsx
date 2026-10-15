@@ -131,12 +131,6 @@ export default function DashboardPage({ user }) {
             )
           })}
         </section>
-        <RecentActivities
-          data={recentActivitiesData}
-          page={activitiesPage}
-          onPageChange={setActivitiesPage}
-          isLoading={isLoadingWidgets}
-        />
         {profile?.nickname ? (
           <>
             <section className={styles.recentTitleWrap}>
@@ -152,6 +146,12 @@ export default function DashboardPage({ user }) {
             />
           </>
         ) : null}
+        <RecentActivities
+          data={recentActivitiesData}
+          page={activitiesPage}
+          onPageChange={setActivitiesPage}
+          isLoading={isLoadingWidgets}
+        />
     </MainLayout>
   )
 }
