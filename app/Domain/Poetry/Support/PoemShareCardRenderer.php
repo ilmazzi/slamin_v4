@@ -3,6 +3,7 @@
 namespace Domain\Poetry\Support;
 
 use Domain\Poetry\Models\Poem;
+use Domain\Share\Support\ShareCardFormat;
 use Domain\Share\Support\ShareCardLogo;
 use Domain\Share\Support\SlaminShareMark;
 use GdImage;
@@ -10,11 +11,9 @@ use RuntimeException;
 
 class PoemShareCardRenderer
 {
-    private const SIZE = 1080;
-
     private const BACKGROUND = [107, 33, 168];
 
-    public function render(Poem $poem): string
+    public function render(Poem $poem, ShareCardFormat $format = ShareCardFormat::Square): string
     {
         if (! function_exists('imagecreatetruecolor') || ! function_exists('imagettftext')) {
             throw new RuntimeException('GD with FreeType is required to render poem share cards.');
@@ -24,7 +23,7 @@ class PoemShareCardRenderer
         $medium = $this->fontPath('Switzer-Medium.otf');
         $semibold = $this->fontPath('Switzer-Semibold.otf');
 
-        $image = imagecreatetruecolor(self::SIZE, self::SIZE);
+        $image = imagecreatetruecolor($format->width(), $format->height());
         if ($image === false) {
             throw new RuntimeException('Unable to allocate the poem share card canvas.');
         }
@@ -35,7 +34,7 @@ class PoemShareCardRenderer
 
         $purple = imagecolorallocate($image, self::BACKGROUND[0], self::BACKGROUND[1], self::BACKGROUND[2]);
         $white = imagecolorallocate($image, 255, 255, 255);
-        imagefilledrectangle($image, 0, 0, self::SIZE, self::SIZE, $purple);
+        imagefilledrectangle($image, 0, 0, $format->width(), $format->height(), $purple);
 
         $previousLocale = app()->getLocale();
         $locale = in_array($poem->language, ['it', 'en'], true) ? $poem->language : 'it';
@@ -58,14 +57,16 @@ class PoemShareCardRenderer
         int $purple,
         int $white,
     ): string {
+        $width = imagesx($image);
+        $height = imagesy($image);
         $authorName = $this->authorFirstName($poem);
         $placeLine = $this->placeLine($poem);
-        $bubble = $this->measureBubble($semibold, $regular, $authorName, $placeLine);
+        $bubble = $this->measureBubble($semibold, $regular, $authorName, $placeLine, $width, $height);
 
         $paddingX = 80;
-        $paddingTop = 96;
-        $textMaxWidth = self::SIZE - ($paddingX * 2);
-        $textMaxBottom = min($bubble['y'] - 48, ShareCardLogo::destY(self::SIZE) - ShareCardLogo::TEXT_GAP);
+        $paddingTop = $height >= $width ? 96 : 64;
+        $textMaxWidth = $width - ($paddingX * 2);
+        $textMaxBottom = min($bubble['y'] - 48, ShareCardLogo::destY($height) - ShareCardLogo::TEXT_GAP);
 
         $poemText = $this->poemBody($poem);
         [$fontSize, $lines] = $this->fitPoemLines(
@@ -239,7 +240,7 @@ class PoemShareCardRenderer
     /**
      * @return array{x: int, y: int, width: int, height: int, bodyHeight: int, paddingX: int, paddingY: int, nameSize: int, placeSize: int}
      */
-    private function measureBubble(string $nameFont, string $placeFont, string $authorName, ?string $placeLine): array
+    private function measureBubble(string $nameFont, string $placeFont, string $authorName, ?string $placeLine, int $canvasWidth, int $canvasHeight): array
     {
         $nameSize = 32;
         $placeSize = 22;
@@ -259,8 +260,8 @@ class PoemShareCardRenderer
         $width = $bodyWidth;
 
         return [
-            'x' => self::SIZE - 56 - $width,
-            'y' => self::SIZE - 52 - $height,
+            'x' => $canvasWidth - 56 - $width,
+            'y' => $canvasHeight - 52 - $height,
             'width' => $width,
             'height' => $height,
             'bodyHeight' => $bodyHeight,

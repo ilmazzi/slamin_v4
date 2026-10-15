@@ -223,7 +223,41 @@ it('returns open graph html for social crawlers', function () {
         'User-Agent' => 'facebookexternalhit/1.1',
     ])
         ->assertOk()
-        ->assertSee('og:image', false)
-        ->assertSee(route('share.events.card', ['slug' => $event->slug]), false)
+        ->assertSee(route('share.events.preview', ['slug' => $event->slug]), false)
+        ->assertSee('<meta property="og:image:width" content="1200">', false)
+        ->assertSee('<meta property="og:image:height" content="630">', false)
         ->assertSee('Slam al Parco', false);
+});
+
+it('renders a landscape link preview with the cover on the right', function () {
+    Storage::fake('public');
+
+    $canvas = imagecreatetruecolor(800, 500);
+    imagefilledrectangle($canvas, 0, 0, 800, 500, imagecolorallocate($canvas, 220, 40, 40));
+    ob_start();
+    imagejpeg($canvas, null, 90);
+    $jpeg = (string) ob_get_clean();
+    imagedestroy($canvas);
+    Storage::disk('public')->put('events/locandina.jpg', $jpeg);
+
+    $event = publishedShareEvent(eventShareAuthor(), [
+        'slug' => 'slam-anteprima',
+        'cover_image_path' => 'events/locandina.jpg',
+    ]);
+
+    $response = $this->get("/share/events/{$event->slug}/preview.png");
+    $response->assertOk()->assertHeader('Content-Type', 'image/png');
+
+    $rendered = imagecreatefromstring($response->getContent());
+    expect(imagesx($rendered))->toBe(1200)
+        ->and(imagesy($rendered))->toBe(630);
+
+    $cover = imagecolorat($rendered, 1100, 80);
+    $text = imagecolorat($rendered, 600, 80);
+    imagedestroy($rendered);
+
+    expect(($cover >> 16) & 0xFF)->toBeGreaterThan(180)
+        ->and(($cover >> 8) & 0xFF)->toBeLessThan(80);
+
+    expect(($text >> 8) & 0xFF)->toBeGreaterThan(180);
 });

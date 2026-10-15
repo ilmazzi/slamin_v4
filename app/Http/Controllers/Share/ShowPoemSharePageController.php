@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Share;
 use App\Http\Controllers\Controller;
 use Domain\Poetry\Enums\PoemStatus;
 use Domain\Poetry\Models\Poem;
+use Domain\Share\Support\ShareCardFormat;
 use Domain\Share\Support\SharePage;
 use Domain\Share\Support\SharePublicUrl;
 use Illuminate\Http\RedirectResponse;
@@ -33,8 +34,8 @@ class ShowPoemSharePageController extends Controller
             'title' => $poem->title ?: __('poems.all.no_title'),
             'description' => $excerpt !== '' ? $excerpt : __('poems.all.no_excerpt'),
             'canonicalUrl' => route('share.poems.show', ['slug' => $poem->slug]),
-            'imageUrl' => route('share.poems.card', ['slug' => $poem->slug]),
-            'imageIsCard' => true,
+            'imageUrl' => route('share.poems.preview', ['slug' => $poem->slug]),
+            'imageSize' => ShareCardFormat::Landscape,
             'frontendUrl' => $frontendUrl,
         ]);
     }

@@ -4,6 +4,7 @@ namespace Domain\Event\Support;
 
 use Domain\Event\Enums\EventDeliveryMode;
 use Domain\Event\Models\Event;
+use Domain\Share\Support\ShareCardFormat;
 use Domain\Share\Support\ShareCardLogo;
 use Domain\Share\Support\SlaminShareMark;
 use GdImage;
@@ -12,15 +13,15 @@ use RuntimeException;
 
 class EventShareCardRenderer
 {
-    private const SIZE = 1080;
-
     private const BACKGROUND = [132, 218, 180];
 
     private const INK = [17, 17, 17];
 
     private const IMAGE_HEIGHT = 700;
 
-    public function render(Event $event): string
+    private const LANDSCAPE_TEXT_RATIO = 0.55;
+
+    public function render(Event $event, ShareCardFormat $format = ShareCardFormat::Square): string
     {
         if (! function_exists('imagecreatetruecolor') || ! function_exists('imagettftext')) {
             throw new RuntimeException('GD with FreeType is required to render event share cards.');
@@ -30,7 +31,7 @@ class EventShareCardRenderer
         $medium = $this->fontPath('Switzer-Medium.otf');
         $semibold = $this->fontPath('Switzer-Semibold.otf');
 
-        $image = imagecreatetruecolor(self::SIZE, self::SIZE);
+        $image = imagecreatetruecolor($format->width(), $format->height());
         if ($image === false) {
             throw new RuntimeException('Unable to allocate the event share card canvas.');
         }
@@ -42,7 +43,7 @@ class EventShareCardRenderer
         $mint = imagecolorallocate($image, self::BACKGROUND[0], self::BACKGROUND[1], self::BACKGROUND[2]);
         $white = imagecolorallocate($image, 255, 255, 255);
         $ink = imagecolorallocate($image, self::INK[0], self::INK[1], self::INK[2]);
-        imagefilledrectangle($image, 0, 0, self::SIZE, self::SIZE, $mint);
+        imagefilledrectangle($image, 0, 0, $format->width(), $format->height(), $mint);
 
         $previousLocale = app()->getLocale();
         $locale = in_array($event->language, ['it', 'en'], true) ? $event->language : 'it';
@@ -72,20 +73,36 @@ class EventShareCardRenderer
         int $white,
         int $ink,
     ): string {
+        $width = imagesx($image);
+        $height = imagesy($image);
         $organizer = $this->organizerFirstName($event);
         $placeLine = $this->placeLine($event);
-        $bubble = $this->measureMark($semibold, $regular, $organizer, $placeLine);
+        $bubble = $this->measureMark($semibold, $regular, $organizer, $placeLine, $width, $height);
+        $logoLimit = ShareCardLogo::destY($height) - ShareCardLogo::TEXT_GAP;
 
-        $coverBox = $cover instanceof GdImage
-            ? $this->drawCover($image, $cover, 0, 0, self::SIZE, self::IMAGE_HEIGHT)
-            : null;
+        if ($width > $height) {
+            $textRight = $width - 80;
+            if ($cover instanceof GdImage) {
+                $panelX = (int) round($width * self::LANDSCAPE_TEXT_RATIO);
+                $this->drawCoverFill($image, $cover, $panelX, 0, $width - $panelX, $height);
+                $textRight = $panelX - 48;
+            }
 
-        $hasCover = $coverBox !== null && $coverBox['height'] > 0;
-        $titleTop = $hasCover ? $coverBox['y'] + $coverBox['height'] + 48 : 96;
-        $titleMaxBottom = min($bubble['y'] - 36, ShareCardLogo::destY(self::SIZE) - ShareCardLogo::TEXT_GAP);
-        $titleMaxWidth = $hasCover
-            ? max(420, self::SIZE - 136 - $bubble['width'])
-            : self::SIZE - 160;
+            $titleTop = 64;
+            $titleMaxWidth = $textRight - 80;
+            $titleMaxBottom = $bubble['x'] < $textRight ? min($bubble['y'] - 36, $logoLimit) : $logoLimit;
+        } else {
+            $coverBox = $cover instanceof GdImage
+                ? $this->drawCover($image, $cover, 0, 0, $width, self::IMAGE_HEIGHT)
+                : null;
+
+            $hasCover = $coverBox !== null && $coverBox['height'] > 0;
+            $titleTop = $hasCover ? $coverBox['y'] + $coverBox['height'] + 48 : 96;
+            $titleMaxBottom = min($bubble['y'] - 36, $logoLimit);
+            $titleMaxWidth = $hasCover
+                ? max(420, $width - 136 - $bubble['width'])
+                : $width - 160;
+        }
 
         $title = trim((string) $event->title) ?: __('events.event_title');
         [$titleSize, $titleLines] = $this->fitLines($semibold, $title, $titleMaxWidth, $titleMaxBottom, $titleTop, 52, 32);
@@ -169,6 +186,23 @@ class EventShareCardRenderer
         return ['x' => $dx, 'y' => $dy, 'width' => $dw, 'height' => $dh];
     }
 
+    private function drawCoverFill(GdImage $dest, GdImage $src, int $boxX, int $boxY, int $boxW, int $boxH): void
+    {
+        $sw = imagesx($src);
+        $sh = imagesy($src);
+        if ($sw < 1 || $sh < 1 || $boxW < 1 || $boxH < 1) {
+            return;
+        }
+
+        $scale = max($boxW / $sw, $boxH / $sh);
+        $cropW = min($sw, max(1, (int) round($boxW / $scale)));
+        $cropH = min($sh, max(1, (int) round($boxH / $scale)));
+        $cropX = (int) round(($sw - $cropW) / 2);
+        $cropY = (int) round(($sh - $cropH) / 2);
+
+        imagecopyresampled($dest, $src, $boxX, $boxY, $cropX, $cropY, $boxW, $boxH, $cropW, $cropH);
+    }
+
     private function loadCover(?string $path): ?GdImage
     {
         $relative = trim((string) $path);
@@ -200,7 +234,7 @@ class EventShareCardRenderer
     /**
      * @return array{x: int, y: int, width: int, height: int, bodyHeight: int, paddingX: int, paddingY: int, nameSize: int, placeSize: int}
      */
-    private function measureMark(string $nameFont, string $placeFont, string $organizer, ?string $placeLine): array
+    private function measureMark(string $nameFont, string $placeFont, string $organizer, ?string $placeLine, int $canvasWidth, int $canvasHeight): array
     {
         $nameSize = 32;
         $placeSize = 22;
@@ -219,8 +253,8 @@ class EventShareCardRenderer
         $height = SlaminShareMark::totalHeight($bodyHeight);
 
         return [
-            'x' => self::SIZE - 56 - $bodyWidth,
-            'y' => self::SIZE - 52 - $height,
+            'x' => $canvasWidth - 56 - $bodyWidth,
+            'y' => $canvasHeight - 52 - $height,
             'width' => $bodyWidth,
             'height' => $height,
             'bodyHeight' => $bodyHeight,

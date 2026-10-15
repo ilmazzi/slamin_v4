@@ -127,7 +127,26 @@ it('returns open graph html for social crawlers', function () {
 
     $response
         ->assertOk()
-        ->assertSee('og:image', false)
-        ->assertSee(route('share.poems.card', ['slug' => $poem->slug]), false)
+        ->assertSee(route('share.poems.preview', ['slug' => $poem->slug]), false)
+        ->assertSee('<meta property="og:image:width" content="1200">', false)
+        ->assertSee('<meta property="og:image:height" content="630">', false)
         ->assertSee('Notte in centro', false);
+});
+
+it('renders a landscape link preview with the logo still in place', function () {
+    $poem = publishedSharePoem(shareCardAuthor());
+
+    $response = $this->get("/share/poems/{$poem->slug}/preview.png");
+    $response->assertOk()->assertHeader('Content-Type', 'image/png');
+
+    $rendered = imagecreatefromstring($response->getContent());
+    expect(imagesx($rendered))->toBe(1200)
+        ->and(imagesy($rendered))->toBe(630);
+
+    [, , $markX, $markY] = shareCardLogoSamplePoints(imagesx($rendered), imagesy($rendered));
+    $mark = imagecolorat($rendered, $markX, $markY);
+    imagedestroy($rendered);
+
+    expect(($mark >> 16) & 0xFF)->toBeGreaterThan(210)
+        ->and(($mark >> 8) & 0xFF)->toBeLessThan(20);
 });

@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Share;
 use App\Http\Controllers\Controller;
 use Domain\Event\Enums\EventStatus;
 use Domain\Event\Models\Event;
+use Domain\Share\Support\ShareCardFormat;
 use Domain\Share\Support\SharePage;
 use Domain\Share\Support\SharePublicUrl;
 use Illuminate\Http\RedirectResponse;
@@ -33,8 +34,8 @@ class ShowEventSharePageController extends Controller
             'title' => $event->title ?: __('events.event_title'),
             'description' => $excerpt !== '' ? $excerpt : ($event->subtitle ?: __('events.event_description')),
             'canonicalUrl' => route('share.events.show', ['slug' => $event->slug]),
-            'imageUrl' => route('share.events.card', ['slug' => $event->slug]),
-            'imageIsCard' => true,
+            'imageUrl' => route('share.events.preview', ['slug' => $event->slug]),
+            'imageSize' => ShareCardFormat::Landscape,
             'frontendUrl' => $frontendUrl,
         ]);
     }

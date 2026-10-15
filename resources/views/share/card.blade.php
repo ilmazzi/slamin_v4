@@ -16,11 +16,11 @@
     <meta property="og:url" content="{{ $canonicalUrl }}">
     @if ($imageUrl)
     <meta property="og:image" content="{{ $imageUrl }}">
-    @if ($imageIsCard ?? false)
+    @isset($imageSize)
     <meta property="og:image:type" content="image/png">
-    <meta property="og:image:width" content="1080">
-    <meta property="og:image:height" content="1080">
-    @endif
+    <meta property="og:image:width" content="{{ $imageSize->width() }}">
+    <meta property="og:image:height" content="{{ $imageSize->height() }}">
+    @endisset
     @endif
     <meta name="twitter:card" content="{{ $imageUrl ? 'summary_large_image' : 'summary' }}">
     <meta name="twitter:title" content="{{ $title }}">

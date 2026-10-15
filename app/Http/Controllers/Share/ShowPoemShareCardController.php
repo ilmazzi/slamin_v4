@@ -4,6 +4,8 @@ namespace App\Http\Controllers\Share;
 
 use App\Http\Controllers\Controller;
 use Domain\Poetry\Actions\RenderPoemShareCardAction;
+use Domain\Share\Support\ShareCardFormat;
+use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 
 class ShowPoemShareCardController extends Controller
@@ -12,9 +14,10 @@ class ShowPoemShareCardController extends Controller
         private readonly RenderPoemShareCardAction $renderPoemShareCardAction,
     ) {}
 
-    public function __invoke(string $slug): Response
+    public function __invoke(Request $request, string $slug): Response
     {
-        $png = $this->renderPoemShareCardAction->execute($slug);
+        $format = ShareCardFormat::from((string) $request->route('format', ShareCardFormat::Square->value));
+        $png = $this->renderPoemShareCardAction->execute($slug, $format);
 
         return response($png, 200, [
             'Content-Type' => 'image/png',

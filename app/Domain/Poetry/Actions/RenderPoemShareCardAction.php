@@ -5,6 +5,7 @@ namespace Domain\Poetry\Actions;
 use Domain\Poetry\Enums\PoemStatus;
 use Domain\Poetry\Models\Poem;
 use Domain\Poetry\Support\PoemShareCardRenderer;
+use Domain\Share\Support\ShareCardFormat;
 use Illuminate\Support\Facades\Cache;
 
 class RenderPoemShareCardAction
@@ -13,7 +14,7 @@ class RenderPoemShareCardAction
         private readonly PoemShareCardRenderer $renderer,
     ) {}
 
-    public function execute(string $slug): string
+    public function execute(string $slug, ShareCardFormat $format = ShareCardFormat::Square): string
     {
         $poem = Poem::query()
             ->with('user.profile')
@@ -26,13 +27,14 @@ class RenderPoemShareCardAction
         app()->setLocale($locale);
 
         $cacheKey = sprintf(
-            'poem-share-card:v5:%d:%s:%s:%s',
+            'poem-share-card:v5:%d:%s:%s:%s:%s',
             $poem->id,
             $poem->updated_at?->timestamp ?? 0,
             $poem->user?->profile?->updated_at?->timestamp ?? 0,
             $locale,
+            $format->value,
         );
 
-        return Cache::remember($cacheKey, now()->addDay(), fn () => $this->renderer->render($poem));
+        return Cache::remember($cacheKey, now()->addDay(), fn () => $this->renderer->render($poem, $format));
     }
 }
