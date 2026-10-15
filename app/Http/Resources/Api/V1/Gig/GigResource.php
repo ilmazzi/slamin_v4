@@ -58,6 +58,12 @@ class GigResource extends JsonResource
                 $this->relationLoaded('giggable'),
                 fn (): bool => $this->resource->isManagedBy($viewerId === null ? null : (int) $viewerId),
             ),
+            'confirmed_users' => $this->whenLoaded(
+                'confirmedApplications',
+                fn () => GigUserResource::collection(
+                    $this->confirmedApplications->pluck('user')->filter()->values(),
+                ),
+            ),
             'parent' => $this->whenLoaded('giggable', fn (): ?array => $this->parentPayload()),
         ];
     }

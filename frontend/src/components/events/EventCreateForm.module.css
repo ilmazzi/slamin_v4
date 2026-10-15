@@ -585,9 +585,20 @@
 }
 
 .gigRowTitle {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 12px;
   font-size: 14px;
   font-weight: 700;
   line-height: 1.2;
+}
+
+.gigManageLink {
+  color: inherit;
+  font-weight: 500;
+  text-decoration: underline;
+  text-underline-offset: 3px;
 }
 
 .gigRowActions {

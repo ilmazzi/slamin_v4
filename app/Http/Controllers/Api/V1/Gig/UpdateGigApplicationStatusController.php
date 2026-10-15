@@ -35,6 +35,7 @@ class UpdateGigApplicationStatusController extends Controller
 
         $application = $this->action->execute($gig, $application, UpdateGigApplicationStatusData::fromRequest($request));
         $application->unsetRelation('gig');
+        $gig->load('confirmedApplications.user.profile');
 
         return ApiResponse::success([
             'application' => new GigApplicationResource($application),

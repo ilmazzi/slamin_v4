@@ -94,19 +94,25 @@ class UpdateGigApplicationStatusAction
             ],
         );
 
-        $this->createNotificationAction->execute(
-            userId: $application->user_id,
-            type: 'gig.application_updated',
-            title: __('gig.notifications.application_updated_title'),
-            message: __('gig.notifications.application_status_message', [
-                'status' => __('gig.application_statuses.'.$application->status->value),
-            ]),
-            data: [
-                'gig_id' => $gig->id,
-                'application_id' => $application->id,
-                'status' => $application->status->value,
-            ],
-        );
+        if ($oldStatus !== $newStatus) {
+            $gigTitle = (string) $gig->giggable?->title;
+
+            $this->createNotificationAction->execute(
+                userId: $application->user_id,
+                type: 'gig.application_updated',
+                title: __('gig.notifications.application_updated_title'),
+                message: __('gig.notifications.application_status_message', [
+                    'status' => __('gig.application_statuses.'.$application->status->value),
+                    'title' => $gigTitle,
+                ]),
+                data: [
+                    'gig_id' => $gig->id,
+                    'application_id' => $application->id,
+                    'status' => $application->status->value,
+                    'gig_title' => $gigTitle,
+                ],
+            );
+        }
 
         return $application->fresh(['user.profile', 'gig']);
     }

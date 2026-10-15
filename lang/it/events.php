@@ -179,6 +179,10 @@ return [
         'save_error' => 'Errore durante il salvataggio.',
         'load_error' => 'Impossibile caricare l\'evento da modificare.',
         'forbidden' => 'Non puoi modificare questo evento.',
+        'gigs_save_error' => 'Evento salvato, ma non è stato possibile salvare gli ingaggi: :message',
+        'gig_delete_confirm' => 'Vuoi eliminare questo ingaggio al salvataggio?',
+        'gig_delete_confirm_applications' => 'Questo ingaggio ha :count candidature: eliminandolo verranno perse. Vuoi eliminarlo al salvataggio?',
+        'gig_manage' => 'Gestisci candidature',
     ],
     'create_page' => [
         'hero_title' => 'crea evento',

@@ -111,6 +111,14 @@ return [
         'lead' => 'Check the details and apply.',
         'all' => 'See all gigs',
     ],
+    'confirmed' => [
+        'title' => 'Confirmed people',
+        'empty' => 'Nobody has been confirmed yet.',
+        'unknown' => 'User',
+        'view_profile' => 'View :name\'s profile',
+        'event_title' => 'Who\'s in',
+        'event_lead' => 'People already confirmed for this event.',
+    ],
     'detail' => [
         'not_found' => 'Gig not available.',
         'position' => 'Position',

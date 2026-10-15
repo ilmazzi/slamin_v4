@@ -4,6 +4,7 @@ namespace Domain\Gig\Models;
 
 use Domain\Event\Enums\EventStatus;
 use Domain\Event\Models\Event;
+use Domain\Gig\Enums\GigApplicationStatus;
 use Domain\Gig\Enums\GigStatus;
 use Domain\Gig\Enums\GigType;
 use Domain\Poetry\Enums\PoemStatus;
@@ -79,6 +80,14 @@ class Gig extends Model
     public function applications(): HasMany
     {
         return $this->hasMany(GigApplication::class);
+    }
+
+    public function confirmedApplications(): HasMany
+    {
+        return $this->applications()
+            ->where('status', GigApplicationStatus::Confirmed->value)
+            ->orderBy('confirmed_at')
+            ->orderBy('id');
     }
 
     public function announcements(): HasMany

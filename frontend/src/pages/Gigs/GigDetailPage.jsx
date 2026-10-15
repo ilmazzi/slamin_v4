@@ -5,6 +5,7 @@ import AppToast from '../../components/shared/AppToast.jsx'
 import GigAnnouncementsPanel from '../../components/gigs/GigAnnouncementsPanel.jsx'
 import GigApplicationsPanel from '../../components/gigs/GigApplicationsPanel.jsx'
 import GigApplyPanel from '../../components/gigs/GigApplyPanel.jsx'
+import GigConfirmedPeople from '../../components/gigs/GigConfirmedPeople.jsx'
 import { formatGigDate, formatGigDeadline, formatGigDateTime, formatGigMoney, gigTitle } from '../../components/gigs/gigFormat.js'
 import styles from './GigWorkspace.module.css'
 import { useI18n } from '../../app/hooks/useI18n.js'
@@ -155,6 +156,13 @@ export default function GigDetailPage() {
                   />
                   <Fact label={t('gigs.detail.organizer')} value={organizer} />
                 </dl>
+
+                <h3 className={styles.sectionTitle}>{t('gigs.confirmed.title')}</h3>
+                {gig.confirmed_users?.length > 0 ? (
+                  <GigConfirmedPeople users={gig.confirmed_users} t={t} />
+                ) : (
+                  <p className={styles.muted}>{t('gigs.confirmed.empty')}</p>
+                )}
 
                 <h3 className={styles.sectionTitle}>{t('gigs.detail.offer')}</h3>
                 {offers.length > 0 ? (

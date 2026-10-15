@@ -12,7 +12,7 @@ import { resolvePublicUrl } from '../../app/api/url.js'
 import { useAuth } from '../../app/hooks/useAuth.js'
 import { useI18n } from '../../app/hooks/useI18n.js'
 import { useRealtimeConfig } from '../../app/hooks/useRealtimeConfig.js'
-import { createEcho, isReverbConfigured } from '../../app/realtime/echo.js'
+import { acquireEcho, isReverbConfigured, releaseEcho } from '../../app/realtime/echo.js'
 import MainLayout from '../../components/layout/MainLayout.jsx'
 import styles from './ChatPage.module.css'
 
@@ -168,24 +168,26 @@ export default function ChatPage() {
       return undefined
     }
 
-    const echo = createEcho(token, realtime)
+    const echo = acquireEcho(token, realtime)
     setEchoClient(echo)
     if (!echo) {
       return undefined
     }
 
-    echo.private(`chat.user.${user.id}`).listen('.message.sent', (payload) => {
+    const userChannel = echo.private(`chat.user.${user.id}`)
+    const handleUserMessage = (payload) => {
       const incoming = payload?.message
       const incomingThreadId = Number(payload?.thread_id ?? incoming?.thread_id)
       if (incoming && incomingThreadId === selectedIdRef.current) {
         setMessages((current) => upsertMessage(current, incoming))
       }
       loadThreads().catch(() => null)
-    })
+    }
+    userChannel.listen('.message.sent', handleUserMessage)
 
     return () => {
-      echo.leave(`chat.user.${user.id}`)
-      echo.disconnect()
+      userChannel.stopListening('.message.sent', handleUserMessage)
+      releaseEcho(echo)
       setEchoClient(null)
     }
   }, [loadThreads, realtime, token, user?.id])

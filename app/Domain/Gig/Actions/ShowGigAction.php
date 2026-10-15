@@ -24,6 +24,8 @@ class ShowGigAction
             return null;
         }
 
+        $loaded->load('confirmedApplications.user.profile');
+
         if ($loaded->isManagedBy($viewerId)) {
             $loaded->loadCount([
                 'applications',

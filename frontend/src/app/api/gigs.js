@@ -1,4 +1,4 @@
-import { authApiDelete, authApiGet, authApiPatch, authApiPost } from './client.js'
+import { apiGet, authApiDelete, authApiGet, authApiPatch, authApiPost } from './client.js'
 
 const encode = (value) => encodeURIComponent(String(value ?? ''))
 
@@ -62,6 +62,24 @@ export async function getGig(gigId, { token, signal } = {}) {
     fallbackMessage: 'Unable to load gig',
   })
   return data?.gig ?? null
+}
+
+export async function listEventGigs(eventId, { token, signal } = {}) {
+  const { data } = await authApiGet(`/api/v1/events/${encode(eventId)}/gigs`, {
+    token,
+    signal,
+    fallbackMessage: 'Unable to load event gigs',
+  })
+  return Array.isArray(data?.gigs) ? data.gigs : []
+}
+
+export async function listEventConfirmedGigs(eventId, { token, signal } = {}) {
+  const { data } = await apiGet(`/api/v1/events/${encode(eventId)}/gigs/confirmed`, {
+    token,
+    signal,
+    fallbackMessage: 'Unable to load confirmed people',
+  })
+  return Array.isArray(data?.gigs) ? data.gigs : []
 }
 
 export async function createEventGig(eventId, payload, { token } = {}) {

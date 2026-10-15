@@ -31,3 +31,41 @@ export function createEcho(token, config) {
     },
   })
 }
+
+const sharedConnections = new Map()
+
+function connectionKey(token, config) {
+  return [token, config.key, config.host, config.port, config.scheme].join('|')
+}
+
+// Shared clients must never `leave()` a channel another consumer may still listen to: use stopListening instead.
+export function acquireEcho(token, config) {
+  if (!token || !isReverbConfigured(config)) {
+    return null
+  }
+
+  const key = connectionKey(token, config)
+  let entry = sharedConnections.get(key)
+  if (!entry) {
+    entry = { echo: createEcho(token, config), refs: 0 }
+    sharedConnections.set(key, entry)
+  }
+
+  entry.refs += 1
+  return entry.echo
+}
+
+export function releaseEcho(echo) {
+  for (const [key, entry] of sharedConnections) {
+    if (entry.echo !== echo) {
+      continue
+    }
+
+    entry.refs -= 1
+    if (entry.refs <= 0) {
+      sharedConnections.delete(key)
+      entry.echo.disconnect()
+    }
+    return
+  }
+}

@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import L from 'leaflet'
 import { MapContainer, Marker, useMap } from 'react-leaflet'
 import OsmTileLayer from '../../app/maps/OsmTileLayer.jsx'
@@ -9,6 +9,8 @@ import { useI18n } from '../../app/hooks/useI18n.js'
 import { mapEventToFormValues } from '../../app/utils/eventForm.js'
 import { isEventOwner } from '../../app/utils/eventDetail.js'
 import { emptyAvailability, emptyGig, emptyInvite } from '../../app/utils/eventFormDefaults.js'
+import { gigToFormRow, snapshotGigRows, syncEventGigs } from '../../app/utils/eventGigForm.js'
+import { listEventGigs } from '../../app/api/gigs.js'
 import { EventLocationIcon } from '../icons/ActionIcons.jsx'
 import styles from './EventCreateForm.module.css'
 
@@ -152,6 +154,8 @@ export default function EventCreateForm({ eventSlug = null }) {
   const [showGigs, setShowGigs] = useState(false)
   const [registrationDeadlineEnabled, setRegistrationDeadlineEnabled] = useState(false)
   const [openSections, setOpenSections] = useState(() => new Set(['basic']))
+  const gigSnapshotRef = useRef(new Map())
+  const deletedGigIdsRef = useRef(new Set())
   const lastGeocodeKeyRef = useRef('')
   const geocodeTimerRef = useRef(null)
   const geocodeAbortRef = useRef(null)
@@ -279,9 +283,19 @@ export default function EventCreateForm({ eventSlug = null }) {
           return
         }
 
+        const eventGigs = await listEventGigs(loaded.id, { token, signal: controller.signal })
+        if (cancelled) {
+          return
+        }
+        const gigRows = eventGigs.map(gigToFormRow)
+        gigSnapshotRef.current = snapshotGigRows(gigRows)
+        deletedGigIdsRef.current = new Set()
+
         const formValues = mapEventToFormValues(loaded)
+        formValues.gigs = gigRows.length ? gigRows : [{ ...emptyGig }]
         setEventRecordId(loaded.id)
         setV(formValues)
+        setShowGigs(gigRows.length > 0)
         setRegistrationDeadlineEnabled(Boolean(formValues.registration_deadline))
         setShowEmailInvites(
           (formValues.participant_invites || []).some((invite) => invite.name || invite.email || invite.user_id),
@@ -308,6 +322,8 @@ export default function EventCreateForm({ eventSlug = null }) {
     }
   }, [eventSlug, isEdit, navigate, t, token, user])
 
+  const hasSavedGigs = v.gigs.some((gig) => Boolean(gig.id))
+  const gigsPanelVisible = showGigs || hasSavedGigs
   const isRecurring = v.schedule_mode === 'recurring'
   const isAvailability = v.schedule_mode === 'availability'
   const isInPerson = v.delivery_mode === 'in_person'
@@ -484,10 +500,22 @@ export default function EventCreateForm({ eventSlug = null }) {
   }
 
   function removeGigRow(index) {
-    setV((prev) => {
-      const next = prev.gigs.filter((_, i) => i !== index)
-      return { ...prev, gigs: next.length ? next : [{ ...emptyGig }] }
-    })
+    const row = v.gigs[index]
+    if (row?.id) {
+      const count = Number(row.applications_count || 0)
+      const message = count > 0
+        ? t('events.edit_page.gig_delete_confirm_applications', { count })
+        : t('events.edit_page.gig_delete_confirm')
+      if (!window.confirm(message)) {
+        return
+      }
+      deletedGigIdsRef.current.add(row.id)
+    }
+    const next = v.gigs.filter((_, i) => i !== index)
+    if (next.length === 0) {
+      setShowGigs(false)
+    }
+    setV((prev) => ({ ...prev, gigs: next.length ? next : [{ ...emptyGig }] }))
   }
 
   function setRecurringMode(checked) {
@@ -682,6 +710,20 @@ export default function EventCreateForm({ eventSlug = null }) {
           throw new Error(t('events.edit_page.save_error'))
         }
         const updated = await updateEvent(eventRecordId, submissionPayload, { token })
+        const gigSync = await syncEventGigs({
+          eventId: eventRecordId,
+          rows: gigsPanelVisible ? v.gigs : [],
+          snapshot: gigSnapshotRef.current,
+          deletedIds: deletedGigIdsRef.current,
+          token,
+        })
+        if (gigSync.error) {
+          if (gigsPanelVisible) {
+            setV((prev) => ({ ...prev, gigs: gigSync.rows }))
+          }
+          setError(t('events.edit_page.gigs_save_error', { message: gigSync.error.message || '' }))
+          return
+        }
         const nextId = updated?.slug ?? eventSlug
         navigate(nextId ? `/events/${nextId}` : '/events')
         return
@@ -1122,7 +1164,7 @@ export default function EventCreateForm({ eventSlug = null }) {
           </div>
         ) : null}
 
-        {isEdit ? null : (
+        {hasSavedGigs ? null : (
           <div>
             <div className={styles.toggleRow}>
               <span>{t('events.create_page.ui.add_gigs')}</span>
@@ -1132,15 +1174,22 @@ export default function EventCreateForm({ eventSlug = null }) {
           </div>
         )}
 
-        {!isEdit && showGigs ? (
+        {gigsPanelVisible ? (
           <div className={styles.conditionalPanel}>
             <div className={styles.gigHeader}>
               <div className={styles.fieldLabel}>{t('events.create_page.ui.add_gigs')}</div>
             </div>
             {v.gigs.map((gig, index) => (
-              <div key={`gig-${index}`} className={styles.gigCard}>
+              <div key={gig.id ? `gig-${gig.id}` : `gig-new-${index}`} className={styles.gigCard}>
                 <div className={styles.gigTopRow}>
-                  <div className={styles.gigRowTitle}>{t('events.create_page.ui.gig_n', { n: index + 1 })}</div>
+                  <div className={styles.gigRowTitle}>
+                    {t('events.create_page.ui.gig_n', { n: index + 1 })}
+                    {gig.id ? (
+                      <Link to={`/gigs/${gig.id}`} className={styles.gigManageLink}>
+                        {t('events.edit_page.gig_manage')}
+                      </Link>
+                    ) : null}
+                  </div>
                   <div className={styles.gigRowActions}>
                     <button type="button" className={styles.bigPlus} onClick={addGigRow} aria-label={t('events.create_page.ui.add_gig')}>
                       +
@@ -1149,9 +1198,9 @@ export default function EventCreateForm({ eventSlug = null }) {
                       type="button"
                       className={styles.removeCircle}
                       onClick={() => removeGigRow(index)}
-                      disabled={v.gigs.length === 1}
+                      disabled={v.gigs.length === 1 && !gig.id}
                       aria-label={t('events.create_page.ui.remove_gig')}
-                      title={v.gigs.length === 1 ? t('events.create_page.ui.cannot_remove_last') : t('events.create_page.ui.remove_gig')}
+                      title={v.gigs.length === 1 && !gig.id ? t('events.create_page.ui.cannot_remove_last') : t('events.create_page.ui.remove_gig')}
                     >
                       ×
                     </button>

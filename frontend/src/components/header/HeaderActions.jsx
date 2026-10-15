@@ -28,7 +28,6 @@ export default function HeaderActions(props) {
           createEventLabel={t('header.quick_actions.create_event')}
           uploadVideoLabel={t('header.quick_actions.upload_video')}
           publishArticleLabel={t('header.quick_actions.publish_article')}
-          notificationsAriaLabel={t('header.notifications_aria')}
           myProfileLabel={t('header.profile_menu.profile')}
           editProfileLabel={t('header.profile_menu.edit')}
           chatLabel={t('header.profile_menu.chat')}

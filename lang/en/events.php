@@ -179,6 +179,10 @@ return [
         'save_error' => 'Error while saving.',
         'load_error' => 'Unable to load the event to edit.',
         'forbidden' => 'You cannot edit this event.',
+        'gigs_save_error' => 'Event saved, but the gigs could not be saved: :message',
+        'gig_delete_confirm' => 'Delete this gig when saving?',
+        'gig_delete_confirm_applications' => 'This gig has :count applications that will be lost. Delete it when saving?',
+        'gig_manage' => 'Manage applications',
     ],
     'create_page' => [
         'hero_title' => 'create event',

@@ -13,8 +13,8 @@ class ShowNotificationController extends Controller
 {
     public function __invoke(Notification $notification): JsonResponse
     {
-        if ($notification->user_id !== request()->user()->id) {
-            throw new NotFoundHttpException();
+        if ((int) $notification->user_id !== (int) request()->user()->id) {
+            throw new NotFoundHttpException;
         }
 
         return ApiResponse::success([

@@ -1,0 +1,61 @@
+.block {
+  display: flex;
+  flex-direction: column;
+  gap: clamp(16px, 1.6vw, 24px);
+  padding: clamp(20px, 2.4vw, 40px);
+  border: 1px solid #000;
+  border-radius: 20px;
+  background: #fff;
+  font-family: var(--font-family-sans);
+  color: #000;
+}
+
+.title {
+  margin: 0;
+  font-size: clamp(24px, 2.2vw, 42px);
+  font-weight: 800;
+  font-style: italic;
+  line-height: 1.1;
+}
+
+.lead {
+  margin: 6px 0 0;
+  font-size: clamp(15px, 1.1vw, 20px);
+  font-weight: 300;
+}
+
+.groups {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.group {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.groupHead {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 6px 14px;
+}
+
+.groupTitle {
+  color: #000;
+  font-size: 18px;
+  font-weight: 800;
+  text-decoration: none;
+}
+
+.groupTitle:hover {
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+
+.count {
+  font-size: 14px;
+  color: #555;
+}

@@ -2,7 +2,9 @@
 
 namespace Domain\Notification\Actions;
 
+use App\Events\NotificationCreated;
 use Domain\Notification\Models\Notification;
+use Illuminate\Support\Facades\DB;
 
 class CreateNotificationAction
 {
@@ -13,12 +15,17 @@ class CreateNotificationAction
         string $message,
         array $data = [],
     ): Notification {
-        return Notification::query()->create([
+        $notification = Notification::query()->create([
             'user_id' => $userId,
             'type' => $type,
             'title' => $title,
             'message' => $message,
             'data' => $data,
         ]);
+
+        // A realtime outage must never roll back or fail the action that produced the notification.
+        DB::afterCommit(fn () => rescue(fn () => NotificationCreated::dispatch($notification)));
+
+        return $notification;
     }
 }

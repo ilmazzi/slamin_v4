@@ -4,7 +4,7 @@ import { listChatThreads } from '../../app/api/chat.js'
 import { useAuth } from '../../app/hooks/useAuth.js'
 import { useI18n } from '../../app/hooks/useI18n.js'
 import { useRealtimeConfig } from '../../app/hooks/useRealtimeConfig.js'
-import { createEcho, isReverbConfigured } from '../../app/realtime/echo.js'
+import { acquireEcho, isReverbConfigured, releaseEcho } from '../../app/realtime/echo.js'
 import SlaminMark from '../brand/SlaminMark.jsx'
 import styles from './ChatWidget.module.css'
 
@@ -47,22 +47,24 @@ export default function ChatWidget() {
       return undefined
     }
 
-    const echo = createEcho(token, realtime)
+    const echo = acquireEcho(token, realtime)
     if (!echo) {
       return undefined
     }
 
-    echo.private(`chat.user.${user.id}`).listen('.message.sent', (payload) => {
+    const channel = echo.private(`chat.user.${user.id}`)
+    const handleMessage = (payload) => {
       const authorId = Number(payload?.message?.author?.id ?? payload?.message?.user_id ?? 0)
       if (!authorId || authorId !== Number(user.id)) {
         setUnread((count) => count + 1)
       }
       refreshUnread().catch(() => null)
-    })
+    }
+    channel.listen('.message.sent', handleMessage)
 
     return () => {
-      echo.leave(`chat.user.${user.id}`)
-      echo.disconnect()
+      channel.stopListening('.message.sent', handleMessage)
+      releaseEcho(echo)
     }
   }, [hidden, isAuthenticated, realtime, refreshUnread, token, user?.id])
 

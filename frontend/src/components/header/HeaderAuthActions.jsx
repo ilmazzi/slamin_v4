@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../app/hooks/useAuth.js'
 import { resolvePublicUrl } from '../../app/api/url.js'
+import NotificationBell from '../notifications/NotificationBell.jsx'
 import HeaderLanguageSwitcher from './HeaderLanguageSwitcher.jsx'
 import styles from './Header.module.css'
 
@@ -25,7 +26,6 @@ export default function HeaderAuthActions({
   createEventLabel = 'Organizza evento',
   uploadVideoLabel = 'Carica video',
   publishArticleLabel = 'Pubblica articolo',
-  notificationsAriaLabel = 'Notifiche',
   myProfileLabel = 'Il mio profilo',
   editProfileLabel = 'Modifica profilo',
   chatLabel = 'Chat',
@@ -36,6 +36,7 @@ export default function HeaderAuthActions({
   const navigate = useNavigate()
   const [isQuickActionsOpen, setIsQuickActionsOpen] = useState(false)
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false)
+  const [isNotificationsOpen, setIsNotificationsOpen] = useState(false)
   const [quickActionsPosition, setQuickActionsPosition] = useState({ top: 0, left: 0 })
   const shellRef = useRef(null)
   const mainMenuButtonRef = useRef(null)
@@ -46,7 +47,7 @@ export default function HeaderAuthActions({
   const avatar = resolvePublicUrl(user?.profile_photo_url)
 
   useEffect(() => {
-    if (!isQuickActionsOpen && !isProfileMenuOpen) {
+    if (!isQuickActionsOpen && !isProfileMenuOpen && !isNotificationsOpen) {
       return undefined
     }
 
@@ -54,6 +55,7 @@ export default function HeaderAuthActions({
       if (!shellRef.current?.contains(event.target)) {
         setIsQuickActionsOpen(false)
         setIsProfileMenuOpen(false)
+        setIsNotificationsOpen(false)
       }
     }
 
@@ -61,6 +63,7 @@ export default function HeaderAuthActions({
       if (event.key === 'Escape') {
         setIsQuickActionsOpen(false)
         setIsProfileMenuOpen(false)
+        setIsNotificationsOpen(false)
       }
     }
 
@@ -71,7 +74,7 @@ export default function HeaderAuthActions({
       document.removeEventListener('mousedown', handleClickOutside)
       window.removeEventListener('keydown', handleEscape)
     }
-  }, [isQuickActionsOpen, isProfileMenuOpen])
+  }, [isQuickActionsOpen, isProfileMenuOpen, isNotificationsOpen])
 
   useEffect(() => {
     if (!isQuickActionsOpen) {
@@ -104,6 +107,7 @@ export default function HeaderAuthActions({
   const handleLogout = async () => {
     setIsQuickActionsOpen(false)
     setIsProfileMenuOpen(false)
+    setIsNotificationsOpen(false)
     await logout()
     navigate('/login', { replace: true })
   }
@@ -134,6 +138,7 @@ export default function HeaderAuthActions({
             onMainMenuToggle?.(mainMenuButtonRef.current)
             setIsQuickActionsOpen(false)
             setIsProfileMenuOpen(false)
+            setIsNotificationsOpen(false)
           }}
           aria-label={menuAriaLabel}
         >
@@ -152,6 +157,7 @@ export default function HeaderAuthActions({
             onClick={() => {
               setIsQuickActionsOpen((current) => !current)
               setIsProfileMenuOpen(false)
+              setIsNotificationsOpen(false)
               onMainMenuClose?.()
             }}
             aria-label={quickActionsTitle}
@@ -164,12 +170,18 @@ export default function HeaderAuthActions({
           </button>
         ) : null}
 
-        <button type="button" className={styles.menuButton} aria-label={notificationsAriaLabel}>
-          <svg viewBox="0 0 24 24" fill="none" className={styles.menuIcon} aria-hidden="true">
-            <path d="M12 3a5 5 0 0 0-5 5v2.5c0 .7-.2 1.4-.6 2L5 15h14l-1.4-2.5a4.1 4.1 0 0 1-.6-2V8a5 5 0 0 0-5-5Z" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
-            <path d="M10 18a2 2 0 0 0 4 0" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
-          </svg>
-        </button>
+        <NotificationBell
+          open={isNotificationsOpen}
+          onToggle={() => {
+            setIsNotificationsOpen((current) => !current)
+            setIsQuickActionsOpen(false)
+            setIsProfileMenuOpen(false)
+            onMainMenuClose?.()
+          }}
+          onClose={() => setIsNotificationsOpen(false)}
+          buttonClassName={styles.menuButton}
+          iconClassName={styles.menuIcon}
+        />
 
         <HeaderLanguageSwitcher
           locale={locale}
@@ -184,6 +196,7 @@ export default function HeaderAuthActions({
           onClick={() => {
             setIsProfileMenuOpen((current) => !current)
             setIsQuickActionsOpen(false)
+            setIsNotificationsOpen(false)
             onMainMenuClose?.()
           }}
           aria-label={menuAriaLabel}

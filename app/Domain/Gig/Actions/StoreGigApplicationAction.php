@@ -63,16 +63,25 @@ class StoreGigApplicationAction
 
         $ownerId = $this->resolveOwnerUserId($gig);
 
-        if ($ownerId !== null && $ownerId !== $user->id) {
+        if ($ownerId !== null && $ownerId !== (int) $user->id) {
+            $user->loadMissing('profile');
+            $applicantName = $user->profile?->display_name ?? $user->profile?->nickname;
+            $gigTitle = (string) $gig->giggable?->title;
+
             $this->createNotificationAction->execute(
                 userId: $ownerId,
                 type: 'gig.application_received',
                 title: __('gig.notifications.application_received_title'),
-                message: __('gig.notifications.application_received_message'),
+                message: __('gig.notifications.application_received_message', [
+                    'name' => $applicantName ?? __('gig.notifications.someone'),
+                    'title' => $gigTitle,
+                ]),
                 data: [
                     'gig_id' => $gig->id,
                     'application_id' => $application->id,
                     'user_id' => $user->id,
+                    'applicant_name' => $applicantName,
+                    'gig_title' => $gigTitle,
                 ],
             );
         }

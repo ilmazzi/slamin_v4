@@ -14,13 +14,12 @@ class MarkNotificationAsReadController extends Controller
 {
     public function __construct(
         private readonly MarkNotificationAsReadAction $action,
-    ) {
-    }
+    ) {}
 
     public function __invoke(Notification $notification): JsonResponse
     {
-        if ($notification->user_id !== request()->user()->id) {
-            throw new NotFoundHttpException();
+        if ((int) $notification->user_id !== (int) request()->user()->id) {
+            throw new NotFoundHttpException;
         }
 
         $notification = $this->action->execute($notification, request()->user()->id);

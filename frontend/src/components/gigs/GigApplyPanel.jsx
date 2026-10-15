@@ -2,8 +2,10 @@ import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import styles from '../../pages/Gigs/GigWorkspace.module.css'
 import { applyToGig, withdrawGigApplication } from '../../app/api/gigs.js'
+import { useAuth } from '../../app/hooks/useAuth.js'
 
 export default function GigApplyPanel({ gig, token, t, onGigChange, onNotify }) {
+  const { user } = useAuth()
   const [message, setMessage] = useState('')
   const [isBusy, setIsBusy] = useState(false)
   const [error, setError] = useState('')
@@ -39,7 +41,10 @@ export default function GigApplyPanel({ gig, token, t, onGigChange, onNotify }) 
     setError('')
     try {
       const updated = await withdrawGigApplication(gig.id, application.id, { token })
-      onGigChange({ my_application: { id: application.id, status: updated?.status ?? 'withdrawn' } })
+      onGigChange({
+        my_application: { id: application.id, status: updated?.status ?? 'withdrawn' },
+        confirmed_users: (gig.confirmed_users ?? []).filter((person) => Number(person.id) !== Number(user?.id)),
+      })
       onNotify(t('gigs.apply.withdrawn'))
     } catch (err) {
       setError(err.message)

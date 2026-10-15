@@ -28,6 +28,7 @@ use App\Http\Controllers\Api\V1\Event\VoteForEventAvailabilityOptionController;
 use App\Http\Controllers\Api\V1\Gig\CloseGigController;
 use App\Http\Controllers\Api\V1\Gig\DeleteEventGigController;
 use App\Http\Controllers\Api\V1\Gig\DeleteGigAnnouncementController;
+use App\Http\Controllers\Api\V1\Gig\ListEventConfirmedGigsController;
 use App\Http\Controllers\Api\V1\Gig\ListEventGigsController;
 use App\Http\Controllers\Api\V1\Gig\ListGigAnnouncementsController;
 use App\Http\Controllers\Api\V1\Gig\ListGigApplicationsController;
@@ -154,6 +155,7 @@ Route::middleware([
 });
 
 Route::get('/events', ListEventController::class)->name('events.index');
+Route::get('/events/{event}/gigs/confirmed', ListEventConfirmedGigsController::class)->name('api.v1.events.gigs.confirmed');
 Route::get('/events/{slug}/share-card', ShowEventShareCardController::class)->name('events.share-card');
 Route::get('/events/{slug}', ShowEventController::class)->name('events.show');
 Route::get('/event-categories', ListEventCategoriesController::class)->name('event-categories.index');

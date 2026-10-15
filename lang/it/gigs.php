@@ -111,6 +111,14 @@ return [
         'lead' => 'Scopri i dettagli e candidati.',
         'all' => 'Vedi tutti gli ingaggi',
     ],
+    'confirmed' => [
+        'title' => 'Persone confermate',
+        'empty' => 'Nessuna persona ancora confermata.',
+        'unknown' => 'Utente',
+        'view_profile' => 'Vedi il profilo di :name',
+        'event_title' => 'Chi ci sarà',
+        'event_lead' => 'Le persone già confermate per questo evento.',
+    ],
     'detail' => [
         'not_found' => 'Ingaggio non disponibile.',
         'position' => 'Posizione richiesta',

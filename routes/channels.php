@@ -13,3 +13,7 @@ Broadcast::channel('chat.{threadId}', function (User $user, int $threadId) {
 Broadcast::channel('chat.user.{userId}', function (User $user, int $userId) {
     return (int) $user->id === $userId;
 }, ['guards' => ['sanctum']]);
+
+Broadcast::channel('notifications.{userId}', function (User $user, int $userId) {
+    return (int) $user->id === $userId;
+}, ['guards' => ['sanctum']]);
