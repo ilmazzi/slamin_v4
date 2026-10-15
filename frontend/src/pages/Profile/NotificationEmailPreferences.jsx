@@ -6,6 +6,7 @@ import { useI18n } from '../../app/hooks/useI18n.js'
 import styles from './ProfilePage.module.css'
 
 const NOTIFICATIONS_ANCHOR = 'notifications'
+const ALL_KEYS = '*'
 
 export default function NotificationEmailPreferences({ onMessage }) {
   const { token } = useAuth()
@@ -34,34 +35,53 @@ export default function NotificationEmailPreferences({ onMessage }) {
     }
   }, [hash, preferences])
 
-  const toggle = async (key) => {
-    const enabled = !preferences[key]
-    setPreferences((current) => ({ ...current, [key]: enabled }))
-    setPendingKey(key)
+  const save = async (changes, pending) => {
+    const previous = Object.fromEntries(Object.keys(changes).map((key) => [key, preferences[key]]))
+    setPreferences((current) => ({ ...current, ...changes }))
+    setPendingKey(pending)
 
     try {
-      setPreferences(await updateNotificationEmailPreferences({ [key]: enabled }, { token }))
+      setPreferences(await updateNotificationEmailPreferences(changes, { token }))
       onMessage(t('notifications.preferences.saved'))
     } catch {
-      setPreferences((current) => ({ ...current, [key]: !enabled }))
+      setPreferences((current) => ({ ...current, ...previous }))
       onMessage(t('notifications.preferences.save_error'))
     } finally {
       setPendingKey('')
     }
   }
 
+  const toggle = (key) => save({ [key]: !preferences[key] }, key)
+
+  const anyEnabled = preferences ? Object.values(preferences).some(Boolean) : false
+
+  const toggleAll = () => save(
+    Object.fromEntries(Object.keys(preferences).map((key) => [key, !anyEnabled])),
+    ALL_KEYS,
+  )
+
   return (
     <fieldset id={NOTIFICATIONS_ANCHOR} ref={sectionRef} className={styles.visibility}>
       <legend className={styles.visibilityTitle}>{t('notifications.preferences.title')}</legend>
       <p className={styles.hint}>{t('notifications.preferences.description')}</p>
       {loadError ? <p className={styles.error}>{loadError}</p> : null}
+      {preferences ? (
+        <button
+          type="button"
+          className={`${styles.textButton} ${styles.bulkToggle}`}
+          disabled={pendingKey !== ''}
+          onClick={toggleAll}
+        >
+          {t(anyEnabled ? 'notifications.preferences.deselect_all' : 'notifications.preferences.select_all')}
+        </button>
+      ) : null}
       {preferences
         ? Object.entries(preferences).map(([key, enabled]) => (
           <label key={key} className={styles.switchRow}>
             <input
               type="checkbox"
               checked={enabled}
-              disabled={pendingKey === key}
+              disabled={pendingKey === key || pendingKey === ALL_KEYS}
               onChange={() => toggle(key)}
             />
             <span>

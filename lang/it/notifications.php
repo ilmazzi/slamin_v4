@@ -62,6 +62,8 @@ return [
         'description' => 'Scegli quali email ricevere. Le notifiche nel sito restano sempre attive.',
         'saved' => 'Preferenze salvate.',
         'save_error' => 'Impossibile salvare le preferenze.',
+        'deselect_all' => 'Deseleziona tutte',
+        'select_all' => 'Seleziona tutte',
         'load_error' => 'Impossibile caricare le preferenze.',
         'categories' => [
             'chat_messages' => ['label' => 'Messaggi in chat', 'description' => 'Se un messaggio resta da leggere per 15 minuti. Al massimo una email per conversazione finché non la apri.'],

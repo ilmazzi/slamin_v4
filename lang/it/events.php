@@ -102,7 +102,7 @@ return [
         'schedule_modes' => [
             'fixed' => 'Data fissa',
             'recurring' => 'Ricorrente',
-            'availability' => 'Basato su disponibilita',
+            'availability' => 'Basato su disponibilità',
         ],
         'meta' => [
             'type' => 'Tipo',
@@ -137,7 +137,7 @@ return [
             ],
             'participation' => [
                 'title' => 'Partecipazione',
-                'description' => 'Come partecipare, costi e disponibilita',
+                'description' => 'Come partecipare, costi e disponibilità',
                 'cost' => 'Costo',
                 'available_slots' => 'Posti disponibili',
                 'registrations' => 'Iscrizioni',
@@ -150,7 +150,7 @@ return [
             ],
             'useful' => [
                 'title' => 'Info utili',
-                'description' => 'Dettagli aggiuntivi sull evento',
+                'description' => 'Dettagli aggiuntivi sull\'evento',
                 'event_type' => 'Tipo evento',
                 'subtitle' => 'Sottotitolo',
                 'language' => 'Lingua',

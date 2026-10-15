@@ -2,7 +2,7 @@
 
 return [
     'errors' => [
-        'single_reply_level' => 'E consentito un solo livello di risposta.',
+        'single_reply_level' => 'È consentito un solo livello di risposta.',
         'parent_mismatch' => 'Il commento padre non appartiene a questo contenuto.',
     ],
     'notifications' => [

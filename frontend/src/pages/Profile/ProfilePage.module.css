@@ -249,6 +249,16 @@
   font-weight: 800;
 }
 
+.bulkToggle {
+  justify-self: start;
+  padding: 0;
+}
+
+.bulkToggle:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
+
 .switchRow {
   display: flex;
   align-items: flex-start;

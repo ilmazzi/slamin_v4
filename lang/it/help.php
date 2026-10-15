@@ -2,7 +2,7 @@
 
 return [
     'errors' => [
-        'category_in_use' => 'Non puoi eliminare una categoria gia usata da una o piu guide.',
+        'category_in_use' => 'Non puoi eliminare una categoria già usata da una o più guide.',
     ],
     'ui' => [
         'title' => 'Guida e aiuto',

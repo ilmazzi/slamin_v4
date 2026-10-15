@@ -10,7 +10,7 @@ return [
         'welcome_prefix' => 'Ti diamo il benvenuto su',
         'brand_wordmark' => 'SLAM IN',
         'tagline' => 'La community dove la poesia prende vita.',
-        'subcopy' => 'Condividi la tua creativita, scopri nuova arte.',
+        'subcopy' => 'Condividi la tua creatività, scopri nuova arte.',
         'search_placeholder' => 'Cerca',
     ],
     'intro' => [

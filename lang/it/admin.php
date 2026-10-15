@@ -123,7 +123,7 @@ return [
         'admin_username' => 'Utente admin',
         'admin_password' => 'Password admin',
         'password_placeholder' => 'Lascia vuoto per non cambiare',
-        'password_set' => 'Password gia salvata. Inserisci un valore solo per aggiornarla.',
+        'password_set' => 'Password già salvata. Inserisci un valore solo per aggiornarla.',
         'channel_id' => 'ID canale di upload',
         'verify_ssl' => 'Verifica il certificato SSL',
         'download_enabled' => 'Consenti il download dei video',

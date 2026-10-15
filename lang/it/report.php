@@ -2,15 +2,15 @@
 
 return [
     'errors' => [
-        'duplicate_open' => 'Hai gia una segnalazione aperta per questo contenuto.',
+        'duplicate_open' => 'Hai già una segnalazione aperta per questo contenuto.',
         'self_report' => 'Non puoi segnalare un tuo contenuto.',
     ],
     'notifications' => [
         'created_title' => 'Nuova segnalazione ricevuta',
-        'created_message' => 'E stata inviata una nuova segnalazione su un contenuto di tipo :type.',
+        'created_message' => 'È stata inviata una nuova segnalazione su un contenuto di tipo :type.',
         'updated_title' => 'Aggiornamento sulla tua segnalazione',
-        'resolved_message' => 'La tua segnalazione e stata presa in carico e risolta.',
-        'dismissed_message' => 'La tua segnalazione e stata valutata e archiviata.',
+        'resolved_message' => 'La tua segnalazione è stata presa in carico e risolta.',
+        'dismissed_message' => 'La tua segnalazione è stata valutata e archiviata.',
     ],
     'types' => [
         'poem' => 'poesia',

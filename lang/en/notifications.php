@@ -62,6 +62,8 @@ return [
         'description' => 'Choose which emails you receive. On-site notifications always stay on.',
         'saved' => 'Preferences saved.',
         'save_error' => 'Unable to save your preferences.',
+        'deselect_all' => 'Deselect all',
+        'select_all' => 'Select all',
         'load_error' => 'Unable to load your preferences.',
         'categories' => [
             'chat_messages' => ['label' => 'Chat messages', 'description' => 'When a message stays unread for 15 minutes. At most one email per conversation until you open it.'],
