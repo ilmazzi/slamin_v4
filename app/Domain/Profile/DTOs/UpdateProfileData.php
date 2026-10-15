@@ -8,6 +8,7 @@ class UpdateProfileData
 {
     /**
      * @param  array<string, bool>|null  $visibility
+     * @param  list<array<string, string>>|null  $socialLinks
      * @param  list<string>  $provided
      */
     public function __construct(
@@ -17,6 +18,7 @@ class UpdateProfileData
         public readonly ?string $bio,
         public readonly ?string $location,
         public readonly ?string $websiteUrl,
+        public readonly ?array $socialLinks,
         public readonly ?bool $isPublic,
         public readonly ?array $visibility,
         public readonly ?UploadedFile $avatar,

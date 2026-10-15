@@ -1,6 +1,15 @@
 import { apiGet, authApiDelete, authApiGet, authApiPatch, authApiPost } from './client.js'
 
 export const PROFILE_SECTIONS = ['poems', 'events', 'articles', 'media']
+export const SOCIAL_PLATFORMS = [
+  { id: 'instagram', label: 'Instagram' },
+  { id: 'facebook', label: 'Facebook' },
+  { id: 'youtube', label: 'YouTube' },
+  { id: 'tiktok', label: 'TikTok' },
+  { id: 'twitter', label: 'X / Twitter' },
+  { id: 'bluesky', label: 'Bluesky' },
+  { id: 'mastodon', label: 'Mastodon' },
+]
 
 const DEFAULT_VISIBILITY = {
   bio: true,
@@ -42,6 +51,7 @@ export function ownerProfileFromUser(user) {
     bio: profile.bio ?? user.bio ?? '',
     location: profile.location ?? user.location ?? '',
     website_url: profile.website_url ?? user.website_url ?? '',
+    social_links: Array.isArray(profile.social_links) ? profile.social_links : [],
     preferred_locale: profile.preferred_locale ?? null,
     is_public: profile.is_public ?? user.is_public ?? true,
     visibility: defaultVisibility(profile.visibility ?? user.visibility),
@@ -61,6 +71,21 @@ export function normalizeWebsiteUrl(value) {
     return trimmed
   }
   return `https://${trimmed}`
+}
+
+export function normalizeSocialLinks(platformValues, customLinks = []) {
+  const platformLinks = SOCIAL_PLATFORMS.flatMap(({ id, label }) => {
+    const url = normalizeWebsiteUrl(platformValues?.[id])
+    return url ? [{ platform: id, label, url }] : []
+  })
+
+  const additionalLinks = customLinks.flatMap((link) => {
+    const label = String(link?.label ?? '').trim()
+    const url = normalizeWebsiteUrl(link?.url)
+    return label && url ? [{ platform: 'custom', label, url }] : []
+  })
+
+  return [...platformLinks, ...additionalLinks]
 }
 
 export async function getPublicProfile(nickname, { token, signal } = {}) {
@@ -132,7 +157,7 @@ export async function updateMyProfile(values, { token, signal } = {}) {
       if (key === 'avatar' || key === 'banner') {
         return
       }
-      if (key === 'visibility' && value && typeof value === 'object') {
+      if ((key === 'visibility' || key === 'social_links') && value && typeof value === 'object') {
         formData.append('visibility', JSON.stringify(value))
         return
       }

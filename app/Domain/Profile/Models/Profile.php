@@ -23,6 +23,7 @@ class Profile extends Model
         'bio',
         'location',
         'website_url',
+        'social_links',
         'preferred_locale',
         'is_public',
         'avatar_path',
@@ -33,6 +34,7 @@ class Profile extends Model
     protected $casts = [
         'is_public' => 'boolean',
         'visibility' => 'array',
+        'social_links' => 'array',
     ];
 
     protected static function booted(): void

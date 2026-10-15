@@ -10,6 +10,7 @@ import {
   adminUpdateHelpArticle,
   adminUpdateHelpCategory,
 } from '../../app/api/help.js'
+import { listI18nLanguages } from '../../app/api/i18n.js'
 import { useAuth } from '../../app/hooks/useAuth.js'
 import { useI18n } from '../../app/hooks/useI18n.js'
 import MainLayout from '../../components/layout/MainLayout.jsx'
@@ -20,8 +21,7 @@ const emptyCategory = {
   slug: '',
   sort_order: 0,
   is_active: true,
-  name_it: '',
-  name_en: '',
+  translations: {},
 }
 
 const emptyArticle = {
@@ -30,10 +30,7 @@ const emptyArticle = {
   help_category_id: '',
   sort_order: 0,
   is_published: true,
-  title_it: '',
-  body_it: '',
-  title_en: '',
-  body_en: '',
+  translations: {},
 }
 
 function slugify(value) {
@@ -46,63 +43,77 @@ function slugify(value) {
     .slice(0, 160)
 }
 
-function translationValue(translations, locale, key) {
-  const match = (translations || []).find((item) => item.locale === locale)
-  return match?.[key] || ''
-}
+function categoryFromItem(item, languages) {
+  const existing = Object.fromEntries(
+    (item.translations || []).map((translation) => [translation.locale, translation.name || '']),
+  )
 
-function categoryFromItem(item) {
   return {
     id: item.id,
     slug: item.slug || '',
     sort_order: item.sort_order ?? 0,
     is_active: item.is_active !== false,
-    name_it: translationValue(item.translations, 'it', 'name') || item.name || '',
-    name_en: translationValue(item.translations, 'en', 'name') || '',
+    translations: Object.fromEntries(
+      languages.map((language) => [language.code, existing[language.code] || '']),
+    ),
   }
 }
 
-function articleFromItem(item) {
+function articleFromItem(item, languages) {
+  const existing = Object.fromEntries(
+    (item.translations || []).map((translation) => [
+      translation.locale,
+      { title: translation.title || '', body: translation.body || '' },
+    ]),
+  )
+
   return {
     id: item.id,
     slug: item.slug || '',
     help_category_id: item.help_category_id || item.category?.id || '',
     sort_order: item.sort_order ?? 0,
     is_published: item.is_published !== false,
-    title_it: translationValue(item.translations, 'it', 'title') || item.title || '',
-    body_it: translationValue(item.translations, 'it', 'body') || '',
-    title_en: translationValue(item.translations, 'en', 'title') || '',
-    body_en: translationValue(item.translations, 'en', 'body') || '',
+    translations: Object.fromEntries(
+      languages.map((language) => [
+        language.code,
+        existing[language.code] || { title: '', body: '' },
+      ]),
+    ),
   }
 }
 
-function categoryPayload(form) {
-  const translations = [
-    form.name_it.trim() ? { locale: 'it', name: form.name_it.trim() } : null,
-    form.name_en.trim() ? { locale: 'en', name: form.name_en.trim() } : null,
-  ].filter(Boolean)
+function categoryPayload(form, languages) {
+  const translations = languages
+    .map((language) => ({
+      locale: language.code,
+      name: String(form.translations[language.code] || '').trim(),
+    }))
+    .filter((translation) => translation.name)
+  const defaultLanguage = languages.find((language) => language.is_default)
+  const slugSource = form.translations[defaultLanguage?.code] || translations[0]?.name || ''
 
   return {
-    slug: (form.slug.trim() || slugify(form.name_it || form.name_en)),
+    slug: form.slug.trim() || slugify(slugSource),
     is_active: Boolean(form.is_active),
     sort_order: Number(form.sort_order) || 0,
     translations,
   }
 }
 
-function articlePayload(form) {
-  const translations = [
-    form.title_it.trim() && form.body_it.trim()
-      ? { locale: 'it', title: form.title_it.trim(), body: form.body_it.trim() }
-      : null,
-    form.title_en.trim() && form.body_en.trim()
-      ? { locale: 'en', title: form.title_en.trim(), body: form.body_en.trim() }
-      : null,
-  ].filter(Boolean)
+function articlePayload(form, languages) {
+  const translations = languages
+    .map((language) => ({
+      locale: language.code,
+      title: String(form.translations[language.code]?.title || '').trim(),
+      body: String(form.translations[language.code]?.body || '').trim(),
+    }))
+    .filter((translation) => translation.title && translation.body)
+  const defaultLanguage = languages.find((language) => language.is_default)
+  const slugSource = form.translations[defaultLanguage?.code]?.title || translations[0]?.title || ''
 
   return {
     help_category_id: Number(form.help_category_id),
-    slug: (form.slug.trim() || slugify(form.title_it || form.title_en)),
+    slug: form.slug.trim() || slugify(slugSource),
     is_published: Boolean(form.is_published),
     sort_order: Number(form.sort_order) || 0,
     translations,
@@ -114,6 +125,7 @@ export default function HelpAdminPage() {
   const { token } = useAuth()
   const [categories, setCategories] = useState([])
   const [articles, setArticles] = useState([])
+  const [languages, setLanguages] = useState([])
   const [categoryForm, setCategoryForm] = useState(emptyCategory)
   const [articleForm, setArticleForm] = useState(emptyArticle)
   const [error, setError] = useState('')
@@ -123,12 +135,14 @@ export default function HelpAdminPage() {
   const [isSavingArticle, setIsSavingArticle] = useState(false)
 
   const load = useCallback(async ({ signal } = {}) => {
-    const [nextCategories, nextArticles] = await Promise.all([
+    const [nextCategories, nextArticles, nextLanguages] = await Promise.all([
       adminListHelpCategories({ token, signal }),
       adminListHelpArticles({ token, signal }),
+      listI18nLanguages(token, { signal }),
     ])
     setCategories(nextCategories)
     setArticles(nextArticles)
+    setLanguages(nextLanguages)
   }, [token])
 
   useEffect(() => {
@@ -165,7 +179,7 @@ export default function HelpAdminPage() {
 
   const handleSaveCategory = async (event) => {
     event.preventDefault()
-    const payload = categoryPayload(categoryForm)
+    const payload = categoryPayload(categoryForm, languages)
     if (!payload.slug || payload.translations.length === 0) {
       setError(t('admin.help.save_error'))
       return
@@ -209,7 +223,7 @@ export default function HelpAdminPage() {
 
   const handleSaveArticle = async (event) => {
     event.preventDefault()
-    const payload = articlePayload(articleForm)
+    const payload = articlePayload(articleForm, languages)
     if (!payload.slug || !payload.help_category_id || payload.translations.length === 0) {
       setError(t('admin.help.save_error'))
       return
@@ -273,7 +287,11 @@ export default function HelpAdminPage() {
               <ul className={styles.list}>
                 {categories.map((item) => (
                   <li key={item.id}>
-                    <button type="button" className={styles.row} onClick={() => setCategoryForm(categoryFromItem(item))}>
+                    <button
+                      type="button"
+                      className={styles.row}
+                      onClick={() => setCategoryForm(categoryFromItem(item, languages))}
+                    >
                       <strong>{item.name || item.slug}</strong>
                       <span>{item.slug}</span>
                       <span>{t('admin.help.used_by', { count: item.articles_count || 0 })}</span>
@@ -304,20 +322,28 @@ export default function HelpAdminPage() {
                   onChange={(event) => setCategoryForm((current) => ({ ...current, sort_order: event.target.value }))}
                 />
               </label>
-              <label>
-                <span>{t('admin.help.name_it')}</span>
-                <input
-                  value={categoryForm.name_it}
-                  onChange={(event) => setCategoryForm((current) => ({ ...current, name_it: event.target.value }))}
-                />
-              </label>
-              <label>
-                <span>{t('admin.help.name_en')}</span>
-                <input
-                  value={categoryForm.name_en}
-                  onChange={(event) => setCategoryForm((current) => ({ ...current, name_en: event.target.value }))}
-                />
-              </label>
+              {languages.map((language) => (
+                <label key={language.code}>
+                  <span>
+                    {language.flag} {t('admin.help.name_translation', {
+                      language: language.name,
+                      code: language.code,
+                    })}
+                    {language.is_default ? ' *' : ''}
+                  </span>
+                  <input
+                    value={categoryForm.translations[language.code] || ''}
+                    required={language.is_default}
+                    onChange={(event) => setCategoryForm((current) => ({
+                      ...current,
+                      translations: {
+                        ...current.translations,
+                        [language.code]: event.target.value,
+                      },
+                    }))}
+                  />
+                </label>
+              ))}
               <label className={styles.check}>
                 <input
                   type="checkbox"
@@ -345,7 +371,11 @@ export default function HelpAdminPage() {
               <ul className={styles.list}>
                 {articles.map((item) => (
                   <li key={item.id}>
-                    <button type="button" className={styles.row} onClick={() => setArticleForm(articleFromItem(item))}>
+                    <button
+                      type="button"
+                      className={styles.row}
+                      onClick={() => setArticleForm(articleFromItem(item, languages))}
+                    >
                       <strong>{item.title || item.slug}</strong>
                       <span>{item.category?.slug || ''}</span>
                       <span>{item.is_published ? t('admin.help.published') : t('admin.help.draft')}</span>
@@ -396,36 +426,49 @@ export default function HelpAdminPage() {
                 />
                 {t('admin.help.published')}
               </label>
-              <label>
-                <span>{t('admin.help.title_it')}</span>
-                <input
-                  value={articleForm.title_it}
-                  onChange={(event) => setArticleForm((current) => ({ ...current, title_it: event.target.value }))}
-                />
-              </label>
-              <label>
-                <span>{t('admin.help.body_it')}</span>
-                <textarea
-                  rows={6}
-                  value={articleForm.body_it}
-                  onChange={(event) => setArticleForm((current) => ({ ...current, body_it: event.target.value }))}
-                />
-              </label>
-              <label>
-                <span>{t('admin.help.title_en')}</span>
-                <input
-                  value={articleForm.title_en}
-                  onChange={(event) => setArticleForm((current) => ({ ...current, title_en: event.target.value }))}
-                />
-              </label>
-              <label>
-                <span>{t('admin.help.body_en')}</span>
-                <textarea
-                  rows={6}
-                  value={articleForm.body_en}
-                  onChange={(event) => setArticleForm((current) => ({ ...current, body_en: event.target.value }))}
-                />
-              </label>
+              {languages.map((language) => (
+                <fieldset key={language.code} className={styles.translationGroup}>
+                  <legend>
+                    {language.flag} {language.name} ({language.code})
+                    {language.is_default ? ' *' : ''}
+                  </legend>
+                  <label>
+                    <span>{t('admin.help.article_title')}</span>
+                    <input
+                      value={articleForm.translations[language.code]?.title || ''}
+                      required={language.is_default}
+                      onChange={(event) => setArticleForm((current) => ({
+                        ...current,
+                        translations: {
+                          ...current.translations,
+                          [language.code]: {
+                            ...current.translations[language.code],
+                            title: event.target.value,
+                          },
+                        },
+                      }))}
+                    />
+                  </label>
+                  <label>
+                    <span>{t('admin.help.article_body')}</span>
+                    <textarea
+                      rows={6}
+                      value={articleForm.translations[language.code]?.body || ''}
+                      required={language.is_default}
+                      onChange={(event) => setArticleForm((current) => ({
+                        ...current,
+                        translations: {
+                          ...current.translations,
+                          [language.code]: {
+                            ...current.translations[language.code],
+                            body: event.target.value,
+                          },
+                        },
+                      }))}
+                    />
+                  </label>
+                </fieldset>
+              ))}
               <div className={styles.actions}>
                 <button type="submit" disabled={isSavingArticle}>
                   {isSavingArticle ? t('admin.help.saving') : t('admin.help.save')}

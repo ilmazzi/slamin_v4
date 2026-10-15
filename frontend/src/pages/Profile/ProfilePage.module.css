@@ -113,6 +113,35 @@
   color: inherit;
 }
 
+.socialLinks {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.socialLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 40px;
+  padding: 9px 14px;
+  border: 1px solid var(--color-border);
+  border-radius: 999px;
+  color: inherit;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.socialLink:hover {
+  border-color: var(--color-black);
+}
+
+.socialIcon {
+  width: 18px;
+  height: 18px;
+  flex: 0 0 auto;
+}
+
 .actions,
 .formActions,
 .avatarButtons {
@@ -269,6 +298,29 @@
   font-weight: 800;
 }
 
+.customLinkRow {
+  display: grid;
+  grid-template-columns: minmax(0, 0.7fr) minmax(0, 1.3fr) auto;
+  align-items: end;
+  gap: 12px;
+}
+
+.removeLink {
+  width: 44px;
+  height: 44px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--color-red);
+  color: var(--color-white);
+  font: inherit;
+  font-size: 1.5rem;
+  cursor: pointer;
+}
+
+.addLink {
+  justify-self: start;
+}
+
 .bulkToggle {
   justify-self: start;
   padding: 0;
@@ -308,5 +360,13 @@
 
   .grid {
     grid-template-columns: 1fr;
+  }
+
+  .customLinkRow {
+    grid-template-columns: 1fr auto;
+  }
+
+  .customLinkRow .field:first-child {
+    grid-column: 1 / -1;
   }
 }

@@ -182,6 +182,20 @@ it('forbids a non admin from writing help content', function () {
     ])->assertForbidden();
 });
 
+it('rejects help translations for unsupported locales', function () {
+    Sanctum::actingAs(helpAdminUser());
+
+    $response = $this->postJson('/api/v1/admin/help/categories', [
+        'slug' => 'unsupported-language',
+        'translations' => [
+            ['locale' => 'xx', 'name' => 'Unsupported'],
+        ],
+    ]);
+
+    $response->assertUnprocessable();
+    expect($response->json('errors.fields'))->toHaveKey('translations.0.locale');
+});
+
 it('prevents deleting a help category that still has articles', function () {
     Sanctum::actingAs(helpAdminUser());
 

@@ -3,8 +3,10 @@ import { Link } from 'react-router-dom'
 import {
   defaultVisibility,
   normalizeWebsiteUrl,
+  normalizeSocialLinks,
   ownerProfileFromUser,
   PROFILE_SECTIONS,
+  SOCIAL_PLATFORMS,
   updateMyProfile,
 } from '../../app/api/profile.js'
 import { resolvePublicUrl } from '../../app/api/url.js'
@@ -20,6 +22,7 @@ const MAX_BANNER_BYTES = 5 * 1024 * 1024
 
 function formFromProfile(profile) {
   const visibility = defaultVisibility(profile?.visibility)
+  const socialLinks = Array.isArray(profile?.social_links) ? profile.social_links : []
 
   return {
     display_name: profile?.display_name ?? '',
@@ -27,6 +30,12 @@ function formFromProfile(profile) {
     bio: profile?.bio ?? '',
     location: profile?.location ?? '',
     website_url: profile?.website_url ?? '',
+    social_platforms: Object.fromEntries(
+      SOCIAL_PLATFORMS.map(({ id }) => [id, socialLinks.find((link) => link.platform === id)?.url ?? '']),
+    ),
+    custom_links: socialLinks
+      .filter((link) => link.platform === 'custom')
+      .map((link) => ({ label: link.label ?? '', url: link.url ?? '' })),
     is_public: profile?.is_public !== false,
     visibility: {
       bio: visibility.bio !== false,
@@ -109,6 +118,36 @@ export default function ProfileEditPage() {
     }))
   }
 
+  const onSocialChange = (platform, value) => {
+    setForm((current) => ({
+      ...current,
+      social_platforms: { ...current.social_platforms, [platform]: value },
+    }))
+  }
+
+  const onCustomLinkChange = (index, field, value) => {
+    setForm((current) => ({
+      ...current,
+      custom_links: current.custom_links.map((link, linkIndex) =>
+        linkIndex === index ? { ...link, [field]: value } : link,
+      ),
+    }))
+  }
+
+  const addCustomLink = () => {
+    setForm((current) => ({
+      ...current,
+      custom_links: [...current.custom_links, { label: '', url: '' }],
+    }))
+  }
+
+  const removeCustomLink = (index) => {
+    setForm((current) => ({
+      ...current,
+      custom_links: current.custom_links.filter((_, linkIndex) => linkIndex !== index),
+    }))
+  }
+
   const onImageChange = ({ event, maxBytes, tooLargeKey, previewRef, setFile, setRemove, setPreview }) => {
     const file = event.target.files?.[0]
     if (!file) {
@@ -187,6 +226,7 @@ export default function ProfileEditPage() {
           bio: form.bio.trim() || null,
           location: form.location.trim() || null,
           website_url: normalizeWebsiteUrl(form.website_url),
+          social_links: normalizeSocialLinks(form.social_platforms, form.custom_links),
           is_public: form.is_public,
           visibility: form.visibility,
           ...(avatarFile ? { avatar: avatarFile } : {}),
@@ -345,6 +385,65 @@ export default function ProfileEditPage() {
               />
             </label>
           </div>
+
+          <fieldset className={styles.visibility}>
+            <legend className={styles.visibilityTitle}>{t('profile.page.social_title')}</legend>
+            <p className={styles.hint}>{t('profile.page.social_hint')}</p>
+            <div className={styles.grid}>
+              {SOCIAL_PLATFORMS.map(({ id, label }) => (
+                <label key={id} className={styles.field}>
+                  <span className={styles.label}>{label}</span>
+                  <input
+                    className={styles.input}
+                    value={form.social_platforms[id]}
+                    onChange={(event) => onSocialChange(id, event.target.value)}
+                    inputMode="url"
+                    maxLength={500}
+                    placeholder="https://"
+                  />
+                </label>
+              ))}
+            </div>
+            {form.custom_links.map((link, index) => (
+              <div key={index} className={styles.customLinkRow}>
+                <label className={styles.field}>
+                  <span className={styles.label}>{t('profile.page.link_name')}</span>
+                  <input
+                    className={styles.input}
+                    value={link.label}
+                    onChange={(event) => onCustomLinkChange(index, 'label', event.target.value)}
+                    maxLength={60}
+                    required
+                  />
+                </label>
+                <label className={styles.field}>
+                  <span className={styles.label}>URL</span>
+                  <input
+                    className={styles.input}
+                    value={link.url}
+                    onChange={(event) => onCustomLinkChange(index, 'url', event.target.value)}
+                    inputMode="url"
+                    maxLength={500}
+                    placeholder="https://"
+                    required
+                  />
+                </label>
+                <button
+                  className={styles.removeLink}
+                  type="button"
+                  onClick={() => removeCustomLink(index)}
+                  aria-label={t('profile.page.remove_link')}
+                >
+                  −
+                </button>
+              </div>
+            ))}
+            {form.custom_links.length < 13 ? (
+              <button className={`${styles.secondaryLink} ${styles.addLink}`} type="button" onClick={addCustomLink}>
+                + {t('profile.page.add_link')}
+              </button>
+            ) : null}
+          </fieldset>
 
           <fieldset className={styles.visibility}>
             <legend className={styles.visibilityTitle}>{t('profile.page.visibility_title')}</legend>

@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom'
+import SocialIcon from '../../components/icons/SocialIcon.jsx'
 import styles from './ProfilePage.module.css'
 
 export default function ProfileCard({ profile, t, onWrite = null, isWriting = false, follow = null }) {
@@ -14,8 +15,9 @@ export default function ProfileCard({ profile, t, onWrite = null, isWriting = fa
       : null,
     profile.email ? { id: 'email', label: t('profile.page.email'), value: profile.email, href: `mailto:${profile.email}` } : null,
   ].filter(Boolean)
+  const socialLinks = Array.isArray(profile.social_links) ? profile.social_links : []
 
-  if (!profile.is_owner && !profile.bio && facts.length === 0 && !onWrite) {
+  if (!profile.is_owner && !profile.bio && facts.length === 0 && socialLinks.length === 0 && !onWrite) {
     return null
   }
 
@@ -46,6 +48,23 @@ export default function ProfileCard({ profile, t, onWrite = null, isWriting = fa
             </div>
           ))}
         </dl>
+      ) : null}
+
+      {socialLinks.length > 0 ? (
+        <div className={styles.socialLinks} aria-label={t('profile.page.social_channels')}>
+          {socialLinks.map((link, index) => (
+            <a
+              key={`${link.platform}-${link.url}-${index}`}
+              className={styles.socialLink}
+              href={link.url}
+              rel="noreferrer noopener"
+              target="_blank"
+            >
+              <SocialIcon className={styles.socialIcon} platform={link.platform} />
+              <span>{link.label}</span>
+            </a>
+          ))}
+        </div>
       ) : null}
 
       {profile.is_owner ? (

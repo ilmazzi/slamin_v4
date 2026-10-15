@@ -4,6 +4,7 @@ namespace App\Http\Requests\Api\V1\Profile;
 
 use Domain\I18n\Actions\ResolveSupportedLocalesAction;
 use Domain\Profile\Support\ProfilePayload;
+use Domain\Profile\Support\SocialLinks;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -23,6 +24,14 @@ class UpdateProfileRequest extends FormRequest
             $decoded = json_decode($visibility, true);
             if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
                 $updates['visibility'] = $decoded;
+            }
+        }
+
+        $socialLinks = $this->input('social_links');
+        if (is_string($socialLinks)) {
+            $decoded = json_decode($socialLinks, true);
+            if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
+                $updates['social_links'] = $decoded;
             }
         }
 
@@ -93,6 +102,10 @@ class UpdateProfileRequest extends FormRequest
             'bio' => ['sometimes', 'nullable', 'string', 'max:2000'],
             'location' => ['sometimes', 'nullable', 'string', 'max:120'],
             'website_url' => ['sometimes', 'nullable', 'url', 'max:255'],
+            'social_links' => ['sometimes', 'array', 'max:20'],
+            'social_links.*.platform' => ['required', 'string', Rule::in([...SocialLinks::PLATFORMS, 'custom'])],
+            'social_links.*.label' => ['nullable', 'required_if:social_links.*.platform,custom', 'string', 'max:60'],
+            'social_links.*.url' => ['required', 'url:http,https', 'max:500'],
             'preferred_locale' => [
                 'sometimes',
                 'required',

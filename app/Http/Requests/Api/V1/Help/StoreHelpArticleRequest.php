@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\Api\V1\Help;
 
+use Domain\I18n\Actions\ResolveSupportedLocalesAction;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -20,7 +21,13 @@ class StoreHelpArticleRequest extends FormRequest
             'is_published' => ['nullable', 'boolean'],
             'sort_order' => ['nullable', 'integer', 'min:0', 'max:9999'],
             'translations' => ['required', 'array', 'min:1'],
-            'translations.*.locale' => ['required', 'string', 'max:10', 'distinct'],
+            'translations.*.locale' => [
+                'required',
+                'string',
+                'max:10',
+                'distinct',
+                Rule::in(app(ResolveSupportedLocalesAction::class)->execute(false)),
+            ],
             'translations.*.title' => ['required', 'string', 'max:180'],
             'translations.*.body' => ['required', 'string', 'max:20000'],
         ];

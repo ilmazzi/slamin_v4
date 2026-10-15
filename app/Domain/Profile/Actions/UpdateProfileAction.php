@@ -5,6 +5,7 @@ namespace Domain\Profile\Actions;
 use Domain\Profile\DTOs\UpdateProfileData;
 use Domain\Profile\Models\Profile;
 use Domain\Profile\Support\ProfilePayload;
+use Domain\Profile\Support\SocialLinks;
 use Illuminate\Support\Facades\Storage;
 
 class UpdateProfileAction
@@ -35,6 +36,10 @@ class UpdateProfileAction
 
         if ($data->wasProvided('website_url')) {
             $updates['website_url'] = $data->websiteUrl;
+        }
+
+        if ($data->wasProvided('social_links')) {
+            $updates['social_links'] = SocialLinks::normalize($data->socialLinks);
         }
 
         if ($data->wasProvided('is_public') && $data->isPublic !== null) {

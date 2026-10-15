@@ -84,6 +84,52 @@ it('keeps the same nickname when updating other profile fields', function () {
         ->assertJsonPath('data.profile.bio', 'Bio aggiornata');
 });
 
+it('stores and publicly exposes social channels and custom links', function () {
+    $owner = profileTestUser();
+    $owner->profile->update(['nickname' => 'social_poet']);
+    Sanctum::actingAs($owner);
+
+    $this->patchJson('/api/v1/me/profile', [
+        'social_links' => [
+            ['platform' => 'instagram', 'label' => 'Ignored label', 'url' => 'https://instagram.com/social_poet'],
+            ['platform' => 'bluesky', 'label' => 'Bluesky', 'url' => 'https://bsky.app/profile/social-poet.test'],
+            ['platform' => 'custom', 'label' => 'Podcast', 'url' => 'https://example.com/podcast'],
+        ],
+    ])
+        ->assertOk()
+        ->assertJsonPath('data.profile.social_links.0.label', 'Instagram')
+        ->assertJsonPath('data.profile.social_links.2.label', 'Podcast');
+
+    $this->app['auth']->forgetGuards();
+
+    $this->getJson('/api/v1/profiles/social_poet')
+        ->assertOk()
+        ->assertJsonCount(3, 'data.profile.social_links')
+        ->assertJsonPath('data.profile.social_links.1.platform', 'bluesky')
+        ->assertJsonPath('data.profile.social_links.2.url', 'https://example.com/podcast');
+});
+
+it('rejects unsafe and malformed profile links', function () {
+    $user = profileTestUser();
+    Sanctum::actingAs($user);
+
+    $unsafeResponse = $this->patchJson('/api/v1/me/profile', [
+        'social_links' => [
+            ['platform' => 'custom', 'label' => 'Unsafe', 'url' => 'javascript:alert(1)'],
+        ],
+    ]);
+    $unsafeResponse->assertUnprocessable();
+    expect($unsafeResponse->json('errors.fields'))->toHaveKey('social_links.0.url');
+
+    $missingLabelResponse = $this->patchJson('/api/v1/me/profile', [
+        'social_links' => [
+            ['platform' => 'custom', 'label' => '', 'url' => 'https://example.com'],
+        ],
+    ]);
+    $missingLabelResponse->assertUnprocessable();
+    expect($missingLabelResponse->json('errors.fields'))->toHaveKey('social_links.0.label');
+});
+
 it('hides private fields on the public profile and 404s private profiles', function () {
     $owner = profileTestUser();
     $viewer = profileTestUser();
