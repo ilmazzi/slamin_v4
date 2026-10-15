@@ -122,6 +122,7 @@ it('returns the authenticated user on me endpoint', function () {
 
     $response
         ->assertOk()
+        ->assertJsonPath('data.user.id', $user->id)
         ->assertJsonPath('data.user.public_id', $user->public_id)
         ->assertJsonPath('data.user.roles.0', 'admin')
         ->assertJsonPath('data.user.account_type', 'audience')

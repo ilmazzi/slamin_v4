@@ -16,6 +16,7 @@ final class AuthUserPayload
         $profile = ProfilePayload::owner($user);
 
         return [
+            'id' => $user->id,
             'public_id' => $user->public_id,
             'email' => $user->email,
             'email_verified_at' => $user->email_verified_at?->toISOString(),
