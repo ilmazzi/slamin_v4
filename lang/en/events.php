@@ -66,6 +66,13 @@ return [
     ],
     'detail_page' => [
         'details_title' => 'Useful information',
+        'organizer' => [
+            'label' => 'Organized by',
+            'view_profile' => 'View :name\'s profile',
+            'write' => 'Message the organizer',
+            'login_to_write' => 'Sign in to message the organizer',
+            'write_error' => 'Unable to open the chat.',
+        ],
         'actions' => [
             'join_online' => 'Join online',
             'edit' => 'Edit event',

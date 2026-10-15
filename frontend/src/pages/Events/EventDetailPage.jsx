@@ -27,6 +27,7 @@ import { createEventReport } from '../../app/api/reports.js'
 import { scheduleScrollToComments } from '../../app/utils/scrollToComments.js'
 import HomeDashboardPromo from '../../components/home/HomeDashboardPromo.jsx'
 import EventConfirmedPeople from '../../components/gigs/EventConfirmedPeople.jsx'
+import EventOrganizer from '../../components/events/EventOrganizer.jsx'
 import EventGigsHighlight from '../../components/gigs/EventGigsHighlight.jsx'
 import {
   ArticleIcon,
@@ -362,6 +363,7 @@ function EventDetailContent({ t, locale, token, user, isAuthenticated }) {
                   <h1 className={styles.title}>{event.title || `${t('events.event')} ${eventId}`}</h1>
                   {event.subtitle ? <p className={styles.subtitle}>{event.subtitle}</p> : null}
                   <p className={styles.description}>{event.description || t('events.detail_page.messages.no_description')}</p>
+                  <EventOrganizer author={event.author} isOwner={isOwner} token={token} t={t} />
                 </div>
 
                 <div className={styles.heroActions}>

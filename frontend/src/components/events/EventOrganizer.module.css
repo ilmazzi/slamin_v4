@@ -1,0 +1,131 @@
+.organizer {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: clamp(16px, 1.6vw, 24px);
+  font-family: var(--font-family-sans);
+  color: #000;
+}
+
+.label {
+  font-size: 14px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px 14px;
+}
+
+.person {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+  padding: 4px 16px 4px 4px;
+  border: 1px solid #000;
+  border-radius: 28px;
+  background: #fff;
+  color: #000;
+  font-size: 16px;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+a.person:hover,
+a.person:focus-visible {
+  background: #000;
+  color: #fff;
+  outline: 0;
+}
+
+.avatar {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--color-event, #84dab4);
+  color: #000;
+  font-size: 14px;
+  font-weight: 800;
+  object-fit: cover;
+}
+
+.name {
+  min-width: 0;
+  overflow-wrap: break-word;
+}
+
+.writeButton {
+  display: inline-flex;
+  align-items: center;
+  min-height: 42px;
+  padding: 8px 18px;
+  border: 1px solid #000;
+  border-radius: 999px;
+  background: #000;
+  color: #fff;
+  font: inherit;
+  font-size: 15px;
+  font-weight: 700;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.writeButton:hover,
+.writeButton:focus-visible {
+  background: #fff;
+  color: #000;
+  outline: 0;
+}
+
+.writeButton:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+
+.error {
+  margin: 0;
+  color: #b00020;
+  font-weight: 600;
+}
+
+@media (max-width: 600px) {
+  .person {
+    gap: 8px;
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    background: none;
+    font-size: 14px;
+  }
+
+  a.person:hover,
+  a.person:focus-visible {
+    background: none;
+    color: #000;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+
+  .avatar {
+    width: 30px;
+    height: 30px;
+    font-size: 12px;
+  }
+
+  .writeButton {
+    min-height: 38px;
+    padding: 6px 14px;
+    font-size: 14px;
+  }
+}

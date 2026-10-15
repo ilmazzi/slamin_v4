@@ -66,6 +66,13 @@ return [
     ],
     'detail_page' => [
         'details_title' => 'Informazioni utili',
+        'organizer' => [
+            'label' => 'Organizzato da',
+            'view_profile' => 'Vedi il profilo di :name',
+            'write' => 'Scrivi all\'organizzatore',
+            'login_to_write' => 'Accedi per scrivere all\'organizzatore',
+            'write_error' => 'Impossibile aprire la chat.',
+        ],
         'actions' => [
             'join_online' => 'Partecipa online',
             'edit' => 'Modifica evento',
