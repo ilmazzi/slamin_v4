@@ -49,6 +49,7 @@ const AdminHomePage = lazy(() => import('./pages/Admin/AdminHomePage.jsx'))
 const HelpAdminPage = lazy(() => import('./pages/Admin/HelpAdminPage.jsx'))
 const AdminUsersPage = lazy(() => import('./pages/Admin/AdminUsersPage.jsx'))
 const EventCategoriesAdminPage = lazy(() => import('./pages/Admin/EventCategoriesAdminPage.jsx'))
+const AdminEmailTestsPage = lazy(() => import('./pages/Admin/AdminEmailTestsPage.jsx'))
 const HelpPage = lazy(() => import('./pages/Help/HelpPage.jsx'))
 const ModerationDashboardPage = lazy(() => import('./pages/Moderation/ModerationDashboardPage.jsx'))
 const ModerationQueuePage = lazy(() => import('./pages/Moderation/ModerationQueuePage.jsx'))
@@ -440,6 +441,14 @@ export default function App() {
             element={
               <ProtectedRoute roles={['admin']}>
                 <EventCategoriesAdminPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/email-tests"
+            element={
+              <ProtectedRoute roles={['admin']}>
+                <AdminEmailTestsPage />
               </ProtectedRoute>
             }
           />

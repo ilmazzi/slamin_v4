@@ -1,4 +1,4 @@
-import { authApiGet, authApiPatch } from './client.js'
+import { authApiGet, authApiPatch, authApiPut } from './client.js'
 
 export async function getUnreadNotificationsCount({ token, signal } = {}) {
   const { data } = await authApiGet('/api/v1/notifications/unread-count', {
@@ -40,4 +40,23 @@ export async function markAllNotificationsAsRead({ token } = {}) {
     token,
     fallbackMessage: 'Unable to update notifications',
   })
+}
+
+export async function getNotificationEmailPreferences({ token, signal } = {}) {
+  const { data } = await authApiGet('/api/v1/me/notification-preferences', {
+    token,
+    signal,
+    fallbackMessage: 'Unable to load notification preferences',
+  })
+
+  return data?.preferences ?? {}
+}
+
+export async function updateNotificationEmailPreferences(preferences, { token } = {}) {
+  const { data } = await authApiPut('/api/v1/me/notification-preferences', { preferences }, {
+    token,
+    fallbackMessage: 'Unable to save notification preferences',
+  })
+
+  return data?.preferences ?? {}
 }

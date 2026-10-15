@@ -20,6 +20,8 @@ return [
         'help_description' => 'Categorie e articoli della pagina Guida, visibili come accordion.',
         'event_categories_title' => 'Categorie eventi',
         'event_categories_description' => 'Crea, ordina e attiva le categorie disponibili nel modulo eventi.',
+        'email_tests_title' => 'Test email notifiche',
+        'email_tests_description' => 'Invia agli utenti che scegli una prova di ogni email di notifica e del riassunto settimanale.',
     ],
     'event_categories' => [
         'title' => 'Categorie eventi',

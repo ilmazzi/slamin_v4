@@ -20,6 +20,8 @@ return [
         'help_description' => 'Categories and articles for the public Help page accordions.',
         'event_categories_title' => 'Event categories',
         'event_categories_description' => 'Create, order and activate the categories available in the event form.',
+        'email_tests_title' => 'Notification email tests',
+        'email_tests_description' => 'Send the users you choose a test of every notification email and of the weekly digest.',
     ],
     'event_categories' => [
         'title' => 'Event categories',

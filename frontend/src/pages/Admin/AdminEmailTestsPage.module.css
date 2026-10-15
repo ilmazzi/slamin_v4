@@ -1,0 +1,145 @@
+.field {
+  display: grid;
+  gap: 6px;
+}
+
+.field > span,
+.label {
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: 13px;
+}
+
+.field select,
+.searchRow input {
+  min-width: 0;
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+  padding: 10px 12px;
+  background: var(--color-white);
+  font: inherit;
+}
+
+.hint {
+  display: block;
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: 0.88rem;
+}
+
+.searchRow {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 10px;
+}
+
+.searchRow button,
+.matches button {
+  border: 0;
+  border-radius: 999px;
+  padding: 10px 16px;
+  background: var(--color-black);
+  color: var(--color-white);
+  cursor: pointer;
+  font: inherit;
+}
+
+.matches button:disabled,
+.searchRow button:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+
+.matches,
+.chips,
+.results {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.matches {
+  display: grid;
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+}
+
+.matches li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 14px;
+}
+
+.matches li + li {
+  border-top: 1px solid var(--color-border);
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.chips li {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: 1px solid var(--color-border);
+  border-radius: 999px;
+  padding: 4px 6px 4px 12px;
+  font-size: 0.92rem;
+}
+
+.chips button {
+  border: 0;
+  border-radius: 999px;
+  width: 24px;
+  height: 24px;
+  background: transparent;
+  cursor: pointer;
+  font-size: 1.1rem;
+  line-height: 1;
+}
+
+.reportTitle {
+  margin: 0;
+  font-size: 1.2rem;
+}
+
+.results {
+  display: grid;
+  gap: 8px;
+}
+
+.results li {
+  display: grid;
+  gap: 2px;
+  padding: 10px 14px;
+  border-radius: 12px;
+}
+
+.sent {
+  border: 1px solid #78b98f;
+  background: #effaf3;
+  color: #166534;
+}
+
+.failed {
+  border: 1px solid #d35b5b;
+  background: #fff1f1;
+  color: #8f1f1f;
+}
+
+@media (max-width: 600px) {
+  .searchRow {
+    grid-template-columns: 1fr;
+  }
+
+  .matches li {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}

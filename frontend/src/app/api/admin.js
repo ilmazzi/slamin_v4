@@ -30,6 +30,16 @@ export async function testMailSettings(email, { token, signal } = {}) {
   return data?.message ?? ''
 }
 
+export async function sendTestNotificationEmails(category, userIds, { token, signal } = {}) {
+  const { data } = await authApiPost('/api/v1/admin/notification-emails/test', { category, user_ids: userIds }, {
+    token,
+    signal,
+    fallbackMessage: 'Impossibile inviare le email di prova',
+  })
+
+  return { mailer: data?.mailer ?? '', results: Array.isArray(data?.results) ? data.results : [] }
+}
+
 export async function listContentPublicationSettings({ token, signal } = {}) {
   const { data } = await authApiGet('/api/v1/admin/content-publication-settings', {
     token,

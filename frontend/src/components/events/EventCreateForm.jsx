@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import L from 'leaflet'
 import { MapContainer, Marker, useMap } from 'react-leaflet'
 import OsmTileLayer from '../../app/maps/OsmTileLayer.jsx'
@@ -48,6 +48,12 @@ function mergeDateTimeParts(datePart, timePart) {
   const safeDate = datePart || ''
   const safeTime = timePart || '00:00'
   return `${safeDate}T${safeTime}`
+}
+
+const PREFILL_START_TIME = '21:00'
+
+function prefilledStartsAt(dateParam) {
+  return /^\d{4}-\d{2}-\d{2}$/.test(dateParam || '') ? mergeDateTimeParts(dateParam, PREFILL_START_TIME) : ''
 }
 
 function currentLocalDateTime() {
@@ -161,6 +167,7 @@ function AccordionSection({ id, title, isOpen, onToggle, children }) {
 export default function EventCreateForm({ eventSlug = null }) {
   const { token, user } = useAuth()
   const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
   const { t } = useI18n()
   const isEdit = Boolean(eventSlug)
   const [eventRecordId, setEventRecordId] = useState(null)
@@ -184,7 +191,7 @@ export default function EventCreateForm({ eventSlug = null }) {
   const lastGeocodeKeyRef = useRef('')
   const geocodeTimerRef = useRef(null)
   const geocodeAbortRef = useRef(null)
-  const [v, setV] = useState({
+  const [v, setV] = useState(() => ({
     title: '',
     subtitle: '',
     description: '',
@@ -204,7 +211,7 @@ export default function EventCreateForm({ eventSlug = null }) {
     language: 'it',
     status: 'published',
     is_public: true,
-    occurrence: { starts_at: '', ends_at: '', timezone: 'Europe/Rome' },
+    occurrence: { starts_at: isEdit ? '' : prefilledStartsAt(searchParams.get('date')), ends_at: '', timezone: 'Europe/Rome' },
     recurrence: { frequency: 'weekly', interval: 1, occurrences_count: 1 },
     availability_poll: { response_deadline: '', instructions: '' },
     availability_options: [emptyAvailability],
@@ -223,7 +230,7 @@ export default function EventCreateForm({ eventSlug = null }) {
     participant_invites: [emptyInvite],
     gigs: [emptyGig],
     cover_image: null,
-  })
+  }))
 
   function toggleSection(id, forceOpen = false) {
     setOpenSections((current) => {

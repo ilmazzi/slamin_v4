@@ -13,7 +13,8 @@ import { expandEventOccurrencesForCalendar } from '../app/normalizers/event.js'
 export default function PersonalEventsCalendar({ tone = 'default',showVisibilityToggle = true, }) {
 
     const { t, locale } = useI18n()
-    const { token } = useAuth()
+    const { token, user } = useAuth()
+    const canCreateEvent = user?.account_type === 'poet_organizer'
 
     const MONTHS = [t('common.months.january'), t('common.months.february'), t('common.months.march'), t('common.months.april'), t('common.months.may'), t('common.months.june'), t('common.months.july'), t('common.months.august'), t('common.months.september'), t('common.months.october'), t('common.months.november'), t('common.months.december')]
 
@@ -50,6 +51,8 @@ export default function PersonalEventsCalendar({ tone = 'default',showVisibility
     const weekDaysShort = [t('common.weekdays_short.mon'), t('common.weekdays_short.tue'), t('common.weekdays_short.wed'), t('common.weekdays_short.thu'), t('common.weekdays_short.fri'), t('common.weekdays_short.sat'), t('common.weekdays_short.sun')]
     const weekDaysLong = [t('common.weekdays_long.monday'), t('common.weekdays_long.tuesday'), t('common.weekdays_long.wednesday'), t('common.weekdays_long.thursday'), t('common.weekdays_long.friday'), t('common.weekdays_long.saturday'), t('common.weekdays_long.sunday')]
     const toDayKey = (date) => `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`
+    const todayKey = toDayKey(new Date())
+    const canCreateOn = (dayKey) => canCreateEvent && dayKey >= todayKey
 
     useEffect(() => {
       if (!token) {
@@ -138,6 +141,8 @@ export default function PersonalEventsCalendar({ tone = 'default',showVisibility
     }, [events, t])
 
     const selectedDayEvents = selectedDayKey ? (eventsByDay.get(selectedDayKey) ?? []) : []
+    const canCreateOnSelectedDay = selectedDayKey ? canCreateOn(selectedDayKey) : false
+    const isDayPanelVisible = !isLoadingEvents && (selectedDayEvents.length > 0 || canCreateOnSelectedDay)
     const selectedDayDate = selectedDayKey ? new Date(`${selectedDayKey}T00:00:00`) : null
     const selectedDayTitle = selectedDayDate && !Number.isNaN(selectedDayDate.getTime())
       ? selectedDayDate.toLocaleDateString(locale || 'it-IT', {
@@ -148,13 +153,13 @@ export default function PersonalEventsCalendar({ tone = 'default',showVisibility
       })
       : ''
     useEffect(() => {
-      if (isHidden || isLoadingEvents || !selectedDayKey || selectedDayEvents.length === 0 || !dayDetailsRef.current) {
+      if (isHidden || !selectedDayKey || !isDayPanelVisible || !dayDetailsRef.current) {
         return
       }
 
       dayDetailsRef.current.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
       dayDetailsRef.current.focus({ preventScroll: true })
-    }, [isHidden, isLoadingEvents, selectedDayKey, selectedDayEvents.length])
+    }, [isHidden, selectedDayKey, isDayPanelVisible])
 
     const formatTime = (value) => {
       if (!value) {
@@ -258,7 +263,7 @@ export default function PersonalEventsCalendar({ tone = 'default',showVisibility
               key={dayKey}
               className={`${styles.calendarDay} ${day.isCurrentMonth ? '' : styles.calendarDayMuted} ${day.isToday ? styles.calendarDayToday : ''} ${hasEvents ? styles.calendarDayHasEvents : ''}`}
               type="button"
-              onClick={() => setSelectedDayKey(hasEvents ? dayKey : null)}
+              onClick={() => setSelectedDayKey(hasEvents || canCreateOn(dayKey) ? dayKey : null)}
               aria-pressed={selectedDayKey === dayKey}
             >
                 <span
@@ -287,20 +292,28 @@ export default function PersonalEventsCalendar({ tone = 'default',showVisibility
         })}
     </section>
     {isLoadingEvents ? <span className={styles.calendarLoading}>{t('common.loading')}</span> : null}
-    {!isLoadingEvents && selectedDayEvents.length > 0 ? (
+    {isDayPanelVisible ? (
       <section className={styles.dayDetailsPanel} ref={dayDetailsRef} tabIndex={-1}>
         <div className={styles.dayDetailsHeader}>
           <h3 className={styles.dayDetailsTitle}>
-            {t('dashboard.calendar_day_details_title')} {selectedDayTitle}
+            {selectedDayEvents.length > 0 ? `${t('dashboard.calendar_day_details_title')} ${selectedDayTitle}` : selectedDayTitle}
           </h3>
-          <button
-            type="button"
-            className={styles.dayDetailsClose}
-            onClick={() => setSelectedDayKey(null)}
-          >
-            {t('common.close')}
-          </button>
+          <div className={styles.dayDetailsActions}>
+            {canCreateOnSelectedDay ? (
+              <Link className={styles.dayDetailsCreate} to={`/events/create?date=${selectedDayKey}`}>
+                {t('events.create_event')}
+              </Link>
+            ) : null}
+            <button
+              type="button"
+              className={styles.dayDetailsClose}
+              onClick={() => setSelectedDayKey(null)}
+            >
+              {t('common.close')}
+            </button>
+          </div>
         </div>
+        {selectedDayEvents.length > 0 ? (
         <div className={styles.dayDetailsList}>
           {selectedDayEvents.map((event) => (
             <article
@@ -338,6 +351,7 @@ export default function PersonalEventsCalendar({ tone = 'default',showVisibility
             </article>
           ))}
         </div>
+        ) : null}
       </section>
     ) : null}
   </>

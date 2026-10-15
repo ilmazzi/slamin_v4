@@ -19,11 +19,13 @@ use Domain\Group\Models\GroupMember;
 use Domain\Media\Models\MediaCheckoutOrder;
 use Domain\Media\Models\MediaItem;
 use Domain\Media\Models\UserMediaEntitlement;
+use Domain\Notification\Enums\NotificationCategory;
 use Domain\Notification\Models\Notification;
 use Domain\Poetry\Models\Poem;
 use Domain\Profile\Models\Profile;
 use Domain\User\Enums\AccountType;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
+use Illuminate\Contracts\Translation\HasLocalePreference;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
@@ -35,7 +37,7 @@ use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Str;
 use Laravel\Sanctum\HasApiTokens;
 
-class User extends Authenticatable implements MustVerifyEmail
+class User extends Authenticatable implements HasLocalePreference, MustVerifyEmail
 {
     use HasApiTokens;
     use HasFactory;
@@ -61,6 +63,7 @@ class User extends Authenticatable implements MustVerifyEmail
     protected $casts = [
         'email_verified_at' => 'datetime',
         'account_type' => AccountType::class,
+        'notification_email_opt_outs' => 'array',
     ];
 
     protected static function booted(): void
@@ -126,6 +129,18 @@ class User extends Authenticatable implements MustVerifyEmail
     }
 
     /**Helpers */
+    public function wantsNotificationEmail(NotificationCategory $category): bool
+    {
+        return $this->status === 'active'
+            && $this->email_verified_at !== null
+            && ! in_array($category->value, $this->notification_email_opt_outs ?? [], true);
+    }
+
+    public function preferredLocale(): string
+    {
+        return $this->profile?->preferred_locale ?: config('app.locale');
+    }
+
     public function isAudience(): bool
     {
         return $this->account_type === AccountType::Audience;

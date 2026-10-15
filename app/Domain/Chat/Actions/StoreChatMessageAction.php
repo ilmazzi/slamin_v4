@@ -5,6 +5,7 @@ namespace Domain\Chat\Actions;
 use App\Events\ChatMessageSent;
 use Domain\Chat\DTOs\StoreChatMessageData;
 use Domain\Chat\Enums\ChatMessageType;
+use Domain\Chat\Jobs\SendUnreadChatMessageEmailsJob;
 use Domain\Chat\Models\ChatMessage;
 use Domain\Chat\Models\ChatThread;
 use Illuminate\Support\Facades\DB;
@@ -60,6 +61,10 @@ class StoreChatMessageAction
 
             $message->load(['user.profile', 'replyTo.user.profile', 'reactions.user.profile', 'attachments', 'thread.memberRecords']);
             ChatMessageSent::dispatch($message);
+
+            SendUnreadChatMessageEmailsJob::dispatch($message->id)
+                ->delay(now()->addMinutes(SendUnreadChatMessageEmailsJob::DELAY_MINUTES))
+                ->afterCommit();
 
             return $message;
         });

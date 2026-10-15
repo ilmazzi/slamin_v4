@@ -12,6 +12,7 @@ import { useAuth } from '../../app/hooks/useAuth.js'
 import { useI18n } from '../../app/hooks/useI18n.js'
 import AppToast from '../../components/shared/AppToast.jsx'
 import MainLayout from '../../components/layout/MainLayout.jsx'
+import NotificationEmailPreferences from './NotificationEmailPreferences.jsx'
 import styles from './ProfilePage.module.css'
 
 const MAX_AVATAR_BYTES = 2 * 1024 * 1024
@@ -413,6 +414,9 @@ export default function ProfileEditPage() {
             </button>
           </div>
         </form>
+        <div className={`${styles.form} ${styles.settingsCard}`}>
+          <NotificationEmailPreferences onMessage={setToastMessage} />
+        </div>
       </section>
       <AppToast
         message={toastMessage}

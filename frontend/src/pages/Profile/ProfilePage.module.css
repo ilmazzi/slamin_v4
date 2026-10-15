@@ -50,6 +50,10 @@
   background: var(--color-white);
 }
 
+.settingsCard {
+  margin-top: 24px;
+}
+
 .privateHint {
   margin: 8px 0 0;
   color: #8f1f1f;

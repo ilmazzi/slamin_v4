@@ -13,11 +13,13 @@ class ChatThreadMember extends Model
         'user_id',
         'joined_at',
         'last_read_at',
+        'last_emailed_at',
     ];
 
     protected $casts = [
         'joined_at' => 'datetime',
         'last_read_at' => 'datetime',
+        'last_emailed_at' => 'datetime',
     ];
 
     public function thread(): BelongsTo

@@ -54,6 +54,13 @@ export default function AdminHomePage() {
       description: t('admin.hub.event_categories_description'),
       ready: true,
     } : null,
+    canManageSettings ? {
+      id: 'email-tests',
+      href: '/admin/email-tests',
+      title: t('admin.hub.email_tests_title'),
+      description: t('admin.hub.email_tests_description'),
+      ready: true,
+    } : null,
   ].filter(Boolean)
 
   return (
