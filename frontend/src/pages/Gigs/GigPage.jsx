@@ -17,8 +17,7 @@ const SEARCH_DEBOUNCE_MS = 300
 
 export default function GigPage() {
   const { t, locale } = useI18n()
-  const { token, user } = useAuth()
-  const canCreateGig = user?.account_type === 'poet_organizer'
+  const { token } = useAuth()
   const { search, type, sort, currentPage, setSearch, setType, setSort, goToPage } = useGigPageSearchParams()
   const [searchInput, setSearchInput] = useState(search)
 
@@ -64,10 +63,8 @@ export default function GigPage() {
           leadPrefix={t('gigs.lead_prefix')}
           leadEmphasis={t('gigs.lead_emphasis')}
           leadSuffix={t('gigs.lead_suffix')}
-          ctaLabel={t('gigs.create_gig')}
-          ctaHref="/gigs/create"
           hideTitle
-          hideCta={!canCreateGig}
+          hideCta
         />
 
         <section className={styles.filtersSection}>
