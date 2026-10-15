@@ -9,7 +9,12 @@ use Illuminate\Support\Facades\Storage;
 final class ProfilePayload
 {
     /**
-     * @return array{bio: bool, location: bool, website_url: bool, email: bool}
+     * Public profile content sections, in display order.
+     */
+    public const SECTIONS = ['poems', 'events', 'articles', 'media'];
+
+    /**
+     * @return array<string, bool>
      */
     public static function defaultVisibility(): array
     {
@@ -18,12 +23,13 @@ final class ProfilePayload
             'location' => true,
             'website_url' => true,
             'email' => false,
+            ...array_fill_keys(self::SECTIONS, true),
         ];
     }
 
     /**
      * @param  array<string, mixed>|null  $stored
-     * @return array{bio: bool, location: bool, website_url: bool, email: bool}
+     * @return array<string, bool>
      */
     public static function visibility(?array $stored): array
     {
@@ -32,12 +38,20 @@ final class ProfilePayload
             return $defaults;
         }
 
-        return [
-            'bio' => array_key_exists('bio', $stored) ? (bool) $stored['bio'] : $defaults['bio'],
-            'location' => array_key_exists('location', $stored) ? (bool) $stored['location'] : $defaults['location'],
-            'website_url' => array_key_exists('website_url', $stored) ? (bool) $stored['website_url'] : $defaults['website_url'],
-            'email' => array_key_exists('email', $stored) ? (bool) $stored['email'] : $defaults['email'],
-        ];
+        foreach ($defaults as $key => $default) {
+            $defaults[$key] = array_key_exists($key, $stored) ? (bool) $stored[$key] : $default;
+        }
+
+        return $defaults;
+    }
+
+    /**
+     * @param  array<string, bool>  $visibility
+     * @return list<string>
+     */
+    public static function sections(array $visibility): array
+    {
+        return array_values(array_filter(self::SECTIONS, fn (string $section) => $visibility[$section] ?? true));
     }
 
     public static function fileUrl(?string $path): ?string
@@ -57,6 +71,7 @@ final class ProfilePayload
     {
         $user->loadMissing('profile');
         $profile = $user->profile;
+        $visibility = self::visibility($profile?->visibility);
 
         return [
             'public_id' => $profile?->public_id,
@@ -67,10 +82,13 @@ final class ProfilePayload
             'website_url' => $profile?->website_url,
             'preferred_locale' => $profile?->preferred_locale,
             'is_public' => (bool) ($profile?->is_public ?? false),
-            'visibility' => self::visibility($profile?->visibility),
+            'visibility' => $visibility,
+            'sections' => self::sections($visibility),
             'avatar_url' => self::fileUrl($profile?->avatar_path),
             'banner_url' => self::fileUrl($profile?->banner_path),
             'email' => $user->email,
+            'account_type' => $user->account_type?->value,
+            'member_since' => $user->created_at?->toIso8601String(),
             'is_owner' => true,
         ];
     }
@@ -106,6 +124,10 @@ final class ProfilePayload
             'website_url' => $visibility['website_url'] ? $profile->website_url : null,
             'email' => $visibility['email'] ? $profile->user?->email : null,
             'avatar_url' => self::avatarUrl($profile->avatar_path),
+            'banner_url' => self::fileUrl($profile->banner_path),
+            'account_type' => $profile->user?->account_type?->value,
+            'member_since' => $profile->user?->created_at?->toIso8601String(),
+            'sections' => self::sections($visibility),
             'is_public' => true,
             'is_owner' => false,
         ];

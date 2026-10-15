@@ -5,7 +5,7 @@ import { deleteEvent, listEvents, listMyEvents, updateEvent } from '../../app/ap
 import { deleteMediaItem, listMedia, listMyMedia, updateMediaItem } from '../../app/api/media.js'
 import { deletePoem, listMyPoems, listPoems, updatePoem } from '../../app/api/poems.js'
 import { useI18n } from '../../app/hooks/useI18n.js'
-import styles from './ProfileWorks.module.css'
+import styles from './DashboardPublications.module.css'
 
 const KINDS = ['poems', 'events', 'articles', 'media']
 const PAGE_SIZE = 50
@@ -143,7 +143,7 @@ async function removeItem(kind, item, token) {
   await deleteMediaItem(item.id, { token })
 }
 
-export default function ProfileWorks({ nickname, canManage = false, token = null }) {
+export default function DashboardPublications({ nickname, canManage = false, token = null }) {
   const { t } = useI18n()
   const [kind, setKind] = useState('poems')
   const [bucket, setBucket] = useState('published')
@@ -256,7 +256,6 @@ export default function ProfileWorks({ nickname, canManage = false, token = null
   return (
     <section className={styles.section}>
       <div className={styles.header}>
-        <h2 className={styles.title}>{t('profile.works.title')}</h2>
         {canManage ? (
           <div className={styles.buckets} role="tablist" aria-label={t('profile.works.title')}>
             <button

@@ -3,6 +3,7 @@
 namespace App\Http\Requests\Api\V1\Profile;
 
 use Domain\I18n\Actions\ResolveSupportedLocalesAction;
+use Domain\Profile\Support\ProfilePayload;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -40,7 +41,7 @@ class UpdateProfileRequest extends FormRequest
         if ($visibilityNested = $this->input('visibility')) {
             if (is_array($visibilityNested)) {
                 $normalized = [];
-                foreach (['bio', 'location', 'website_url', 'email'] as $key) {
+                foreach (array_keys(ProfilePayload::defaultVisibility()) as $key) {
                     if (! array_key_exists($key, $visibilityNested)) {
                         continue;
                     }
@@ -101,10 +102,9 @@ class UpdateProfileRequest extends FormRequest
             ],
             'is_public' => ['sometimes', 'boolean'],
             'visibility' => ['sometimes', 'array'],
-            'visibility.bio' => ['sometimes', 'boolean'],
-            'visibility.location' => ['sometimes', 'boolean'],
-            'visibility.website_url' => ['sometimes', 'boolean'],
-            'visibility.email' => ['sometimes', 'boolean'],
+            ...collect(array_keys(ProfilePayload::defaultVisibility()))
+                ->mapWithKeys(fn (string $key) => ["visibility.{$key}" => ['sometimes', 'boolean']])
+                ->all(),
             'avatar' => ['sometimes', 'nullable', 'image', 'max:2048'],
             'remove_avatar' => ['sometimes', 'boolean'],
             'banner' => ['sometimes', 'nullable', 'image', 'max:5120'],

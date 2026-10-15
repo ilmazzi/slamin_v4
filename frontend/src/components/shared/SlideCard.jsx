@@ -21,6 +21,7 @@ export default function SlideCard({
   onClick,
   className = '',
   item = null,
+  compact = false,
 }) {
   const { t } = useI18n()
   const resolvedImage = imageUrl ? resolvePublicUrl(imageUrl) : ''
@@ -28,7 +29,7 @@ export default function SlideCard({
   const hasSocial = Boolean(item?.id)
 
   return (
-    <article className={`${styles.card} ${className}`.trim()} onClick={onClick}>
+    <article className={`${styles.card} ${compact ? styles.compact : ''} ${className}`.trim()} onClick={onClick}>
       <div className={styles.picture}>
         {resolvedImage ? (
           <img src={resolvedImage} alt={imageAlt} className={styles.pictureAsset} />

@@ -14,18 +14,11 @@
   margin-bottom: 28px;
 }
 
-.title,
-.name {
+.title {
   margin: 0;
   font-size: clamp(2rem, 4vw, 3rem);
   line-height: 1.1;
   font-weight: 800;
-}
-
-.kicker {
-  margin: 0 0 16px;
-  color: var(--color-text-muted);
-  font-size: 0.95rem;
 }
 
 .status {
@@ -42,6 +35,11 @@
   color: #8f1f1f;
 }
 
+.about {
+  width: min(100%, 1040px);
+  margin: clamp(24px, 3vw, 48px) auto 0;
+}
+
 .card,
 .form {
   display: grid;
@@ -50,22 +48,6 @@
   border: 1px solid var(--color-border);
   border-radius: 24px;
   background: var(--color-white);
-}
-
-.identity {
-  display: flex;
-  align-items: center;
-  gap: 20px;
-}
-
-.identityText {
-  display: grid;
-  gap: 4px;
-}
-
-.nickname {
-  margin: 0;
-  color: var(--color-text-muted);
 }
 
 .privateHint {

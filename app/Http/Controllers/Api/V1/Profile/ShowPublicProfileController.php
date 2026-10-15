@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api\V1\Profile;
 
 use App\Http\Controllers\Controller;
 use App\Support\Responses\ApiResponse;
+use Domain\Profile\Actions\GetPublicProfileStatsAction;
 use Domain\Profile\Actions\ShowPublicProfileAction;
 use Domain\Profile\Support\ProfilePayload;
 use Illuminate\Http\JsonResponse;
@@ -13,6 +14,7 @@ class ShowPublicProfileController extends Controller
 {
     public function __construct(
         private readonly ShowPublicProfileAction $action,
+        private readonly GetPublicProfileStatsAction $stats,
     ) {}
 
     public function __invoke(Request $request, string $nickname): JsonResponse
@@ -29,6 +31,7 @@ class ShowPublicProfileController extends Controller
 
         return ApiResponse::success([
             'profile' => $payload,
+            'stats' => $this->stats->execute($profile->user_id, $payload['sections']),
         ]);
     }
 }

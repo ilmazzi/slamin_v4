@@ -4,6 +4,7 @@ import { normalizeEventsForUi } from '../../app/normalizers/event.js'
 import { useAuth } from '../../app/hooks/useAuth.js'
 import { useI18n } from '../../app/hooks/useI18n.js'
 import SlideCard from '../shared/SlideCard.jsx'
+import { eventSlideCardProps } from './eventSlideCardProps.js'
 import styles from './UpcomingSlider.module.css'
 
 const DESKTOP_BREAKPOINT = 1024
@@ -100,27 +101,10 @@ export default function UpcomingEventSlider({
     setSlideStart((prev) => Math.min(prev, maxSlideStart))
   }, [maxSlideStart])
 
-  const mappedEvents = useMemo(() => {
-    return events.map((item) => {
-      const dateLabel = item?.start_datetime
-        ? new Date(item.start_datetime).toLocaleDateString(locale || 'it-IT')
-        : '—'
-
-      return {
-        id: item.id,
-        slug: item.slug,
-        title: item.title || t('events.event_title'),
-        description: item.subtitle || item.description || t('events.event_description'),
-        city: item.city || '—',
-        dateLabel,
-        imageUrl: item.image_url,
-        category: item.category || '',
-        organizerName: item.organizer_name || '',
-        organizerAvatarUrl: item.organizer_avatar_url,
-        item,
-      }
-    })
-  }, [events, locale, t])
+  const mappedEvents = useMemo(
+    () => events.map((item) => ({ id: item.id, props: eventSlideCardProps(item, { t, locale }) })),
+    [events, locale, t],
+  )
 
   return (
     <section className={styles.section}>
@@ -165,19 +149,7 @@ export default function UpcomingEventSlider({
             >
               {mappedEvents.map((item) => (
                 <div key={item.id} className={styles.slide}>
-                  <SlideCard
-                    title={item.title}
-                    description={item.description}
-                    city={item.city}
-                    dateLabel={item.dateLabel}
-                    imageUrl={item.imageUrl}
-                    badge={item.category}
-                    organizerName={item.organizerName}
-                    organizerAvatarUrl={item.organizerAvatarUrl}
-                    href={item.slug ? `/events/${encodeURIComponent(item.slug)}` : '/events'}
-                    openAriaLabel={t('events.ui.open')}
-                    item={item.item}
-                  />
+                  <SlideCard {...item.props} />
                 </div>
               ))}
             </div>

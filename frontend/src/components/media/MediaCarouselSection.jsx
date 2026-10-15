@@ -1,4 +1,5 @@
 import MediaCard from '../home/MediaCard.jsx'
+import { mediaCardProps } from './mediaCardProps.js'
 import Pagination from '../shared/Pagination.jsx'
 import styles from './MediaCarouselSection.module.css'
 
@@ -93,25 +94,7 @@ export default function MediaCarouselSection({
 
           <div className={styles.grid}>
             {items.map((item, index) => (
-              <MediaCard
-                key={item.id}
-                fluid
-                item={item}
-                title={item.title || t('media.ui.untitled')}
-                subtitle={item.description || item.author?.display_name || item.author?.nickname || t('common.unknown_user')}
-                tone={['charcoal', 'sepia', 'graphite'][index % 3]}
-                type={item.type}
-                href={`/media/${item.id}`}
-                mediaUrl={item.peertube_url || item.file_url}
-                coverUrl={item.peertube_thumbnail_url || item.file_url}
-                views={item.views_count ?? 0}
-                likes={item.likes_count ?? 0}
-                comments={item.comments_count ?? 0}
-                playAria={t('media.ui.play')}
-                openAria={t('media.ui.open')}
-                shareLabel={t('media.ui.share')}
-                reportLabel={t('media.ui.report')}
-              />
+              <MediaCard key={item.id} fluid {...mediaCardProps(item, index, t)} />
             ))}
           </div>
 

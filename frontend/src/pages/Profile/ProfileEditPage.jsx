@@ -4,6 +4,7 @@ import {
   defaultVisibility,
   normalizeWebsiteUrl,
   ownerProfileFromUser,
+  PROFILE_SECTIONS,
   updateMyProfile,
 } from '../../app/api/profile.js'
 import { resolvePublicUrl } from '../../app/api/url.js'
@@ -31,6 +32,7 @@ function formFromProfile(profile) {
       location: visibility.location !== false,
       website_url: visibility.website_url !== false,
       email: visibility.email === true,
+      ...Object.fromEntries(PROFILE_SECTIONS.map((section) => [section, visibility[section] !== false])),
     },
   }
 }
@@ -231,7 +233,7 @@ export default function ProfileEditPage() {
               <span className={styles.bannerFallback} aria-hidden="true" />
             )}
             <div className={styles.avatarActions}>
-              <p className={styles.label}>{t('profile.page.banner')}</p>
+              <p className={styles.label}>{t('profile.page.cover')}</p>
               <p className={styles.hint}>{t('profile.page.banner_hint')}</p>
               <div className={styles.avatarButtons}>
                 <label className={styles.fileButton}>
@@ -388,6 +390,21 @@ export default function ProfileEditPage() {
               />
               <span>{t('profile.page.show_email')}</span>
             </label>
+          </fieldset>
+
+          <fieldset className={styles.visibility}>
+            <legend className={styles.visibilityTitle}>{t('profile.page.sections_title')}</legend>
+            <p className={styles.hint}>{t('profile.page.sections_hint')}</p>
+            {PROFILE_SECTIONS.map((section) => (
+              <label key={section} className={styles.switchRow}>
+                <input
+                  type="checkbox"
+                  checked={form.visibility[section]}
+                  onChange={() => onVisibilityToggle(section)}
+                />
+                <span>{t(`profile.page.show_${section}`)}</span>
+              </label>
+            ))}
           </fieldset>
 
           <div className={styles.formActions}>

@@ -24,7 +24,7 @@ function buildArticleMetrics(article) {
   }
 }
 
-export default function ArticleTeaserCard({ article, locale, t }) {
+export default function ArticleTeaserCard({ article, locale, t, compact = false }) {
   const readingMinutes = estimateReadingMinutes(article)
   const publishedDate = formatShortPublishedDate(article?.published_at, locale, '-')
   const authorName = article?.author?.nickname ?? article?.author?.display_name ?? t('articles.all.no_author')
@@ -34,7 +34,7 @@ export default function ArticleTeaserCard({ article, locale, t }) {
 
   return (
     <>
-      <article className={styles.desktopCard}>
+      <article className={compact ? `${styles.desktopCard} ${styles.compact}` : styles.desktopCard}>
         <div
           className={styles.cover}
           style={

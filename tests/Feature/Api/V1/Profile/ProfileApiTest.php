@@ -1,5 +1,7 @@
 <?php
 
+use Domain\Audit\Models\AuditLog;
+use Domain\Poetry\Models\Poem;
 use Domain\User\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
@@ -122,4 +124,70 @@ it('hides private fields on the public profile and 404s private profiles', funct
         ->assertJsonPath('data.profile.is_owner', true)
         ->assertJsonPath('data.profile.location', 'Trento')
         ->assertJsonPath('data.profile.email', $owner->email);
+});
+
+it('shows public stats and only publicly visible publications in profile activities', function () {
+    $owner = profileTestUser(['account_type' => 'poet_organizer']);
+    $owner->profile->update(['nickname' => 'mazzi_feed', 'is_public' => true]);
+
+    $poem = fn (string $slug, string $status, bool $isPublic) => Poem::query()->create([
+        'user_id' => $owner->id,
+        'title' => "Titolo {$slug}",
+        'slug' => $slug,
+        'content' => 'Versi',
+        'language' => 'it',
+        'status' => $status,
+        'is_public' => $isPublic,
+        'published_at' => $status === 'published' ? now() : null,
+    ]);
+
+    $published = $poem('pubblica', 'published', true);
+    $draft = $poem('bozza', 'draft', true);
+    $private = $poem('privata', 'published', false);
+
+    foreach ([[$published, 'poem.created'], [$draft, 'poem.created'], [$private, 'poem.created'], [$published, 'poem.liked']] as [$target, $event]) {
+        AuditLog::query()->create([
+            'user_id' => $owner->id,
+            'event' => $event,
+            'auditable_type' => Poem::class,
+            'auditable_id' => $target->id,
+            'created_at' => now(),
+        ]);
+    }
+
+    $this->getJson('/api/v1/profiles/mazzi_feed')
+        ->assertOk()
+        ->assertJsonPath('data.profile.account_type', 'poet_organizer')
+        ->assertJsonPath('data.profile.member_since', $owner->created_at->toIso8601String())
+        ->assertJsonPath('data.stats.poems', 1)
+        ->assertJsonPath('data.stats.events', 0);
+
+    $this->getJson('/api/v1/profiles/mazzi_feed/activities')
+        ->assertOk()
+        ->assertJsonPath('data.recent_activities.total', 1)
+        ->assertJsonPath('data.recent_activities.items.0.label', __('profile.public_activity_labels.poem_created'))
+        ->assertJsonPath('data.recent_activities.items.0.title', 'Titolo pubblica')
+        ->assertJsonPath('data.recent_activities.items.0.url', '/poems/pubblica');
+
+    Sanctum::actingAs($owner);
+    $this->patchJson('/api/v1/me/profile', ['visibility' => ['poems' => false]])
+        ->assertOk()
+        ->assertJsonPath('data.profile.visibility.poems', false)
+        ->assertJsonPath('data.profile.visibility.bio', true)
+        ->assertJsonPath('data.profile.sections', ['events', 'articles', 'media']);
+
+    $this->app['auth']->forgetGuards();
+
+    $this->getJson('/api/v1/profiles/mazzi_feed')
+        ->assertOk()
+        ->assertJsonPath('data.profile.sections', ['events', 'articles', 'media'])
+        ->assertJsonMissingPath('data.stats.poems');
+
+    $this->getJson('/api/v1/profiles/mazzi_feed/activities')
+        ->assertOk()
+        ->assertJsonPath('data.recent_activities.total', 0);
+
+    $owner->profile->update(['is_public' => false]);
+
+    $this->getJson('/api/v1/profiles/mazzi_feed/activities')->assertNotFound();
 });

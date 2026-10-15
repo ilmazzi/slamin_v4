@@ -1,6 +1,7 @@
 <?php
 
 use Domain\Audit\Models\AuditLog;
+use Domain\Poetry\Models\Poem;
 use Domain\User\Models\Role;
 use Domain\User\Models\User;
 use Illuminate\Auth\Notifications\ResetPassword;
@@ -137,29 +138,43 @@ it('returns dashboard widgets payload for authenticated user', function () {
     $user = User::factory()->create();
     $token = $user->createToken('auth_token')->plainTextToken;
 
-    AuditLog::query()->create([
+    $poem = Poem::query()->create([
         'user_id' => $user->id,
-        'event' => 'poem.created',
-        'auditable_type' => User::class,
-        'auditable_id' => $user->id,
-        'created_at' => now()->subMinutes(5),
+        'title' => 'Notte di slam',
+        'slug' => 'notte-di-slam',
+        'content' => 'Versi',
+        'language' => 'it',
+        'status' => 'published',
+        'is_public' => true,
+        'published_at' => now(),
     ]);
 
-    AuditLog::query()->create([
+    $deletedPoem = Poem::query()->create([
         'user_id' => $user->id,
-        'event' => 'event.updated',
-        'auditable_type' => User::class,
-        'auditable_id' => $user->id,
-        'created_at' => now()->subMinutes(3),
+        'title' => 'Poesia rimossa',
+        'slug' => 'poesia-rimossa',
+        'content' => 'Versi',
+        'language' => 'it',
+        'status' => 'published',
+        'is_public' => true,
+        'published_at' => now(),
+    ]);
+    $deletedPoem->delete();
+
+    $log = fn (string $event, string $type, int $id, int $minutesAgo, array $newValues = []) => AuditLog::query()->create([
+        'user_id' => $user->id,
+        'event' => $event,
+        'auditable_type' => $type,
+        'auditable_id' => $id,
+        'new_values' => $newValues ?: null,
+        'created_at' => now()->subMinutes($minutesAgo),
     ]);
 
-    AuditLog::query()->create([
-        'user_id' => $user->id,
-        'event' => 'article.deleted',
-        'auditable_type' => User::class,
-        'auditable_id' => $user->id,
-        'created_at' => now()->subMinute(),
-    ]);
+    $log('poem.created', Poem::class, $poem->id, 5);
+    $log('event.updated', User::class, $user->id, 4, ['title' => 'Serata al Leoncavallo']);
+    $log('poem.deleted', Poem::class, $deletedPoem->id, 3);
+    $log('auth.login', User::class, $user->id, 2);
+    $log('chat.thread_read', User::class, $user->id, 1);
 
     $response = $this
         ->withHeader('Authorization', "Bearer {$token}")
@@ -173,7 +188,16 @@ it('returns dashboard widgets payload for authenticated user', function () {
         ->assertJsonPath('data.widgets.2.id', 'views')
         ->assertJsonPath('data.widgets.3.id', 'likes')
         ->assertJsonPath('data.recent_activities.current_page', 1)
-        ->assertJsonCount(3, 'data.recent_activities.items');
+        ->assertJsonPath('data.recent_activities.total', 3)
+        ->assertJsonCount(3, 'data.recent_activities.items')
+        ->assertJsonPath('data.recent_activities.items.0.action', 'deleted')
+        ->assertJsonPath('data.recent_activities.items.0.title', 'Poesia rimossa')
+        ->assertJsonPath('data.recent_activities.items.0.url', null)
+        ->assertJsonPath('data.recent_activities.items.1.type', 'event')
+        ->assertJsonPath('data.recent_activities.items.1.title', 'Serata al Leoncavallo')
+        ->assertJsonPath('data.recent_activities.items.2.label', __('home.dashboard_page.activity_labels.poem_created'))
+        ->assertJsonPath('data.recent_activities.items.2.title', 'Notte di slam')
+        ->assertJsonPath('data.recent_activities.items.2.url', '/poems/notte-di-slam');
 });
 
 it('requires authentication for dashboard widgets endpoint', function () {

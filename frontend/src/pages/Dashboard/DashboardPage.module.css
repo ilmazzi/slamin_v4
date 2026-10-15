@@ -423,6 +423,17 @@
   line-height: 1;
 }
 
+.recentItemLink {
+  color: inherit;
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.15em;
+}
+
+.recentItemLink:hover {
+  text-decoration-thickness: 2px;
+}
+
 .recentTime {
   color: rgb(0 0 0 / 0.7);
   font-family: 'Switzer', sans-serif;

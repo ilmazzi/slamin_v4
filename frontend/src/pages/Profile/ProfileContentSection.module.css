@@ -1,0 +1,54 @@
+.section {
+  width: 100%;
+  max-width: 1700px;
+  margin: 0 auto;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 240px), 1fr));
+  gap: clamp(14px, 1.4vw, 24px);
+}
+
+.mediaGrid {
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 400px), 1fr));
+  justify-items: center;
+}
+
+.poemsBand {
+  box-sizing: border-box;
+  padding: clamp(16px, 2vw, 36px);
+  background: #000;
+}
+
+.poemsBand .grid {
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr));
+  gap: 16px;
+}
+
+.articles {
+  display: flex;
+  flex-direction: column;
+}
+
+.more {
+  display: flex;
+  justify-content: center;
+  padding-top: clamp(18px, 2vw, 32px);
+}
+
+.moreButton {
+  border: clamp(1px, 0.1vw, 2px) solid #000;
+  border-radius: 999px;
+  padding: 10px 22px;
+  background: #fff;
+  color: #000;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.moreButton:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}

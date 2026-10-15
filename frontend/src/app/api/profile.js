@@ -1,10 +1,13 @@
 import { apiGet, authApiGet, authApiPatch } from './client.js'
 
+export const PROFILE_SECTIONS = ['poems', 'events', 'articles', 'media']
+
 const DEFAULT_VISIBILITY = {
   bio: true,
   location: true,
   website_url: true,
   email: false,
+  ...Object.fromEntries(PROFILE_SECTIONS.map((section) => [section, true])),
 }
 
 function appendIfDefined(formData, key, value) {
@@ -80,6 +83,7 @@ export async function getPublicProfile(nickname, { token, signal } = {}) {
       ok: result.ok,
       status: result.status,
       profile: result.data?.profile ?? null,
+      stats: result.data?.stats ?? null,
     }
   }
 
@@ -88,10 +92,18 @@ export async function getPublicProfile(nickname, { token, signal } = {}) {
       signal,
       fallbackMessage: 'Unable to load profile.',
     })
-    return { ok: true, status: 200, profile: result.data?.profile ?? null }
+    return { ok: true, status: 200, profile: result.data?.profile ?? null, stats: result.data?.stats ?? null }
   } catch {
-    return { ok: false, status: 404, profile: null }
+    return { ok: false, status: 404, profile: null, stats: null }
   }
+}
+
+export async function getPublicProfileActivities(nickname, { page = 1, token, signal } = {}) {
+  const path = `/api/v1/profiles/${encodeURIComponent(String(nickname ?? '').trim())}/activities?page=${page}`
+  const options = { signal, fallbackMessage: 'Unable to load activities.' }
+  const result = token ? await authApiGet(path, { ...options, token }) : await apiGet(path, options)
+
+  return result.data?.recent_activities ?? null
 }
 
 export async function updateMyProfile(values, { token, signal } = {}) {
