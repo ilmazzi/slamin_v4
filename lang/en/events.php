@@ -391,6 +391,7 @@ return [
             'invite_via_email' => 'Invite by email',
             'add_gigs' => 'Add gigs',
             'add_gigs_hint' => 'Enable to publish one or more opportunities linked to this event.',
+            'gig_offers_hint' => 'Fill in only what you offer: empty fields are shown as not included.',
             'gig_n' => 'Gig :n',
             'add_gig' => 'Add gig',
             'remove_gig' => 'Remove gig',

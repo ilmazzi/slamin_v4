@@ -9,7 +9,7 @@ import { useI18n } from '../../app/hooks/useI18n.js'
 import { mapEventToFormValues } from '../../app/utils/eventForm.js'
 import { isEventOwner } from '../../app/utils/eventDetail.js'
 import { emptyAvailability, emptyGig, emptyInvite } from '../../app/utils/eventFormDefaults.js'
-import { gigToFormRow, snapshotGigRows, syncEventGigs } from '../../app/utils/eventGigForm.js'
+import { gigOfferFlags, gigToFormRow, snapshotGigRows, syncEventGigs } from '../../app/utils/eventGigForm.js'
 import { listEventGigs } from '../../app/api/gigs.js'
 import { EventLocationIcon } from '../icons/ActionIcons.jsx'
 import styles from './EventCreateForm.module.css'
@@ -720,6 +720,7 @@ export default function EventCreateForm({ eventSlug = null }) {
         ? []
         : v.gigs.map((gig) => ({
             ...gig,
+            ...gigOfferFlags(gig),
             quantity: Number(gig.quantity || 1),
             deadline: gig?.deadline ? gig.deadline : null,
           })),
@@ -1282,84 +1283,56 @@ export default function EventCreateForm({ eventSlug = null }) {
               />
             </div>
 
+            <p className={styles.microCopy}>{t('events.create_page.ui.gig_offers_hint')}</p>
+
             <div className={styles.offerBox}>
-              <label className={styles.checkInline}>
+              <span className={styles.checkInline}>{t('events.create_page.fields.gig_cachet')}</span>
+              <div className={styles.twoCols}>
                 <input
-                  type="checkbox"
-                  checked={Boolean(gig.cachet_enabled)}
-                  onChange={(event) => setRow('gigs', index, 'cachet_enabled', event.target.checked)}
+                  className={styles.input}
+                  placeholder={t('events.create_page.ui.amount')}
+                  value={gig.proposed_price}
+                  onChange={(event) => setRow('gigs', index, 'proposed_price', event.target.value)}
                 />
-                <span>{t('events.create_page.fields.gig_cachet')}</span>
-              </label>
-              {gig.cachet_enabled ? (
-                <div className={styles.twoCols}>
-                  <input
-                    className={styles.input}
-                    placeholder={t('events.create_page.ui.amount')}
-                    value={gig.proposed_price}
-                    onChange={(event) => setRow('gigs', index, 'proposed_price', event.target.value)}
-                  />
-                  <select
-                    className={styles.input}
-                    value={gig.currency}
-                    onChange={(event) => setRow('gigs', index, 'currency', event.target.value)}
-                  >
-                    <option value="EUR">EUR (€)</option>
-                    <option value="USD">USD ($)</option>
-                  </select>
-                </div>
-              ) : null}
+                <select
+                  className={styles.input}
+                  value={gig.currency}
+                  onChange={(event) => setRow('gigs', index, 'currency', event.target.value)}
+                >
+                  <option value="EUR">EUR (€)</option>
+                  <option value="USD">USD ($)</option>
+                </select>
+              </div>
             </div>
 
             <div className={styles.offerBox}>
-              <label className={styles.checkInline}>
+              <span className={styles.checkInline}>{t('events.create_page.ui.travel_expenses')}</span>
+              <div className={styles.twoCols}>
                 <input
-                  type="checkbox"
-                  checked={Boolean(gig.travel_expenses_enabled)}
-                  onChange={(event) => setRow('gigs', index, 'travel_expenses_enabled', event.target.checked)}
+                  className={styles.input}
+                  placeholder={t('events.create_page.ui.max_coverage')}
+                  value={gig.travel_expenses_max}
+                  onChange={(event) => setRow('gigs', index, 'travel_expenses_max', event.target.value)}
                 />
-                <span>{t('events.create_page.ui.travel_expenses')}</span>
-              </label>
-              {gig.travel_expenses_enabled ? (
-                <div className={styles.twoCols}>
-                  <input
-                    className={styles.input}
-                    placeholder={t('events.create_page.ui.max_coverage')}
-                    value={gig.travel_expenses_max}
-                    onChange={(event) => setRow('gigs', index, 'travel_expenses_max', event.target.value)}
-                  />
-                  <select
-                    className={styles.input}
-                    value={gig.currency}
-                    onChange={(event) => setRow('gigs', index, 'currency', event.target.value)}
-                  >
-                    <option value="EUR">EUR (€)</option>
-                    <option value="USD">USD ($)</option>
-                  </select>
-                </div>
-              ) : null}
+                <select
+                  className={styles.input}
+                  value={gig.currency}
+                  onChange={(event) => setRow('gigs', index, 'currency', event.target.value)}
+                >
+                  <option value="EUR">EUR (€)</option>
+                  <option value="USD">USD ($)</option>
+                </select>
+              </div>
             </div>
 
             <div className={styles.offerBox}>
-              <label className={styles.checkInline}>
-                <input
-                  type="checkbox"
-                  checked={Boolean(gig.accommodation_enabled)}
-                  onChange={(event) => {
-                    setRow('gigs', index, 'accommodation_enabled', event.target.checked)
-                    setRow('gigs', index, 'hospitality_required', event.target.checked)
-                  }}
-                />
-                <span>{t('events.create_page.ui.food_and_lodging')}</span>
-              </label>
-              {gig.accommodation_enabled ? (
-                <textarea
-                  className={styles.textareaInline}
-                  placeholder={t('events.create_page.ui.lodging_details')}
-                  value={gig.accommodation_details}
-                  onChange={(event) => setRow('gigs', index, 'accommodation_details', event.target.value)}
-                />
-              ) : null}
+              <span className={styles.checkInline}>{t('events.create_page.ui.food_and_lodging')}</span>
+              <textarea
+                className={styles.textareaInline}
+                placeholder={t('events.create_page.ui.lodging_details')}
+                value={gig.accommodation_details}
+                onChange={(event) => setRow('gigs', index, 'accommodation_details', event.target.value)}
+              />
             </div>
               </div>
             ))}

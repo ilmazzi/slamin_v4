@@ -6,6 +6,7 @@ import { useI18n } from '../../app/hooks/useI18n.js'
 import { useAuth } from '../../app/hooks/useAuth.js'
 import { listMyEvents } from '../../app/api/events.js'
 import { listMyPoems } from '../../app/api/poems.js'
+import { gigOfferFlags } from '../../app/utils/eventGigForm.js'
 import {
   createEventGig,
   createPoemTranslationGig,
@@ -28,12 +29,9 @@ const emptyValues = {
   language: '',
   description: '',
   special_requirements: '',
-  cachet_enabled: false,
   proposed_price: '',
   currency: 'EUR',
-  travel_expenses_enabled: false,
   travel_expenses_max: '',
-  accommodation_enabled: false,
   accommodation_details: '',
   deadline: '',
 }
@@ -52,12 +50,9 @@ function valuesFromGig(gig) {
     language: gig.language ?? '',
     description: gig.description ?? '',
     special_requirements: gig.special_requirements ?? '',
-    cachet_enabled: Boolean(gig.cachet_enabled),
     proposed_price: gig.proposed_price ?? '',
     currency: gig.currency || 'EUR',
-    travel_expenses_enabled: Boolean(gig.travel_expenses_enabled),
     travel_expenses_max: gig.travel_expenses_max ?? '',
-    accommodation_enabled: Boolean(gig.accommodation_enabled),
     accommodation_details: gig.accommodation_details ?? '',
     deadline: toDateInput(gig.deadline),
   }
@@ -76,14 +71,11 @@ function eventPayload(values) {
     language: nullable(values.language),
     description: nullable(values.description),
     special_requirements: nullable(values.special_requirements),
-    cachet_enabled: values.cachet_enabled,
-    proposed_price: values.cachet_enabled ? nullable(values.proposed_price) : null,
+    ...gigOfferFlags(values),
+    proposed_price: nullable(values.proposed_price),
     currency: values.currency,
-    travel_expenses_enabled: values.travel_expenses_enabled,
-    travel_expenses_max: values.travel_expenses_enabled ? nullable(values.travel_expenses_max) : null,
-    accommodation_enabled: values.accommodation_enabled,
-    hospitality_required: values.accommodation_enabled,
-    accommodation_details: values.accommodation_enabled ? nullable(values.accommodation_details) : null,
+    travel_expenses_max: nullable(values.travel_expenses_max),
+    accommodation_details: nullable(values.accommodation_details),
     deadline: nullable(values.deadline),
   }
 }
@@ -362,51 +354,38 @@ export default function GigFormPage() {
                   />
                 </label>
 
+                <p className={styles.muted}>{t('gigs.form.offers_hint')}</p>
+
                 <div className={styles.optionBox}>
-                  <label className={styles.checkRow}>
-                    <input type="checkbox" name="cachet_enabled" checked={values.cachet_enabled} onChange={setField} />
-                    {t('gigs.form.cachet_enabled')}
-                  </label>
-                  {values.cachet_enabled ? (
-                    <div className={styles.fieldGrid}>
-                      <label className={styles.field}>
-                        {t('gigs.form.amount')}
-                        <input className={styles.input} type="number" min="0" step="0.01" name="proposed_price" value={values.proposed_price} onChange={setField} />
-                      </label>
-                      <label className={styles.field}>
-                        {t('gigs.form.currency')}
-                        <select className={styles.select} name="currency" value={values.currency} onChange={setField}>
-                          {CURRENCIES.map((value) => <option key={value} value={value}>{value}</option>)}
-                        </select>
-                      </label>
-                    </div>
-                  ) : null}
+                  <span className={styles.checkRow}>{t('gigs.form.cachet_enabled')}</span>
+                  <div className={styles.fieldGrid}>
+                    <label className={styles.field}>
+                      {t('gigs.form.amount')}
+                      <input className={styles.input} type="number" min="0" step="0.01" name="proposed_price" value={values.proposed_price} onChange={setField} />
+                    </label>
+                    <label className={styles.field}>
+                      {t('gigs.form.currency')}
+                      <select className={styles.select} name="currency" value={values.currency} onChange={setField}>
+                        {CURRENCIES.map((value) => <option key={value} value={value}>{value}</option>)}
+                      </select>
+                    </label>
+                  </div>
                 </div>
 
                 <div className={styles.optionBox}>
-                  <label className={styles.checkRow}>
-                    <input type="checkbox" name="travel_expenses_enabled" checked={values.travel_expenses_enabled} onChange={setField} />
-                    {t('gigs.form.travel_enabled')}
+                  <span className={styles.checkRow}>{t('gigs.form.travel_enabled')}</span>
+                  <label className={styles.field}>
+                    {t('gigs.form.travel_max')}
+                    <input className={styles.input} type="number" min="0" step="0.01" name="travel_expenses_max" value={values.travel_expenses_max} onChange={setField} />
                   </label>
-                  {values.travel_expenses_enabled ? (
-                    <label className={styles.field}>
-                      {t('gigs.form.travel_max')}
-                      <input className={styles.input} type="number" min="0" step="0.01" name="travel_expenses_max" value={values.travel_expenses_max} onChange={setField} />
-                    </label>
-                  ) : null}
                 </div>
 
                 <div className={styles.optionBox}>
-                  <label className={styles.checkRow}>
-                    <input type="checkbox" name="accommodation_enabled" checked={values.accommodation_enabled} onChange={setField} />
-                    {t('gigs.form.accommodation_enabled')}
+                  <span className={styles.checkRow}>{t('gigs.form.accommodation_enabled')}</span>
+                  <label className={styles.field}>
+                    {t('gigs.form.accommodation_details')}
+                    <textarea className={styles.textarea} name="accommodation_details" value={values.accommodation_details} onChange={setField} />
                   </label>
-                  {values.accommodation_enabled ? (
-                    <label className={styles.field}>
-                      {t('gigs.form.accommodation_details')}
-                      <textarea className={styles.textarea} name="accommodation_details" value={values.accommodation_details} onChange={setField} />
-                    </label>
-                  ) : null}
                 </div>
               </>
             ) : null}

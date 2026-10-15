@@ -210,6 +210,7 @@ return [
         'target_language' => 'Lingua di traduzione',
         'description' => 'Descrizione',
         'description_placeholder' => 'Descrivi il ruolo, gli orari e cosa ti aspetti.',
+        'offers_hint' => 'Compila solo ciò che offri: i campi vuoti risultano non previsti.',
         'requirements' => 'Requisiti particolari',
         'cachet_enabled' => 'Compenso',
         'amount' => 'Importo',

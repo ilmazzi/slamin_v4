@@ -4,6 +4,23 @@ import { createEventGig, deleteEventGig, updateEventGig } from '../api/gigs.js'
 const GIG_FIELDS = Object.keys(emptyGig)
 const FORM_STATUSES = ['draft', 'open', 'closed', 'cancelled']
 
+const isPositiveAmount = (value) => Number(String(value ?? '').replace(',', '.')) > 0
+const isFilled = (value) => String(value ?? '').trim() !== ''
+
+/**
+ * An offer is included only when its field is filled in: there is no separate toggle.
+ */
+export function gigOfferFlags({ proposed_price, travel_expenses_max, accommodation_details }) {
+  const accommodation = isFilled(accommodation_details)
+
+  return {
+    cachet_enabled: isPositiveAmount(proposed_price),
+    travel_expenses_enabled: isPositiveAmount(travel_expenses_max),
+    accommodation_enabled: accommodation,
+    hospitality_required: accommodation,
+  }
+}
+
 export function gigToFormRow(gig) {
   const row = { ...emptyGig, id: gig.id, applications_count: gig.applications_count ?? 0 }
   GIG_FIELDS.forEach((field) => {
@@ -23,7 +40,7 @@ export function gigRowPayload(row) {
   })
   payload.quantity = Number(row.quantity || 1)
   payload.deadline = row.deadline || null
-  return payload
+  return { ...payload, ...gigOfferFlags(row) }
 }
 
 const payloadKey = (row) => JSON.stringify(gigRowPayload(row))

@@ -80,7 +80,7 @@ return [
         'type_photo' => 'Foto',
         'title_label' => 'Titolo',
         'description_label' => 'Descrizione',
-        'visibility_label' => 'Visibilita',
+        'visibility_label' => 'Visibilità',
         'visibility_public' => 'Pubblico',
         'visibility_unlisted' => 'Non in elenco',
         'visibility_private' => 'Privato',

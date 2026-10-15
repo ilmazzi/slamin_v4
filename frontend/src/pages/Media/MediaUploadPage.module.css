@@ -98,6 +98,7 @@
 
 .field {
   display: grid;
+  align-content: start;
   gap: 8px;
 }
 
@@ -120,6 +121,11 @@
   border-radius: 10px;
   padding: 12px 14px;
   font: inherit;
+}
+
+.input {
+  box-sizing: border-box;
+  height: 48px;
 }
 
 .textarea {

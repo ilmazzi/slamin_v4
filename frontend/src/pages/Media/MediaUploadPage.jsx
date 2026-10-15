@@ -30,6 +30,30 @@ function formatMaxSize(sizeKb) {
   return `${Math.round(kilobytes)} KB`
 }
 
+const MIME_EXTENSIONS = {
+  'image/jpeg': ['jpg', 'jpeg'],
+  'image/png': ['png'],
+  'image/webp': ['webp'],
+  'video/mp4': ['mp4', 'm4v'],
+  'video/webm': ['webm'],
+  'video/quicktime': ['mov'],
+  'video/x-msvideo': ['avi'],
+  'video/x-matroska': ['mkv'],
+}
+
+function allowedExtensions(mimes) {
+  return mimes.flatMap((mime) => MIME_EXTENSIONS[mime] ?? [])
+}
+
+function isAllowedFile(file, mimes) {
+  if (mimes.includes(file.type)) {
+    return true
+  }
+
+  const extension = file.name.split('.').pop()?.toLowerCase() ?? ''
+  return allowedExtensions(mimes).includes(extension)
+}
+
 function mimeLabel(mimes) {
   return (Array.isArray(mimes) ? mimes : [])
     .map((item) => String(item).replace(/^(image|video)\//, ''))
@@ -154,7 +178,7 @@ export default function MediaUploadPage() {
       return
     }
 
-    if (Array.isArray(allowedMimes) && allowedMimes.length > 0 && !allowedMimes.includes(nextFile.type)) {
+    if (Array.isArray(allowedMimes) && allowedMimes.length > 0 && !isAllowedFile(nextFile, allowedMimes)) {
       setErrorMessage(t('media.upload.error_file_type'))
       event.target.value = ''
       setFile(null)
@@ -346,7 +370,7 @@ export default function MediaUploadPage() {
                 className={styles.fileInput}
                 type="file"
                 name="file"
-                accept={allowedMimes.join(',')}
+                accept={[...allowedMimes, ...allowedExtensions(allowedMimes).map((extension) => `.${extension}`)].join(',')}
                 onChange={onFileChange}
                 required
                 disabled={!canUpload || isSubmitting || videoBlocked || limitReached}

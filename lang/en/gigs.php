@@ -210,6 +210,7 @@ return [
         'target_language' => 'Target language',
         'description' => 'Description',
         'description_placeholder' => 'Describe the role, the schedule and what you expect.',
+        'offers_hint' => 'Fill in only what you offer: empty fields are shown as not included.',
         'requirements' => 'Special requirements',
         'cachet_enabled' => 'Fee',
         'amount' => 'Amount',

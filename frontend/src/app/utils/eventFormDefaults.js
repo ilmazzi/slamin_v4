@@ -9,10 +9,10 @@ export const emptyGig = {
   currency: 'EUR',
   deadline: '',
   special_requirements: '',
-  cachet_enabled: true,
-  travel_expenses_enabled: true,
+  cachet_enabled: false,
+  travel_expenses_enabled: false,
   travel_expenses_max: '',
-  accommodation_enabled: true,
+  accommodation_enabled: false,
   accommodation_details: '',
 }
 
