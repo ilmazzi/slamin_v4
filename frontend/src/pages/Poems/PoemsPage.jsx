@@ -161,7 +161,6 @@ export default function PoemsPage() {
           leadEmphasis={t('poems.lead_emphasis')}
           ctaLabel={t('poems.upload_poem')}
           ctaHref="/poems/create"
-          hideTitle
           hideCta={!canCreatePoem}
         />
 

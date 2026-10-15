@@ -1,7 +1,7 @@
 <?php
 
 return [
-    'title' => 'Ingaggi',
+    'title' => 'ingaggi',
     'lead_prefix' => 'scorri le',
     'lead_emphasis' => 'posizioni disponibili',
     'lead_suffix' => 'e candidati',

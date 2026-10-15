@@ -33,6 +33,7 @@
   --color-header-bg: var(--page-hero-accent);
   --color-header-fg: var(--color-white);
   --color-header-border: var(--color-white);
+  --page-hero-lead-on-accent: var(--color-white);
 }
 
 @media (max-width: 1200px) {

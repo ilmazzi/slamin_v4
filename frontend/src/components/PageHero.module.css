@@ -19,20 +19,6 @@
   background: var(--page-hero-accent, var(--color-event));
 }
 
-.topBandCompact {
-  min-height: 120px;
-  padding: 48px var(--page-inline-padding) 40px;
-}
-
-.topBandCompact ~ .bottomSection {
-  min-height: 220px;
-}
-
-.topBandCompact ~ .bottomSection .bottomFrame {
-  min-height: 220px;
-  padding-top: 56px;
-}
-
 .title {
   margin: 0;
   font-family: 'Switzer', sans-serif;
@@ -167,36 +153,9 @@
 }
 
 @media (max-width: 768px) {
-  .topBand:not(.topBandCompact),
+  .topBand,
   .bottomSection,
   .ctaRow {
-    display: none;
-  }
-
-  .topBandCompact {
-    display: flex;
-    min-height: 88px;
-    padding: 28px 24px 32px;
-  }
-
-  .topBandCompact ~ .bottomSection {
-    display: flex;
-    min-height: 0;
-    padding-left: 24px;
-  }
-
-  .topBandCompact ~ .bottomSection .bottomFrame {
-    min-height: 0;
-    padding-top: 36px;
-    padding-bottom: 28px;
-  }
-
-  .topBandCompact ~ .ctaRow {
-    display: flex;
-  }
-
-  .topBandCompact ~ .mobileHero,
-  .topBandCompact ~ .mobileBottom {
     display: none;
   }
 
@@ -233,7 +192,7 @@
     font-size: 50px;
     line-height: 56px;
     letter-spacing: -0.02em;
-    color: #000;
+    color: var(--page-hero-lead-on-accent, #000);
   }
 
   .mobileLead span {
@@ -273,11 +232,6 @@
   .topBand {
     min-height: 180px;
     padding: 28px 24px 40px;
-  }
-
-  .topBand.topBandCompact {
-    min-height: 88px;
-    padding: 28px 24px 32px;
   }
 
   .bottomSection {

@@ -1,7 +1,7 @@
 <?php
 
 return [
-    'title' => 'Gigs',
+    'title' => 'gigs',
     'lead_prefix' => 'browse the',
     'lead_emphasis' => 'open positions',
     'lead_suffix' => 'and apply',

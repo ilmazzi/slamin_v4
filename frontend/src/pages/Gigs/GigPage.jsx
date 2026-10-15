@@ -63,7 +63,6 @@ export default function GigPage() {
           leadPrefix={t('gigs.lead_prefix')}
           leadEmphasis={t('gigs.lead_emphasis')}
           leadSuffix={t('gigs.lead_suffix')}
-          hideTitle
           hideCta
         />
 

@@ -9,19 +9,18 @@ export default function PageHero({
   ctaLabel,
   ctaHref,
   hideCta = false,
-  hideTitle = false,
   showCornerMark = false,
   ctaOnClick,
   ctaVariant = 'dark',
 }) {
   return (
     <section className={styles.hero}>
-      <div className={[styles.topBand, hideTitle ? styles.topBandCompact : ''].join(' ')}>
-        {hideTitle ? null : <h1 className={styles.title}>{title}</h1>}
+      <div className={styles.topBand}>
+        <h1 className={styles.title}>{title}</h1>
       </div>
 
       <div className={styles.mobileHero}>
-        <h1 className={styles.mobileTitle}>{hideTitle ? null : title}</h1>
+        <h1 className={styles.mobileTitle}>{title}</h1>
         <p className={styles.mobileLead}>
           {leadPrefix}
           <span>{leadEmphasis}</span>
@@ -40,19 +39,11 @@ export default function PageHero({
 
       <div className={styles.bottomSection}>
         <div className={styles.bottomFrame}>
-          {hideTitle ? (
-            <h1 className={styles.lead}>
-              {leadPrefix}
-              <span>{leadEmphasis}</span>
-              {leadSuffix}
-            </h1>
-          ) : (
-            <p className={styles.lead}>
-              {leadPrefix}
-              <span>{leadEmphasis}</span>
-              {leadSuffix}
-            </p>
-          )}
+          <p className={styles.lead}>
+            {leadPrefix}
+            <span>{leadEmphasis}</span>
+            {leadSuffix}
+          </p>
         </div>
         <div className={styles.desktopPolygon} aria-hidden="true" />
       </div>
