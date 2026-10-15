@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api\V1\Gig;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\V1\Gig\UpdatePoemTranslationGigRequest;
+use App\Http\Resources\Api\V1\Gig\PoemTranslationGigResource;
 use App\Support\Responses\ApiResponse;
 use Domain\Gig\Actions\UpdatePoemTranslationGigAction;
 use Domain\Gig\DTOs\UpdatePoemTranslationGigData;
@@ -16,8 +17,7 @@ class UpdatePoemTranslationGigController extends Controller
 {
     public function __construct(
         private readonly UpdatePoemTranslationGigAction $action,
-    ) {
-    }
+    ) {}
 
     public function __invoke(UpdatePoemTranslationGigRequest $request, Poem $poem, Gig $gig): JsonResponse
     {
@@ -30,16 +30,7 @@ class UpdatePoemTranslationGigController extends Controller
         $gig = $this->action->execute($gig, UpdatePoemTranslationGigData::fromRequest($request));
 
         return ApiResponse::success([
-            'translation_gig' => [
-                'id' => $gig->id,
-                'poem_id' => $poem->id,
-                'target_language' => $gig->language,
-                'proposed_price' => $gig->proposed_price,
-                'currency' => $gig->currency,
-                'deadline' => $gig->deadline?->toISOString(),
-                'special_requirements' => $gig->special_requirements,
-                'status' => $gig->status?->value,
-            ],
+            'translation_gig' => new PoemTranslationGigResource($gig),
         ]);
     }
 

@@ -21,7 +21,7 @@ class ShowSearchController extends Controller
         ]);
 
         return ApiResponse::success(
-            $this->action->execute($validated['q']),
+            $this->action->execute($validated['q'], auth('sanctum')->user()),
         );
     }
 }

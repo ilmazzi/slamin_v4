@@ -31,6 +31,7 @@ use App\Http\Controllers\Api\V1\Gig\DeleteGigAnnouncementController;
 use App\Http\Controllers\Api\V1\Gig\ListEventGigsController;
 use App\Http\Controllers\Api\V1\Gig\ListGigAnnouncementsController;
 use App\Http\Controllers\Api\V1\Gig\ListGigApplicationsController;
+use App\Http\Controllers\Api\V1\Gig\ListManagedGigsController;
 use App\Http\Controllers\Api\V1\Gig\ListMyGigApplicationsController;
 use App\Http\Controllers\Api\V1\Gig\ListOpenGigsController;
 use App\Http\Controllers\Api\V1\Gig\ShowGigController;
@@ -117,6 +118,7 @@ Route::middleware([
     Route::get('/gigs/open', ListOpenGigsController::class)->name('api.v1.gigs.open');
     Route::get('/gigs/{gig}', ShowGigController::class)->name('api.v1.gigs.show');
     Route::get('/my/gig-applications', ListMyGigApplicationsController::class)->name('api.v1.gigs.applications.my');
+    Route::get('/my/gigs', ListManagedGigsController::class)->name('api.v1.gigs.managed');
     Route::post('/gigs/{gig}/applications', StoreGigApplicationController::class)->name('api.v1.gigs.applications.store');
     Route::get('/gigs/{gig}/applications', ListGigApplicationsController::class)->name('api.v1.gigs.applications.index');
     Route::patch('/gigs/{gig}/applications/{application}', UpdateGigApplicationStatusController::class)->name('api.v1.gigs.applications.update');

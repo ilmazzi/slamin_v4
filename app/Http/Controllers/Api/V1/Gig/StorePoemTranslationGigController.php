@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api\V1\Gig;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\V1\Gig\StorePoemTranslationGigRequest;
+use App\Http\Resources\Api\V1\Gig\PoemTranslationGigResource;
 use App\Support\Responses\ApiResponse;
 use Domain\Gig\Actions\StorePoemTranslationGigAction;
 use Domain\Gig\DTOs\StorePoemTranslationGigData;
@@ -14,8 +15,7 @@ class StorePoemTranslationGigController extends Controller
 {
     public function __construct(
         private readonly StorePoemTranslationGigAction $action,
-    ) {
-    }
+    ) {}
 
     public function __invoke(StorePoemTranslationGigRequest $request, Poem $poem): JsonResponse
     {
@@ -24,16 +24,7 @@ class StorePoemTranslationGigController extends Controller
         $gig = $this->action->execute($poem, StorePoemTranslationGigData::fromRequest($request));
 
         return ApiResponse::success([
-            'translation_gig' => [
-                'id' => $gig->id,
-                'poem_id' => $poem->id,
-                'target_language' => $gig->language,
-                'proposed_price' => $gig->proposed_price,
-                'currency' => $gig->currency,
-                'deadline' => $gig->deadline?->toISOString(),
-                'special_requirements' => $gig->special_requirements,
-                'status' => $gig->status?->value,
-            ],
+            'translation_gig' => new PoemTranslationGigResource($gig),
         ], status: 201);
     }
 }

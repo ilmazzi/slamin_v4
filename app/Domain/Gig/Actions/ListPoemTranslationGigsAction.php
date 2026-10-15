@@ -12,6 +12,7 @@ class ListPoemTranslationGigsAction
     {
         return $poem->gigs()
             ->where('type', GigType::Translator->value)
+            ->withCount('applications')
             ->orderByDesc('created_at')
             ->get();
     }

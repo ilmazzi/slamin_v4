@@ -10,8 +10,9 @@ class ListGigApplicationsAction
     public function execute(Gig $gig): Collection
     {
         return $gig->applications()
-            ->with('user.profile')
+            ->with(['user.profile', 'negotiations'])
             ->latest()
+            ->latest('id')
             ->get();
     }
 }

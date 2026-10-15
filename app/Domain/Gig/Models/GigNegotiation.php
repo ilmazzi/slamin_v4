@@ -58,4 +58,9 @@ class GigNegotiation extends Model
     {
         return $this->hasOne(TranslationJob::class, 'gig_negotiation_id');
     }
+
+    public function involves(int $userId): bool
+    {
+        return (int) $this->owner_user_id === $userId || (int) $this->translator_user_id === $userId;
+    }
 }

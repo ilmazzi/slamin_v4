@@ -6,29 +6,54 @@ use Domain\Gig\Enums\GigApplicationStatus;
 use Domain\Gig\Enums\GigNegotiationEventType;
 use Domain\Gig\Enums\GigNegotiationStatus;
 use Domain\Gig\Enums\GigStatus;
+use Domain\Gig\Enums\TranslationJobStatus;
 use Domain\Gig\Models\GigNegotiation;
+use Domain\Gig\Models\GigNegotiationEvent;
 use Domain\Gig\Models\TranslationJob;
 use Domain\Notification\Actions\CreateNotificationAction;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 
 class AgreeGigNegotiationAction
 {
     public function __construct(
         private readonly CreateNotificationAction $createNotificationAction,
-    ) {
-    }
+    ) {}
 
     public function execute(GigNegotiation $negotiation): GigNegotiation
     {
-        $latestOffer = $negotiation->events()
-            ->whereIn('event_type', [
-                GigNegotiationEventType::OwnerOffer->value,
-                GigNegotiationEventType::TranslatorOffer->value,
-                GigNegotiationEventType::CounterOffer->value,
-            ])
-            ->latest()
-            ->first();
+        return DB::transaction(function () use ($negotiation): GigNegotiation {
+            $negotiation = GigNegotiation::query()->lockForUpdate()->findOrFail($negotiation->getKey());
 
+            if ($negotiation->status !== GigNegotiationStatus::Open) {
+                throw ValidationException::withMessages([
+                    'negotiation' => [__('gig.validation.negotiation_not_open')],
+                ]);
+            }
+
+            $latestOffer = $negotiation->events()
+                ->whereIn('event_type', [
+                    GigNegotiationEventType::OwnerOffer->value,
+                    GigNegotiationEventType::TranslatorOffer->value,
+                    GigNegotiationEventType::CounterOffer->value,
+                ])
+                ->latest()
+                ->latest('id')
+                ->first();
+
+            if ($latestOffer === null) {
+                throw ValidationException::withMessages([
+                    'negotiation' => [__('gig.validation.negotiation_without_offer')],
+                ]);
+            }
+
+            return $this->agree($negotiation, $latestOffer);
+        });
+    }
+
+    private function agree(GigNegotiation $negotiation, GigNegotiationEvent $latestOffer): GigNegotiation
+    {
         $negotiation->status = GigNegotiationStatus::Agreed;
         $negotiation->agreed_price = $latestOffer?->price;
         $negotiation->currency = $latestOffer?->currency ?? $negotiation->currency;
@@ -91,7 +116,7 @@ class AgreeGigNegotiationAction
                 'agreed_price' => $negotiation->agreed_price,
                 'currency' => $negotiation->currency,
                 'deadline' => $negotiation->agreed_deadline,
-                'status' => \Domain\Gig\Enums\TranslationJobStatus::InProgress,
+                'status' => TranslationJobStatus::InProgress,
             ],
         );
 
@@ -110,7 +135,7 @@ class AgreeGigNegotiationAction
             ],
         );
 
-        $targetUserId = Auth::id() === $negotiation->owner_user_id
+        $targetUserId = (int) Auth::id() === (int) $negotiation->owner_user_id
             ? $negotiation->translator_user_id
             : $negotiation->owner_user_id;
 

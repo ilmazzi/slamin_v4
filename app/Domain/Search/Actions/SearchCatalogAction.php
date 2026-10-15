@@ -6,6 +6,8 @@ use Domain\Article\Enums\ArticleStatus;
 use Domain\Article\Models\Article;
 use Domain\Event\Enums\EventStatus;
 use Domain\Event\Models\Event;
+use Domain\Gig\Enums\GigStatus;
+use Domain\Gig\Models\Gig;
 use Domain\Media\Enums\MediaStatus;
 use Domain\Media\Enums\MediaVisibility;
 use Domain\Media\Models\MediaItem;
@@ -13,6 +15,7 @@ use Domain\Poetry\Enums\PoemStatus;
 use Domain\Poetry\Models\Poem;
 use Domain\User\Models\User;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Relations\MorphTo;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
@@ -26,21 +29,66 @@ class SearchCatalogAction
      *     groups: list<array{type: string, href: string|null, items: list<array<string, mixed>>}>
      * }
      */
-    public function execute(string $query): array
+    public function execute(string $query, ?User $viewer = null): array
     {
         $query = trim($query);
         $term = $this->likeTerm($query);
 
+        $groups = [
+            $this->group('people', null, $this->searchPeople($term)),
+            $this->group('events', '/events', $this->searchEvents($term)),
+            $this->group('poems', '/poems?q='.rawurlencode($query), $this->searchPoems($term)),
+            $this->group('articles', '/articles', $this->searchArticles($term)),
+            $this->group('media', '/media?q='.rawurlencode($query), $this->searchMedia($term)),
+        ];
+
+        if ($viewer !== null && $viewer->hasVerifiedEmail()) {
+            $groups[] = $this->group('gigs', '/gigs?q='.rawurlencode($query), $this->searchGigs($term));
+        }
+
         return [
             'query' => $query,
-            'groups' => [
-                $this->group('people', null, $this->searchPeople($term)),
-                $this->group('events', '/events', $this->searchEvents($term)),
-                $this->group('poems', '/poems?q='.rawurlencode($query), $this->searchPoems($term)),
-                $this->group('articles', '/articles', $this->searchArticles($term)),
-                $this->group('media', '/media?q='.rawurlencode($query), $this->searchMedia($term)),
-            ],
+            'groups' => $groups,
         ];
+    }
+
+    /**
+     * @return list<array<string, mixed>>
+     */
+    private function searchGigs(string $term): array
+    {
+        return Gig::query()
+            ->with(['giggable' => function (MorphTo $morphTo): void {
+                $morphTo->morphWith([Event::class => ['venueDetail']]);
+            }])
+            ->where('status', GigStatus::Open->value)
+            ->withPublicParent()
+            ->where(function (Builder $builder) use ($term): void {
+                $builder
+                    ->whereRaw('LOWER(gigs.description) LIKE ?', [$term])
+                    ->orWhereHasMorph('giggable', [Event::class, Poem::class], function (Builder $parent) use ($term): void {
+                        $parent->whereRaw('LOWER(title) LIKE ?', [$term]);
+                    });
+            })
+            ->orderByDesc('opened_at')
+            ->orderByDesc('id')
+            ->limit(self::LIMIT)
+            ->get()
+            ->map(function (Gig $gig): array {
+                $parent = $gig->giggable;
+                $city = $parent instanceof Event ? $parent->venueDetail?->city : null;
+                $image = $parent instanceof Event ? $parent->cover_image_path : $parent?->image_path;
+
+                return $this->hit(
+                    type: 'gig',
+                    id: $gig->id,
+                    title: (string) ($parent?->title ?? ''),
+                    subtitle: collect([__('gig.types.'.$gig->type->value), $city])->filter()->implode(' · '),
+                    href: '/gigs/'.$gig->id,
+                    imageUrl: $image ? Storage::disk('public')->url($image) : null,
+                );
+            })
+            ->all();
     }
 
     /**

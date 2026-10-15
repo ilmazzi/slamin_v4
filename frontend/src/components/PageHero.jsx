@@ -5,6 +5,7 @@ export default function PageHero({
   title,
   leadPrefix,
   leadEmphasis,
+  leadSuffix,
   ctaLabel,
   ctaHref,
   hideCta = false,
@@ -24,6 +25,7 @@ export default function PageHero({
         <p className={styles.mobileLead}>
           {leadPrefix}
           <span>{leadEmphasis}</span>
+          {leadSuffix}
         </p>
         {!hideCta ? (
           <PillButton
@@ -42,11 +44,13 @@ export default function PageHero({
             <h1 className={styles.lead}>
               {leadPrefix}
               <span>{leadEmphasis}</span>
+              {leadSuffix}
             </h1>
           ) : (
             <p className={styles.lead}>
               {leadPrefix}
               <span>{leadEmphasis}</span>
+              {leadSuffix}
             </p>
           )}
         </div>

@@ -14,12 +14,11 @@ class DeleteGigAnnouncementController extends Controller
 {
     public function __construct(
         private readonly DeleteGigAnnouncementAction $action,
-    ) {
-    }
+    ) {}
 
     public function __invoke(Request $request, Gig $gig, GigAnnouncement $announcement): JsonResponse
     {
-        abort_unless($this->canManage($request->user()->id, $gig), 403);
+        abort_unless($gig->isManagedBy((int) $request->user()->id), 403);
 
         if ((int) $announcement->gig_id !== (int) $gig->id) {
             return ApiResponse::error(
@@ -33,12 +32,5 @@ class DeleteGigAnnouncementController extends Controller
         return ApiResponse::success([
             'deleted' => true,
         ]);
-    }
-
-    private function canManage(int $userId, Gig $gig): bool
-    {
-        $parent = $gig->giggable;
-
-        return $parent !== null && (int) ($parent->user_id ?? 0) === $userId;
     }
 }

@@ -4,19 +4,37 @@ namespace Domain\Gig\Actions;
 
 use Domain\Gig\DTOs\StoreGigNegotiationEventData;
 use Domain\Gig\Enums\GigNegotiationEventType;
+use Domain\Gig\Enums\GigNegotiationStatus;
 use Domain\Gig\Models\GigNegotiation;
+use Domain\Gig\Models\GigNegotiationEvent;
 use Domain\Notification\Actions\CreateNotificationAction;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Validation\ValidationException;
 
 class StoreGigNegotiationEventAction
 {
     public function __construct(
         private readonly CreateNotificationAction $createNotificationAction,
-    ) {
-    }
+    ) {}
 
-    public function execute(GigNegotiation $negotiation, StoreGigNegotiationEventData $data): \Domain\Gig\Models\GigNegotiationEvent
+    public function execute(GigNegotiation $negotiation, StoreGigNegotiationEventData $data): GigNegotiationEvent
     {
+        if ($negotiation->status !== GigNegotiationStatus::Open) {
+            throw ValidationException::withMessages([
+                'negotiation' => [__('gig.validation.negotiation_not_open')],
+            ]);
+        }
+
+        $isOwner = (int) Auth::id() === (int) $negotiation->owner_user_id;
+        $roleMismatch = ($data->eventType === GigNegotiationEventType::OwnerOffer && ! $isOwner)
+            || ($data->eventType === GigNegotiationEventType::TranslatorOffer && $isOwner);
+
+        if ($roleMismatch) {
+            throw ValidationException::withMessages([
+                'event_type' => [__('gig.validation.negotiation_event_not_allowed')],
+            ]);
+        }
+
         $event = $negotiation->events()->create([
             'author_user_id' => Auth::id(),
             'event_type' => $data->eventType,
@@ -42,7 +60,7 @@ class StoreGigNegotiationEventAction
             ],
         );
 
-        $targetUserId = Auth::id() === $negotiation->owner_user_id
+        $targetUserId = (int) Auth::id() === (int) $negotiation->owner_user_id
             ? $negotiation->translator_user_id
             : $negotiation->owner_user_id;
 

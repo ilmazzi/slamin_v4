@@ -16,6 +16,7 @@ return [
         'poems' => 'Poems',
         'articles' => 'Articles',
         'media' => 'Media',
+        'gigs' => 'Gigs',
         'person' => 'Person',
         'event' => 'Event',
         'poem' => 'Poem',

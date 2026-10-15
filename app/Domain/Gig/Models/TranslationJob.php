@@ -64,4 +64,9 @@ class TranslationJob extends Model
     {
         return $this->hasMany(TranslationComment::class);
     }
+
+    public function involves(int $userId): bool
+    {
+        return (int) $this->owner_user_id === $userId || (int) $this->translator_user_id === $userId;
+    }
 }

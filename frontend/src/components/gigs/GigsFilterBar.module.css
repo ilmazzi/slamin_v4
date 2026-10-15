@@ -1,0 +1,24 @@
+div.selectsRow {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.mineLink {
+  flex: 0 0 auto;
+  font-family: var(--font-family-sans);
+  font-size: clamp(14px, 1.15vw, 20px);
+  font-weight: 500;
+  color: #000;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+  white-space: nowrap;
+}
+
+@media (max-width: 768px) {
+  div.selectsRow {
+    grid-template-columns: 1fr;
+  }
+
+  .mineLink {
+    align-self: flex-end;
+  }
+}

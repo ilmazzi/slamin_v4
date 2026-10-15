@@ -16,14 +16,19 @@ class StoreGigApplicationAction
 {
     public function __construct(
         private readonly CreateNotificationAction $createNotificationAction,
-    ) {
-    }
+    ) {}
 
     public function execute(Gig $gig, User $user, StoreGigApplicationData $data): GigApplication
     {
         if ($gig->status !== GigStatus::Open) {
             throw ValidationException::withMessages([
                 'gig' => [__('gig.validation.not_open_for_applications')],
+            ]);
+        }
+
+        if ($gig->isManagedBy((int) $user->id)) {
+            throw ValidationException::withMessages([
+                'gig' => [__('gig.validation.cannot_apply_to_own_gig')],
             ]);
         }
 

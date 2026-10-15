@@ -6,6 +6,7 @@ use Domain\Gig\DTOs\UpdateGigData;
 use Domain\Gig\Enums\GigStatus;
 use Domain\Gig\Models\Gig;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Validation\ValidationException;
 
 class UpdateEventGigAction
 {
@@ -27,7 +28,33 @@ class UpdateEventGigAction
         }
 
         if ($data->quantity !== null) {
+            if ($data->quantity < (int) $gig->filled_quantity) {
+                throw ValidationException::withMessages([
+                    'quantity' => [__('gig.validation.quantity_below_filled')],
+                ]);
+            }
+
             $gig->quantity = $data->quantity;
+        }
+
+        if ($data->offerAttributes !== []) {
+            $gig->fill($data->offerAttributes);
+
+            if (! $gig->cachet_enabled) {
+                $gig->proposed_price = null;
+            }
+
+            if (! $gig->travel_expenses_enabled) {
+                $gig->travel_expenses_max = null;
+            }
+
+            if (! $gig->accommodation_enabled) {
+                $gig->accommodation_details = null;
+            }
+
+            if (! $gig->cachet_enabled && ! $gig->travel_expenses_enabled) {
+                $gig->currency = null;
+            }
         }
 
         if ($data->languageProvided) {
@@ -44,6 +71,14 @@ class UpdateEventGigAction
 
         if ($data->status !== null) {
             $this->applyStatusTransition($gig, $data->status);
+        }
+
+        if ($gig->status === GigStatus::Open && (int) $gig->filled_quantity >= (int) $gig->quantity) {
+            $gig->status = GigStatus::Filled;
+            $gig->filled_at = $gig->filled_at ?? now();
+        } elseif ($gig->status === GigStatus::Filled && (int) $gig->filled_quantity < (int) $gig->quantity) {
+            $gig->status = GigStatus::Open;
+            $gig->filled_at = null;
         }
 
         $gig->updated_by_user_id = Auth::id();

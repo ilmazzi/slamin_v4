@@ -7,10 +7,12 @@ use Domain\Gig\Enums\GigApplicationStatus;
 use Domain\Gig\Enums\GigNegotiationEventType;
 use Domain\Gig\Enums\GigNegotiationStatus;
 use Domain\Gig\Enums\GigStatus;
+use Domain\Gig\Enums\GigType;
 use Domain\Gig\Models\Gig;
 use Domain\Gig\Models\GigApplication;
 use Domain\Gig\Models\GigNegotiation;
 use Domain\Notification\Actions\CreateNotificationAction;
+use Domain\Poetry\Models\Poem;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\ValidationException;
 
@@ -18,14 +20,35 @@ class OpenGigNegotiationAction
 {
     public function __construct(
         private readonly CreateNotificationAction $createNotificationAction,
-    ) {
-    }
+    ) {}
 
     public function execute(Gig $gig, GigApplication $application, OpenGigNegotiationData $data): GigNegotiation
     {
         if ((int) $application->gig_id !== (int) $gig->id) {
             throw ValidationException::withMessages([
                 'application' => [__('gig.validation.application_not_in_gig')],
+            ]);
+        }
+
+        if ($gig->type !== GigType::Translator || $gig->giggable_type !== Poem::class) {
+            throw ValidationException::withMessages([
+                'gig' => [__('gig.validation.negotiation_requires_translation_gig')],
+            ]);
+        }
+
+        $hasAgreement = $gig->negotiations()
+            ->where('status', GigNegotiationStatus::Agreed->value)
+            ->exists();
+
+        if (! in_array($gig->status, [GigStatus::Open, GigStatus::Filled], true) || $hasAgreement) {
+            throw ValidationException::withMessages([
+                'gig' => [__('gig.validation.gig_not_active')],
+            ]);
+        }
+
+        if (! in_array($application->status, [GigApplicationStatus::Pending, GigApplicationStatus::Accepted], true)) {
+            throw ValidationException::withMessages([
+                'application' => [__('gig.validation.application_not_negotiable')],
             ]);
         }
 

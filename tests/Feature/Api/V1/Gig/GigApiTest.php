@@ -2,9 +2,8 @@
 
 use Domain\Event\Models\Event;
 use Domain\Event\Models\EventCategory;
-use Domain\Gig\Models\Gig;
-use Domain\Gig\Models\GigApplication;
 use Domain\Gig\Models\GigAnnouncement;
+use Domain\Gig\Models\GigApplication;
 use Domain\User\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Laravel\Sanctum\Sanctum;
@@ -44,8 +43,9 @@ function makeGigEvent(User $user, EventCategory $category, array $overrides = []
         'description' => 'Evento per test gig.',
         'schedule_mode' => 'fixed',
         'delivery_mode' => 'in_person',
-        'status' => 'draft',
+        'status' => 'published',
         'is_public' => true,
+        'published_at' => now(),
     ], $overrides));
 }
 
@@ -260,7 +260,9 @@ it('lists open gigs for authenticated users', function () {
         ->assertOk()
         ->assertJsonCount(1, 'data.gigs')
         ->assertJsonPath('data.gigs.0.type', 'poet_artist')
-        ->assertJsonPath('data.gigs.0.event.id', $event->id);
+        ->assertJsonPath('data.gigs.0.parent.type', 'event')
+        ->assertJsonPath('data.gigs.0.parent.id', $event->id)
+        ->assertJsonPath('meta.total', 1);
 });
 
 it('stores a gig application for an authenticated user', function () {

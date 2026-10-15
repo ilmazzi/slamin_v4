@@ -31,6 +31,11 @@ const ArticlePage = lazy(() => import('./pages/Articles/ArticlePage.jsx'))
 const ArticleDetailPage = lazy(() => import('./pages/Articles/ArticleDetailPage.jsx'))
 const ArticleCreate = lazy(() => import('./pages/Articles/ArticleCreate.jsx'))
 const GigPage = lazy(() => import('./pages/Gigs/GigPage.jsx'))
+const GigDetailPage = lazy(() => import('./pages/Gigs/GigDetailPage.jsx'))
+const GigFormPage = lazy(() => import('./pages/Gigs/GigFormPage.jsx'))
+const MyGigsPage = lazy(() => import('./pages/Gigs/MyGigsPage.jsx'))
+const GigNegotiationPage = lazy(() => import('./pages/Gigs/GigNegotiationPage.jsx'))
+const TranslationJobPage = lazy(() => import('./pages/Gigs/TranslationJobPage.jsx'))
 const MediaPage = lazy(() => import('./pages/Media/MediaPage.jsx'))
 const MediaUploadPage = lazy(() => import('./pages/Media/MediaUploadPage.jsx'))
 const MediaDetailPage = lazy(() => import('./pages/Media/MediaDetailPage.jsx'))
@@ -168,6 +173,54 @@ export default function App() {
             element={
               <ProtectedRoute>
                 <GigPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/gigs/create"
+            element={
+              <ProtectedRoute accountTypes={['poet_organizer']} redirectTo="/gigs">
+                <GigFormPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/gigs/mine"
+            element={
+              <ProtectedRoute>
+                <MyGigsPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/gigs/:gigId/edit"
+            element={
+              <ProtectedRoute accountTypes={['poet_organizer']} redirectTo="/gigs">
+                <GigFormPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/gigs/:gigId"
+            element={
+              <ProtectedRoute>
+                <GigDetailPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/gig-negotiations/:negotiationId"
+            element={
+              <ProtectedRoute>
+                <GigNegotiationPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/translation-jobs/:jobId"
+            element={
+              <ProtectedRoute>
+                <TranslationJobPage />
               </ProtectedRoute>
             }
           />

@@ -12,11 +12,16 @@ class SubmitTranslationJobAction
 {
     public function __construct(
         private readonly CreateNotificationAction $createNotificationAction,
-    ) {
-    }
+    ) {}
 
     public function execute(TranslationJob $job): TranslationJob
     {
+        if (! in_array($job->status, [TranslationJobStatus::InProgress, TranslationJobStatus::ChangesRequested], true)) {
+            throw ValidationException::withMessages([
+                'translation_job' => [__('gig.validation.translation_job_invalid_status')],
+            ]);
+        }
+
         if (blank($job->translated_content)) {
             throw ValidationException::withMessages([
                 'translated_content' => [__('gig.validation.translation_content_required_for_submit')],

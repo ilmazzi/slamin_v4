@@ -13,8 +13,7 @@ class StoreTranslationCommentAction
 {
     public function __construct(
         private readonly CreateNotificationAction $createNotificationAction,
-    ) {
-    }
+    ) {}
 
     public function execute(TranslationJob $job, StoreTranslationCommentData $data): TranslationComment
     {
@@ -40,7 +39,7 @@ class StoreTranslationCommentAction
             ],
         );
 
-        $targetUserId = Auth::id() === $job->owner_user_id ? $job->translator_user_id : $job->owner_user_id;
+        $targetUserId = (int) Auth::id() === (int) $job->owner_user_id ? $job->translator_user_id : $job->owner_user_id;
         $this->createNotificationAction->execute(
             userId: $targetUserId,
             type: 'translation_comment.created',

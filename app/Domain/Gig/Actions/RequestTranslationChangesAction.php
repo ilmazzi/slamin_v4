@@ -6,16 +6,22 @@ use Domain\Gig\Enums\TranslationJobStatus;
 use Domain\Gig\Models\TranslationJob;
 use Domain\Notification\Actions\CreateNotificationAction;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Validation\ValidationException;
 
 class RequestTranslationChangesAction
 {
     public function __construct(
         private readonly CreateNotificationAction $createNotificationAction,
-    ) {
-    }
+    ) {}
 
     public function execute(TranslationJob $job): TranslationJob
     {
+        if ($job->status !== TranslationJobStatus::Submitted) {
+            throw ValidationException::withMessages([
+                'translation_job' => [__('gig.validation.translation_job_invalid_status')],
+            ]);
+        }
+
         $job->status = TranslationJobStatus::ChangesRequested;
         $job->save();
 

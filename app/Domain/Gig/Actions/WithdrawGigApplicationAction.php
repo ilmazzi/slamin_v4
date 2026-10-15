@@ -27,6 +27,21 @@ class WithdrawGigApplicationAction
         $application->rejected_at = null;
         $application->save();
 
+        if ($oldStatus === GigApplicationStatus::Confirmed) {
+            $confirmedCount = $gig->applications()
+                ->where('status', GigApplicationStatus::Confirmed->value)
+                ->count();
+
+            $gig->filled_quantity = $confirmedCount;
+
+            if ($gig->status === GigStatus::Filled && $confirmedCount < (int) $gig->quantity) {
+                $gig->status = GigStatus::Open;
+                $gig->filled_at = null;
+            }
+
+            $gig->save();
+        }
+
         audit()->log(
             event: 'gig.application_withdrawn',
             userId: Auth::id(),

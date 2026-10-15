@@ -10,9 +10,10 @@ class ShowGigNegotiationAction
     {
         return $negotiation->loadMissing([
             'gig.giggable',
-            'application.user.profile',
             'owner.profile',
             'translator.profile',
+            'translationJob',
+            'events' => fn ($query) => $query->orderBy('created_at')->orderBy('id'),
             'events.author.profile',
         ]);
     }

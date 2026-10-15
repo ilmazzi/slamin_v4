@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api\V1\Gig;
 
 use App\Http\Controllers\Controller;
+use App\Http\Resources\Api\V1\Gig\GigResource;
 use App\Support\Responses\ApiResponse;
 use Domain\Gig\Actions\CloseGigAction;
 use Domain\Gig\Models\Gig;
@@ -13,29 +14,14 @@ class CloseGigController extends Controller
 {
     public function __construct(
         private readonly CloseGigAction $action,
-    ) {
-    }
+    ) {}
 
     public function __invoke(Request $request, Gig $gig): JsonResponse
     {
-        abort_unless($this->canManage($request->user()->id, $gig), 403);
-
-        $gig = $this->action->execute($gig);
+        abort_unless($gig->isManagedBy((int) $request->user()->id), 403);
 
         return ApiResponse::success([
-            'gig' => [
-                'id' => $gig->id,
-                'status' => $gig->status?->value,
-                'closed_at' => $gig->closed_at?->toISOString(),
-                'filled_quantity' => $gig->filled_quantity,
-            ],
+            'gig' => new GigResource($this->action->execute($gig)),
         ]);
-    }
-
-    private function canManage(int $userId, Gig $gig): bool
-    {
-        $parent = $gig->giggable;
-
-        return $parent !== null && (int) ($parent->user_id ?? 0) === $userId;
     }
 }

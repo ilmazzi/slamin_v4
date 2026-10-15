@@ -14,7 +14,7 @@ class StoreGigApplicationRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'message' => ['nullable', 'string'],
+            'message' => ['nullable', 'string', 'max:5000'],
         ];
     }
 }

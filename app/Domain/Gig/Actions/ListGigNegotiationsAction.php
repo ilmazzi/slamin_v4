@@ -10,12 +10,12 @@ class ListGigNegotiationsAction
     public function execute(Gig $gig, int $userId): Collection
     {
         $query = $gig->negotiations()
-            ->with(['application.user.profile', 'events.author.profile'])
-            ->latest();
+            ->with(['translator.profile', 'translationJob'])
+            ->withCount('events')
+            ->latest()
+            ->latest('id');
 
-        $isOwner = (int) ($gig->giggable?->user_id ?? 0) === $userId;
-
-        if (! $isOwner) {
+        if (! $gig->isManagedBy($userId)) {
             $query->where('translator_user_id', $userId);
         }
 

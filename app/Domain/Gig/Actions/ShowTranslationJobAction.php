@@ -12,6 +12,7 @@ class ShowTranslationJobAction
             'poem',
             'owner.profile',
             'translator.profile',
+            'comments' => fn ($query) => $query->latest()->latest('id'),
             'comments.author.profile',
         ]);
     }

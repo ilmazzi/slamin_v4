@@ -17,8 +17,20 @@ class UpdateGigData
         public readonly ?string $description,
         public readonly bool $descriptionProvided,
         public readonly ?GigStatus $status,
-    ) {
-    }
+        public readonly array $offerAttributes = [],
+    ) {}
+
+    private const OFFER_FIELDS = [
+        'proposed_price',
+        'currency',
+        'deadline',
+        'special_requirements',
+        'cachet_enabled',
+        'travel_expenses_enabled',
+        'travel_expenses_max',
+        'accommodation_enabled',
+        'accommodation_details',
+    ];
 
     public static function fromRequest(UpdateEventGigRequest $request): self
     {
@@ -31,6 +43,7 @@ class UpdateGigData
             description: $request->filled('description') ? $request->string('description')->toString() : null,
             descriptionProvided: $request->exists('description'),
             status: $request->filled('status') ? GigStatus::from($request->string('status')->toString()) : null,
+            offerAttributes: array_intersect_key($request->validated(), array_flip(self::OFFER_FIELDS)),
         );
     }
 }

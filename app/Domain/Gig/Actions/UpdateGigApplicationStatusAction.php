@@ -9,19 +9,43 @@ use Domain\Gig\Models\Gig;
 use Domain\Gig\Models\GigApplication;
 use Domain\Notification\Actions\CreateNotificationAction;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Validation\ValidationException;
 
 class UpdateGigApplicationStatusAction
 {
     public function __construct(
         private readonly CreateNotificationAction $createNotificationAction,
-    ) {
-    }
+    ) {}
 
     public function execute(Gig $gig, GigApplication $application, UpdateGigApplicationStatusData $data): GigApplication
     {
         $oldStatus = $application->status;
         $newStatus = $data->status;
         $now = now();
+
+        if (in_array($gig->status, [GigStatus::Closed, GigStatus::Cancelled], true)) {
+            throw ValidationException::withMessages([
+                'gig' => [__('gig.validation.gig_not_active')],
+            ]);
+        }
+
+        if ($oldStatus === GigApplicationStatus::Withdrawn) {
+            throw ValidationException::withMessages([
+                'application' => [__('gig.validation.application_withdrawn')],
+            ]);
+        }
+
+        if ($newStatus === GigApplicationStatus::Confirmed && $oldStatus !== GigApplicationStatus::Confirmed) {
+            $confirmedCount = $gig->applications()
+                ->where('status', GigApplicationStatus::Confirmed->value)
+                ->count();
+
+            if ($confirmedCount >= (int) $gig->quantity) {
+                throw ValidationException::withMessages([
+                    'application' => [__('gig.validation.gig_already_filled')],
+                ]);
+            }
+        }
 
         $application->status = $newStatus;
         $application->reviewed_by_user_id = Auth::id();
@@ -75,7 +99,7 @@ class UpdateGigApplicationStatusAction
             type: 'gig.application_updated',
             title: __('gig.notifications.application_updated_title'),
             message: __('gig.notifications.application_status_message', [
-                'status' => __('gig.application_statuses.' . $application->status->value),
+                'status' => __('gig.application_statuses.'.$application->status->value),
             ]),
             data: [
                 'gig_id' => $gig->id,
