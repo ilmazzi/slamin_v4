@@ -1,4 +1,4 @@
-import { apiGet, authApiGet, authApiPatch } from './client.js'
+import { apiGet, authApiDelete, authApiGet, authApiPatch, authApiPost } from './client.js'
 
 export const PROFILE_SECTIONS = ['poems', 'events', 'articles', 'media']
 
@@ -84,6 +84,7 @@ export async function getPublicProfile(nickname, { token, signal } = {}) {
       status: result.status,
       profile: result.data?.profile ?? null,
       stats: result.data?.stats ?? null,
+      follow: result.data?.follow ?? null,
     }
   }
 
@@ -92,9 +93,15 @@ export async function getPublicProfile(nickname, { token, signal } = {}) {
       signal,
       fallbackMessage: 'Unable to load profile.',
     })
-    return { ok: true, status: 200, profile: result.data?.profile ?? null, stats: result.data?.stats ?? null }
+    return {
+      ok: true,
+      status: 200,
+      profile: result.data?.profile ?? null,
+      stats: result.data?.stats ?? null,
+      follow: result.data?.follow ?? null,
+    }
   } catch {
-    return { ok: false, status: 404, profile: null, stats: null }
+    return { ok: false, status: 404, profile: null, stats: null, follow: null }
   }
 }
 
@@ -104,6 +111,14 @@ export async function getPublicProfileActivities(nickname, { page = 1, token, si
   const result = token ? await authApiGet(path, { ...options, token }) : await apiGet(path, options)
 
   return result.data?.recent_activities ?? null
+}
+
+export async function setProfileFollow(nickname, following, { token, signal } = {}) {
+  const path = `/api/v1/profiles/${encodeURIComponent(String(nickname ?? '').trim())}/follow`
+  const options = { token, signal, fallbackMessage: 'Unable to update follow.' }
+  const result = following ? await authApiPost(path, {}, options) : await authApiDelete(path, options)
+
+  return result.data?.follow ?? null
 }
 
 export async function updateMyProfile(values, { token, signal } = {}) {

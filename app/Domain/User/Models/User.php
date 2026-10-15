@@ -7,6 +7,7 @@ use Domain\Chat\Models\ChatMessage;
 use Domain\Chat\Models\ChatThread;
 use Domain\Chat\Models\ChatThreadMember;
 use Domain\Engagement\Models\Bookmark;
+use Domain\Engagement\Models\Follow;
 use Domain\Engagement\Models\Like;
 use Domain\Gig\Models\GigAnnouncement;
 use Domain\Gig\Models\GigApplication;
@@ -180,6 +181,16 @@ class User extends Authenticatable implements HasLocalePreference, MustVerifyEma
     public function bookmarks(): MorphMany
     {
         return $this->morphMany(Bookmark::class, 'bookmarkable');
+    }
+
+    public function followers(): MorphMany
+    {
+        return $this->morphMany(Follow::class, 'followable');
+    }
+
+    public function follows(): HasMany
+    {
+        return $this->hasMany(Follow::class);
     }
 
     public function notifications(): HasMany

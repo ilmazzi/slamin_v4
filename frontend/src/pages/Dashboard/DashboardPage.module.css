@@ -352,6 +352,36 @@
   font-weight: 800;
 }
 
+.recentTitleWrap:has(.recentTabs) {
+  flex-direction: column;
+  gap: clamp(14px, 1.6vw, 30px);
+}
+
+.recentTabs {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 12px;
+}
+
+.recentTab {
+  border: 2px solid #000;
+  border-radius: 999px;
+  padding: 10px 22px;
+  background: transparent;
+  color: #000;
+  font-family: 'Switzer', sans-serif;
+  font-size: clamp(14px, 1.05vw, 20px);
+  font-weight: 700;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.recentTabActive {
+  background: #000;
+  color: #fff;
+}
+
 .recentList {
   width: 100%;
   max-width: 1700px;

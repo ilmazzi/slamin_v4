@@ -24,15 +24,18 @@ export default function DashboardPage({ user }) {
   const profile = ownerProfileFromUser(user)
   const canManagePublications = user?.account_type === 'poet_organizer'
   const [activitiesPage, setActivitiesPage] = useState(1)
+  const [activitiesFeed, setActivitiesFeed] = useState('following')
   const {
     widgets,
     communityCards,
     recentActivitiesData,
+    followingCount,
     isLoading: isLoadingWidgets,
   } = useDashboardWidgets({
     token,
     locale,
     activitiesPage,
+    activitiesFeed,
     enabled: Boolean(token),
   })
   const widgetsById = new Map(widgets.map((item) => [item.id, item]))
@@ -151,6 +154,20 @@ export default function DashboardPage({ user }) {
           page={activitiesPage}
           onPageChange={setActivitiesPage}
           isLoading={isLoadingWidgets}
+          tabs={[
+            { id: 'following', label: t('home.dashboard_page.activity_feeds.following') },
+            { id: 'mine', label: t('home.dashboard_page.activity_feeds.mine') },
+          ]}
+          activeTab={activitiesFeed}
+          onTabChange={(feed) => {
+            setActivitiesFeed(feed)
+            setActivitiesPage(1)
+          }}
+          emptyText={
+            activitiesFeed === 'following'
+              ? t(followingCount > 0 ? 'home.dashboard_page.following_empty' : 'home.dashboard_page.following_none')
+              : undefined
+          }
         />
     </MainLayout>
   )

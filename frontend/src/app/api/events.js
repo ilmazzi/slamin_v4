@@ -198,6 +198,14 @@ export async function deleteEvent(eventId, { token, signal } = {}) {
   })
 }
 
+export async function setEventFollow(eventId, following, { token, signal } = {}) {
+  const path = `/api/v1/events/${encodeURIComponent(eventId)}/follow`
+  const options = { token, signal, fallbackMessage: 'Unable to update follow.' }
+  const result = following ? await authApiPost(path, {}, options) : await authApiDelete(path, options)
+
+  return result.data?.follow ?? null
+}
+
 function appendIfDefined(formData, key, value) {
   if (value === undefined || value === null || value === '') return
   formData.append(key, String(value))

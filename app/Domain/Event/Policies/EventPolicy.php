@@ -28,6 +28,13 @@ class EventPolicy
         return $this->canInteract($user, $event);
     }
 
+    public function follow(User $user, Event $event): bool
+    {
+        return $event->user_id !== $user->id
+            && $event->status === EventStatus::Published
+            && $event->is_public === true;
+    }
+
     public function comment(User $user, Event $event): bool
     {
         return $this->canInteract($user, $event);

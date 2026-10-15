@@ -148,6 +148,10 @@ class EventResource extends JsonResource
             'bookmarks_count' => (int) ($this->bookmarks_count ?? 0),
             'is_liked' => (bool) ($this->is_liked ?? false),
             'is_bookmarked' => (bool) ($this->is_bookmarked ?? false),
+            $this->mergeWhen($this->followers_count !== null, fn () => [
+                'followers_count' => (int) $this->followers_count,
+                'is_following' => (bool) $this->is_following,
+            ]),
         ];
     }
 }

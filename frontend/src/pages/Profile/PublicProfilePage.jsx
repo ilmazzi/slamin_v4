@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { createDirectChatThread } from '../../app/api/chat.js'
-import { getPublicProfile, getPublicProfileActivities } from '../../app/api/profile.js'
+import { getPublicProfile, getPublicProfileActivities, setProfileFollow } from '../../app/api/profile.js'
 import { resolvePublicUrl } from '../../app/api/url.js'
 import { formatLocaleNumber } from '../../app/formatters/number.js'
 import { useAuth } from '../../app/hooks/useAuth.js'
@@ -32,6 +32,8 @@ export default function PublicProfilePage() {
   const [activitiesKey, setActivitiesKey] = useState('')
   const [isWriting, setIsWriting] = useState(false)
   const [writeError, setWriteError] = useState('')
+  const [followState, setFollowState] = useState(null)
+  const [isFollowBusy, setIsFollowBusy] = useState(false)
 
   useEffect(() => {
     const controller = new AbortController()
@@ -40,6 +42,7 @@ export default function PublicProfilePage() {
       setStatus('loading')
       setProfile(null)
       setStats(null)
+      setFollowState(null)
       setActivities(null)
       setActivitiesPage(1)
 
@@ -59,6 +62,7 @@ export default function PublicProfilePage() {
 
       setProfile(result.profile)
       setStats(result.stats)
+      setFollowState(result.follow)
       setStatus('ready')
     }
 
@@ -121,6 +125,24 @@ export default function PublicProfilePage() {
     }
   }
 
+  async function handleToggleFollow() {
+    if (!canWrite || isFollowBusy || !followState) {
+      return
+    }
+    setIsFollowBusy(true)
+    setWriteError('')
+    try {
+      const next = await setProfileFollow(profile.nickname, !followState.is_following, { token })
+      if (next) {
+        setFollowState(next)
+      }
+    } catch (error) {
+      setWriteError(error?.message || t('profile.page.follow_error'))
+    } finally {
+      setIsFollowBusy(false)
+    }
+  }
+
   if (status !== 'ready') {
     return (
       <MainLayout>
@@ -151,6 +173,16 @@ export default function PublicProfilePage() {
           t={t}
           onWrite={canWrite ? handleWrite : null}
           isWriting={isWriting}
+          follow={
+            followState
+              ? {
+                  isFollowing: followState.is_following,
+                  countLabel: formatLocaleNumber(followState.followers_count ?? 0, locale),
+                  onToggle: canWrite ? handleToggleFollow : null,
+                  isBusy: isFollowBusy,
+                }
+              : null
+          }
         />
       </div>
 

@@ -75,7 +75,16 @@ function buildPaginationTokens(currentPage, lastPage) {
   return tokens
 }
 
-export default function RecentActivities({ data, page, onPageChange, isLoading = false, emptyText }) {
+export default function RecentActivities({
+  data,
+  page,
+  onPageChange,
+  isLoading = false,
+  emptyText,
+  tabs = null,
+  activeTab = null,
+  onTabChange = null,
+}) {
   const { t } = useI18n()
   const items = data?.items ?? []
   const total = Number(data?.total ?? items.length)
@@ -97,6 +106,22 @@ export default function RecentActivities({ data, page, onPageChange, isLoading =
           <span>{t('home.dashboard_page.recent')}</span>{' '}
           <span className={styles.recentTitleAccent}>{t('home.dashboard_page.activities')}</span>
         </h2>
+        {tabs?.length ? (
+          <div className={styles.recentTabs} role="tablist">
+            {tabs.map((tab) => (
+              <button
+                key={tab.id}
+                type="button"
+                role="tab"
+                aria-selected={tab.id === activeTab}
+                className={`${styles.recentTab} ${tab.id === activeTab ? styles.recentTabActive : ''}`}
+                onClick={() => onTabChange?.(tab.id)}
+              >
+                {tab.label}
+              </button>
+            ))}
+          </div>
+        ) : null}
       </section>
       <section className={styles.recentList}>
         {items.map((item) => {
@@ -109,6 +134,11 @@ export default function RecentActivities({ data, page, onPageChange, isLoading =
                   <Icon className={styles.recentIcon} />
                 </span>
                 <p className={styles.recentLabelAndTitle}>
+                  {item.actor ? (
+                    <Link to={item.actor.url} className={[styles.recentLabel, styles.recentItemLink].join(' ')}>
+                      {item.actor.name}
+                    </Link>
+                  ) : null}
                   <strong className={styles.recentLabel}>{item.label}</strong>
                   {item.title && item.url ? (
                     <Link to={item.url} className={[styles.recentItemTitle, styles.recentItemLink].join(' ')}>

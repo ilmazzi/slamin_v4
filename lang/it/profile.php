@@ -3,6 +3,7 @@
 return [
     'errors' => [
         'not_found' => 'Profilo non trovato.',
+        'cannot_follow_self' => 'Non puoi seguire il tuo profilo.',
     ],
     'page' => [
         'title' => 'Profilo',
@@ -17,6 +18,10 @@ return [
         'edit' => 'Modifica profilo',
         'write' => 'Scrivi in chat',
         'write_error' => 'Impossibile aprire la chat.',
+        'follow' => 'Segui',
+        'unfollow' => 'Smetti di seguire',
+        'follow_error' => 'Impossibile aggiornare il follow.',
+        'followers' => 'Follower',
         'view_public' => 'Vedi come ti vedono gli altri',
         'avatar' => 'Foto profilo',
         'avatar_hint' => 'JPG o PNG, max 2MB',

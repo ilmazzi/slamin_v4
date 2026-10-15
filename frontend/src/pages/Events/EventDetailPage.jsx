@@ -5,7 +5,7 @@ import OsmTileLayer from '../../app/maps/OsmTileLayer.jsx'
 import { useLocation, useParams } from 'react-router-dom'
 import { formatLocaleNumber } from '../../app/formatters/number.js'
 import { useDashboardWidgets } from '../../app/hooks/useDashboardWidgets.js'
-import { getEventDetail } from '../../app/api/events.js'
+import { getEventDetail, setEventFollow } from '../../app/api/events.js'
 import { resolvePublicUrl } from '../../app/api/url.js'
 import {
   buildEventDetailSections,
@@ -337,6 +337,30 @@ function EventDetailContent({ t, locale, token, user, isAuthenticated }) {
   }, [event, locale, t])
 
   const isOwner = useMemo(() => isEventOwner(user, event), [event, user])
+  const [followOverride, setFollowOverride] = useState(null)
+  const [isFollowBusy, setIsFollowBusy] = useState(false)
+  const isFollowing = followOverride && followOverride.eventId === event?.id
+    ? followOverride.isFollowing
+    : Boolean(event?.is_following)
+  const canFollow = Boolean(
+    isAuthenticated && token && event && !isOwner && event.status === 'published' && event.is_public !== false
+      && typeof event.is_following === 'boolean',
+  )
+
+  async function handleToggleFollow() {
+    if (!canFollow || isFollowBusy) {
+      return
+    }
+    setIsFollowBusy(true)
+    try {
+      const next = await setEventFollow(event.id, !isFollowing, { token })
+      setFollowOverride({ eventId: event.id, isFollowing: Boolean(next?.is_following) })
+    } catch (error) {
+      setToastMessage(error?.message || t('profile.page.follow_error'))
+    } finally {
+      setIsFollowBusy(false)
+    }
+  }
 
   return (
     <main className={styles.page}>
@@ -389,6 +413,15 @@ function EventDetailContent({ t, locale, token, user, isAuthenticated }) {
                     metricClassName={styles.socialMetric}
                     buttonsClassName={styles.socialButtons}
                   />
+                  {canFollow ? (
+                    <PillButton
+                      label={isFollowing ? t('events.unfollow_event') : t('events.follow_event')}
+                      onClick={handleToggleFollow}
+                      variant={isFollowing ? 'red' : 'dark'}
+                      className={styles.bookButton}
+                      icon={isFollowing ? 'minus' : 'plus'}
+                    />
+                  ) : null}
                   {isOwner ? (
                     <PillButton
                       label={t('events.detail_page.actions.edit')}

@@ -5,6 +5,7 @@ namespace Domain\Dashboard\Actions;
 use Domain\Article\Models\Article;
 use Domain\Audit\Models\AuditLog;
 use Domain\Comment\Models\Comment;
+use Domain\Engagement\Models\Follow;
 use Domain\Event\Models\Event;
 use Domain\Gig\Models\Gig;
 use Domain\Gig\Models\GigApplication;
@@ -13,6 +14,9 @@ use Domain\Media\Enums\MediaStatus;
 use Domain\Media\Enums\MediaVisibility;
 use Domain\Media\Models\MediaItem;
 use Domain\Poetry\Models\Poem;
+use Domain\Profile\Models\Profile;
+use Domain\Profile\Support\ProfilePayload;
+use Domain\User\Models\User;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
@@ -42,6 +46,7 @@ class ListRecentActivitiesAction
         'event.bookmarked' => ['event', 'bookmarked', 'event_bookmarked'],
         'event_participant_invite.responded' => ['event', 'accepted', 'event_invite_responded'],
         'event_audience_invite.responded' => ['event', 'accepted', 'event_invite_responded'],
+        'event_availability_option.finalized' => ['event', 'updated', 'event_date_finalized'],
         'comment.created' => ['comment', 'commented', 'comment_created'],
         'gig.created' => ['gig', 'created', 'gig_created'],
         'gig.updated' => ['gig', 'updated', 'gig_updated'],
@@ -71,6 +76,14 @@ class ListRecentActivitiesAction
     ];
 
     /**
+     * Changes shown to whoever follows an event.
+     */
+    private const FOLLOWED_EVENT_ACTIVITIES = [
+        'event.updated',
+        'event_availability_option.finalized',
+    ];
+
+    /**
      * @return array{total: int, per_page: int, current_page: int, last_page: int, items: list<array<string, mixed>>}
      */
     public function execute(int $userId, int $page, int $perPage = 3): array
@@ -95,25 +108,94 @@ class ListRecentActivitiesAction
 
         $query = AuditLog::query()
             ->where('user_id', $userId)
-            ->whereIn('event', $events)
-            ->whereHasMorph('auditable', [Poem::class, Article::class, Event::class, MediaItem::class], function (Builder $query, string $type) {
-                if ($type === MediaItem::class) {
-                    $query->where('status', MediaStatus::Ready)->where('visibility', MediaVisibility::Public);
+            ->whereIn('event', $events);
 
-                    return;
+        return $this->paginate($this->onlyPubliclyVisible($query), $page, $perPage, 'profile.public_activity_labels');
+    }
+
+    /**
+     * Publications of the followed public profiles (within the sections each owner shows) and changes to the followed events.
+     *
+     * @return array{total: int, per_page: int, current_page: int, last_page: int, items: list<array<string, mixed>>}
+     */
+    public function executeFollowing(int $userId, int $page, int $perPage = 3): array
+    {
+        $follows = Follow::query()->where('user_id', $userId)->get(['followable_type', 'followable_id']);
+        $eventIds = $follows->where('followable_type', (new Event)->getMorphClass())->pluck('followable_id')->all();
+        $userIdsBySection = $this->followedUserIdsBySection(
+            $follows->where('followable_type', (new User)->getMorphClass())->pluck('followable_id')->all(),
+        );
+
+        $query = AuditLog::query()
+            ->where('user_id', '!=', $userId)
+            ->where(function (Builder $query) use ($userIdsBySection, $eventIds) {
+                $query->whereRaw('1 = 0');
+
+                foreach ($userIdsBySection as $section => $userIds) {
+                    $query->orWhere(fn (Builder $query) => $query
+                        ->whereIn('user_id', $userIds)
+                        ->whereIn('event', array_keys(self::PUBLIC_ACTIVITIES, $section, true)));
                 }
 
-                $query->where('status', 'published')->where('is_public', true);
-            });
+                if ($eventIds !== []) {
+                    $query->orWhere(fn (Builder $query) => $query
+                        ->where('auditable_type', (new Event)->getMorphClass())
+                        ->whereIn('auditable_id', $eventIds)
+                        ->whereIn('event', self::FOLLOWED_EVENT_ACTIVITIES));
+                }
+            })
+            ->with('user.profile:id,user_id,nickname,display_name');
 
-        return $this->paginate($query, $page, $perPage, 'profile.public_activity_labels');
+        return $this->paginate($this->onlyPubliclyVisible($query), $page, $perPage, 'home.dashboard_page.following_activity_labels', withActor: true);
+    }
+
+    /**
+     * @param  list<int>  $userIds
+     * @return array<string, list<int>>
+     */
+    private function followedUserIdsBySection(array $userIds): array
+    {
+        if ($userIds === []) {
+            return [];
+        }
+
+        $bySection = [];
+        $profiles = Profile::query()
+            ->whereIn('user_id', $userIds)
+            ->where('is_public', true)
+            ->get(['user_id', 'visibility']);
+
+        foreach ($profiles as $profile) {
+            foreach (ProfilePayload::sections(ProfilePayload::visibility($profile->visibility)) as $section) {
+                $bySection[$section][] = (int) $profile->user_id;
+            }
+        }
+
+        return $bySection;
+    }
+
+    /**
+     * @param  Builder<AuditLog>  $query
+     * @return Builder<AuditLog>
+     */
+    private function onlyPubliclyVisible(Builder $query): Builder
+    {
+        return $query->whereHasMorph('auditable', [Poem::class, Article::class, Event::class, MediaItem::class], function (Builder $query, string $type) {
+            if ($type === MediaItem::class) {
+                $query->where('status', MediaStatus::Ready)->where('visibility', MediaVisibility::Public);
+
+                return;
+            }
+
+            $query->where('status', 'published')->where('is_public', true);
+        });
     }
 
     /**
      * @param  Builder<AuditLog>  $query
      * @return array{total: int, per_page: int, current_page: int, last_page: int, items: list<array<string, mixed>>}
      */
-    private function paginate(Builder $query, int $page, int $perPage, string $labelNamespace): array
+    private function paginate(Builder $query, int $page, int $perPage, string $labelNamespace, bool $withActor = false): array
     {
         /** @var LengthAwarePaginator $logs */
         $logs = $query
@@ -128,9 +210,10 @@ class ListRecentActivitiesAction
             'per_page' => $logs->perPage(),
             'current_page' => $logs->currentPage(),
             'last_page' => $logs->lastPage(),
-            'items' => $logs->getCollection()->map(function (AuditLog $log) use ($targets, $labelNamespace) {
+            'items' => $logs->getCollection()->map(function (AuditLog $log) use ($targets, $labelNamespace, $withActor) {
                 [$type, $action, $labelKey] = self::ACTIVITIES[$log->event];
                 $target = $targets[$log->auditable_type.':'.$log->auditable_id] ?? null;
+                $profile = $withActor ? $log->user?->profile : null;
 
                 return [
                     'id' => $log->id,
@@ -140,6 +223,10 @@ class ListRecentActivitiesAction
                     'title' => $target['title'] ?? $this->titleFromValues($log),
                     'url' => $target['url'] ?? null,
                     'time_ago' => $log->created_at?->diffForHumans() ?? __('home.dashboard_page.activity_now'),
+                    ...($profile ? ['actor' => [
+                        'name' => $profile->display_name ?: $profile->nickname,
+                        'url' => "/u/{$profile->nickname}",
+                    ]] : []),
                 ];
             })->values()->all(),
         ];

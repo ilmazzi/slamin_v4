@@ -28,6 +28,8 @@ return [
     'personal_events' => 'eventi personali',
     'save_event' => 'Salva evento',
     'unsave_event' => 'Rimuovi dal calendario',
+    'follow_event' => 'Segui',
+    'unfollow_event' => 'Seguito',
     'ui' => [
         'share' => 'Condividi evento',
         'report' => 'Segnala evento',

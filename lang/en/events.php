@@ -28,6 +28,8 @@ return [
     'personal_events' => 'personal events',
     'save_event' => 'Save event',
     'unsave_event' => 'Remove from calendar',
+    'follow_event' => 'Follow',
+    'unfollow_event' => 'Following',
     'ui' => [
         'share' => 'Share event',
         'report' => 'Report event',

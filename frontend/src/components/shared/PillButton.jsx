@@ -35,6 +35,8 @@ export default function PillButton({
             <span className={`${styles.arrowLine} ${styles.arrowLineTop}`} />
             <span className={`${styles.arrowLine} ${styles.arrowLineBottom}`} />
           </>
+        ) : icon === 'minus' ? (
+          <span className={styles.plusLine} />
         ) : (
           <>
             <span className={styles.plusLine} />

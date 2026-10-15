@@ -11,6 +11,7 @@ enum NotificationCategory: string
     case Comments = 'comments';
     case Likes = 'likes';
     case Snaps = 'snaps';
+    case Followers = 'followers';
     case EventUpdates = 'event_updates';
     case EventInviteResponses = 'event_invite_responses';
     case GigUpdates = 'gig_updates';
@@ -30,6 +31,7 @@ enum NotificationCategory: string
             $type === 'comment_replied', str_ends_with($type, '_commented') => self::Comments,
             str_ends_with($type, '_liked') => self::Likes,
             $type === 'media_snap_created' => self::Snaps,
+            $type === 'user_followed' => self::Followers,
             $type === 'event_updated', $type === 'event_availability_finalized' => self::EventUpdates,
             str_starts_with($type, 'event_') && str_ends_with($type, '_invite_response') => self::EventInviteResponses,
             str_starts_with($type, 'gig.') => self::GigUpdates,

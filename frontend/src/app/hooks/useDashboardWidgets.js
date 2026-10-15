@@ -14,10 +14,12 @@ export function useDashboardWidgets({
   locale,
   enabled = true,
   activitiesPage,
+  activitiesFeed,
 }) {
   const [widgets, setWidgets] = useState([])
   const [communityCards, setCommunityCards] = useState([])
   const [recentActivitiesData, setRecentActivitiesData] = useState(EMPTY_RECENT_ACTIVITIES)
+  const [followingCount, setFollowingCount] = useState(0)
   const [isLoading, setIsLoading] = useState(enabled)
 
   useEffect(() => {
@@ -27,6 +29,7 @@ export function useDashboardWidgets({
       setWidgets([])
       setCommunityCards([])
       setRecentActivitiesData(EMPTY_RECENT_ACTIVITIES)
+      setFollowingCount(0)
       setIsLoading(false)
       return () => controller.abort()
     }
@@ -36,7 +39,7 @@ export function useDashboardWidgets({
 
       try {
         const result = await getDashboardWidgets(
-          { locale, activitiesPage },
+          { locale, activitiesPage, activitiesFeed },
           {
             token,
             signal: controller.signal,
@@ -50,6 +53,7 @@ export function useDashboardWidgets({
         setWidgets(result.data?.widgets ?? [])
         setCommunityCards(result.data?.community_cards ?? [])
         setRecentActivitiesData(result.data?.recent_activities ?? EMPTY_RECENT_ACTIVITIES)
+        setFollowingCount(Number(result.data?.following_count ?? 0))
       } catch (error) {
         if (error?.name === 'AbortError') {
           return
@@ -69,12 +73,13 @@ export function useDashboardWidgets({
     load()
 
     return () => controller.abort()
-  }, [activitiesPage, enabled, locale, token])
+  }, [activitiesFeed, activitiesPage, enabled, locale, token])
 
   return {
     widgets,
     communityCards,
     recentActivitiesData,
+    followingCount,
     isLoading,
   }
 }

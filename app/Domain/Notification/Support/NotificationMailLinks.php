@@ -47,6 +47,7 @@ final class NotificationMailLinks
             ! empty($data['poem_slug']) => 'poems/'.rawurlencode((string) $data['poem_slug']),
             ! empty($data['article_slug']) => 'articles/'.rawurlencode((string) $data['article_slug']),
             ! empty($data['media_item_id']) => 'media/'.$data['media_item_id'],
+            ! empty($data['follower_nickname']) => 'u/'.rawurlencode((string) $data['follower_nickname']),
             default => 'dashboard',
         };
 

@@ -4,6 +4,7 @@ namespace Domain\Event\Models;
 
 use Domain\Comment\Models\Comment;
 use Domain\Engagement\Models\Bookmark;
+use Domain\Engagement\Models\Follow;
 use Domain\Engagement\Models\Like;
 use Domain\Event\Enums\EventDeliveryMode;
 use Domain\Event\Enums\EventScheduleMode;
@@ -185,6 +186,11 @@ class Event extends Model
         return $this->morphMany(Bookmark::class, 'bookmarkable');
     }
 
+    public function followers(): MorphMany
+    {
+        return $this->morphMany(Follow::class, 'followable');
+    }
+
     public function comments(): MorphMany
     {
         return $this->morphMany(Comment::class, 'commentable');
@@ -219,5 +225,12 @@ class Event extends Model
         ]);
 
         return $this;
+    }
+
+    public function scopeWithFollowState(Builder $query, ?int $userId): Builder
+    {
+        return $query
+            ->withCount('followers')
+            ->withExists(['followers as is_following' => fn ($builder) => $builder->where('user_id', $userId ?? 0)]);
     }
 }

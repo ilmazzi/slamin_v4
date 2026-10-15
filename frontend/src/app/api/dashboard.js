@@ -1,7 +1,7 @@
 import { authApiGet } from './client.js'
 
 export async function getDashboardWidgets(
-  { locale, activitiesPage } = {},
+  { locale, activitiesPage, activitiesFeed } = {},
   { token, signal } = {},
 ) {
   const params = new URLSearchParams()
@@ -12,6 +12,10 @@ export async function getDashboardWidgets(
 
   if (activitiesPage) {
     params.set('dashboard_activities_page', String(activitiesPage))
+  }
+
+  if (activitiesFeed) {
+    params.set('activities_feed', activitiesFeed)
   }
 
   const suffix = params.toString()

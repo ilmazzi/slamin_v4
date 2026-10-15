@@ -94,6 +94,9 @@ export function notificationLink(notification) {
   if (data.media_item_id) {
     return `/media/${data.media_item_id}`
   }
+  if (data.follower_nickname) {
+    return `/u/${encodeURIComponent(data.follower_nickname)}`
+  }
 
   return null
 }

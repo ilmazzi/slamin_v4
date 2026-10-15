@@ -178,11 +178,12 @@ it('returns dashboard widgets payload for authenticated user', function () {
 
     $response = $this
         ->withHeader('Authorization', "Bearer {$token}")
-        ->getJson('/api/v1/me/dashboard-widgets');
+        ->getJson('/api/v1/me/dashboard-widgets?activities_feed=mine');
 
     $response
         ->assertOk()
         ->assertJsonPath('errors', null)
+        ->assertJsonPath('data.recent_activities_feed', 'mine')
         ->assertJsonPath('data.widgets.0.id', 'poems')
         ->assertJsonPath('data.widgets.1.id', 'events')
         ->assertJsonPath('data.widgets.2.id', 'views')

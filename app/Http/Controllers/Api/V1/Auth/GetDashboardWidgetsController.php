@@ -28,6 +28,7 @@ class GetDashboardWidgetsController extends Controller
         $user = $request->user();
         $perPage = 3;
         $page = max(1, (int) $request->integer('dashboard_activities_page', 1));
+        $feed = $request->query('activities_feed') === 'mine' ? 'mine' : 'following';
 
         $poemsCount = Poem::query()->where('user_id', $user->id)->count();
         $eventsCount = Event::query()->where('user_id', $user->id)->count();
@@ -96,7 +97,11 @@ class GetDashboardWidgetsController extends Controller
                     'subtitle' => __('home.dashboard_page.messages_subtitle', ['count' => $unreadMessagesCount]),
                 ],
             ],
-            'recent_activities' => $this->recentActivities->execute($user->id, $page, $perPage),
+            'recent_activities' => $feed === 'mine'
+                ? $this->recentActivities->execute($user->id, $page, $perPage)
+                : $this->recentActivities->executeFollowing($user->id, $page, $perPage),
+            'recent_activities_feed' => $feed,
+            'following_count' => $user->follows()->count(),
         ]);
     }
 }

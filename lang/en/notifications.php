@@ -52,6 +52,10 @@ return [
             'title' => 'New translation comment',
             'message' => 'A comment was added to the translation job.',
         ],
+        'user_followed' => [
+            'title' => 'New follower',
+            'message' => ':name started following you.',
+        ],
     ],
     'liked' => [
         'title' => 'New like',
@@ -73,6 +77,7 @@ return [
             'comments' => ['label' => 'Comments', 'description' => 'Comments on your content and replies to your comments.'],
             'likes' => ['label' => 'Likes', 'description' => 'One daily summary of the likes you received.'],
             'snaps' => ['label' => 'Snaps', 'description' => 'When someone leaves a snap on one of your media.'],
+            'followers' => ['label' => 'New followers', 'description' => 'When someone starts following your profile.'],
             'event_updates' => ['label' => 'Changes to events you are part of', 'description' => 'New date, place or details, and the final date once chosen.'],
             'event_invite_responses' => ['label' => 'Replies to your invitations', 'description' => 'When someone accepts or declines an invitation to your event.'],
             'gig_updates' => ['label' => 'Applications and negotiations', 'description' => 'The outcome of your applications and negotiation updates.'],

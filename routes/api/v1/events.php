@@ -8,6 +8,7 @@ use App\Http\Controllers\Api\V1\Event\AdminUpdateEventCategoryController;
 use App\Http\Controllers\Api\V1\Event\BookmarkEventController;
 use App\Http\Controllers\Api\V1\Event\DeleteEventController;
 use App\Http\Controllers\Api\V1\Event\FinalizeEventAvailabilityOptionController;
+use App\Http\Controllers\Api\V1\Event\FollowEventController;
 use App\Http\Controllers\Api\V1\Event\LikeEventController;
 use App\Http\Controllers\Api\V1\Event\ListEventCategoriesController;
 use App\Http\Controllers\Api\V1\Event\ListEventController;
@@ -22,6 +23,7 @@ use App\Http\Controllers\Api\V1\Event\RespondToParticipantInviteController;
 use App\Http\Controllers\Api\V1\Event\SearchEventInviteUsersController;
 use App\Http\Controllers\Api\V1\Event\ShowEventController;
 use App\Http\Controllers\Api\V1\Event\StoreEventController;
+use App\Http\Controllers\Api\V1\Event\UnfollowEventController;
 use App\Http\Controllers\Api\V1\Event\UnlikeEventController;
 use App\Http\Controllers\Api\V1\Event\UpdateEventController;
 use App\Http\Controllers\Api\V1\Event\VoteForEventAvailabilityOptionController;
@@ -140,6 +142,8 @@ Route::middleware([
     Route::delete('/events/{event}/like', UnlikeEventController::class)->name('events.unlike');
     Route::post('/events/{event}/bookmark', BookmarkEventController::class)->name('events.bookmark');
     Route::delete('/events/{event}/bookmark', RemoveBookmarkEventController::class)->name('events.unbookmark');
+    Route::post('/events/{event}/follow', FollowEventController::class)->name('events.follow');
+    Route::delete('/events/{event}/follow', UnfollowEventController::class)->name('events.unfollow');
 });
 
 Route::middleware([

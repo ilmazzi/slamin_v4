@@ -52,6 +52,10 @@ return [
             'title' => 'Nuovo commento sulla traduzione',
             'message' => 'È stato aggiunto un commento nel lavoro di traduzione.',
         ],
+        'user_followed' => [
+            'title' => 'Nuovo follower',
+            'message' => ':name ha iniziato a seguirti.',
+        ],
     ],
     'liked' => [
         'title' => 'Nuovo mi piace',
@@ -73,6 +77,7 @@ return [
             'comments' => ['label' => 'Commenti', 'description' => 'Commenti ai tuoi contenuti e risposte ai tuoi commenti.'],
             'likes' => ['label' => 'Mi piace', 'description' => 'Un riepilogo al giorno dei mi piace ricevuti.'],
             'snaps' => ['label' => 'Snap', 'description' => 'Quando qualcuno lascia uno snap su un tuo media.'],
+            'followers' => ['label' => 'Nuovi follower', 'description' => 'Quando qualcuno inizia a seguire il tuo profilo.'],
             'event_updates' => ['label' => 'Modifiche agli eventi di cui fai parte', 'description' => 'Cambi di data, luogo o dettagli e data definitiva scelta.'],
             'event_invite_responses' => ['label' => 'Risposte ai tuoi inviti', 'description' => 'Quando qualcuno accetta o rifiuta un invito a un tuo evento.'],
             'gig_updates' => ['label' => 'Candidature e trattative', 'description' => 'Esito delle tue candidature e aggiornamenti delle trattative.'],
