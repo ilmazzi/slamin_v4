@@ -14,8 +14,7 @@ class UpdateGroupMemberRoleAction
 {
     public function __construct(
         private readonly CreateNotificationAction $createNotificationAction,
-    ) {
-    }
+    ) {}
 
     public function execute(Group $group, GroupMember $member, GroupMemberRole $newRole, int $actorUserId): GroupMember
     {
@@ -71,8 +70,8 @@ class UpdateGroupMemberRoleAction
             $this->createNotificationAction->execute(
                 userId: $member->user_id,
                 type: 'group_member_role_updated',
-                title: __('group.notifications.member_role_updated_title'),
-                message: __('group.notifications.member_role_updated_message', [
+                title: fn () => __('group.notifications.member_role_updated_title'),
+                message: fn () => __('group.notifications.member_role_updated_message', [
                     'group' => $group->name,
                     'role' => __("group.roles.{$member->role?->value}"),
                 ]),

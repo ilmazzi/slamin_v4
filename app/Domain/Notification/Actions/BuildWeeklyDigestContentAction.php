@@ -58,7 +58,7 @@ class BuildWeeklyDigestContentAction
             ->limit(self::LIMIT)
             ->get()
             ->map(fn ($item) => [
-                'title' => (string) ($item->title ?: __('media.ui.untitled')),
+                'title' => (string) $item->title,
                 'url' => $url($item),
                 'likes' => (int) $item->weekly_likes_count,
             ])

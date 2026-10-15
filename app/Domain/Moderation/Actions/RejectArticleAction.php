@@ -12,8 +12,7 @@ class RejectArticleAction
 {
     public function __construct(
         private readonly CreateNotificationAction $createNotificationAction,
-    ) {
-    }
+    ) {}
 
     public function execute(Article $article, int $moderatorUserId, string $note): Article
     {
@@ -51,8 +50,8 @@ class RejectArticleAction
         $this->createNotificationAction->execute(
             userId: $article->user_id,
             type: 'article_rejected',
-            title: __('moderation.notifications.article_rejected_title'),
-            message: __('moderation.notifications.article_rejected_message', ['title' => $article->title]),
+            title: fn () => __('moderation.notifications.article_rejected_title'),
+            message: fn () => __('moderation.notifications.article_rejected_message', ['title' => $article->title]),
             data: [
                 'article_id' => $article->id,
                 'article_slug' => $article->slug,

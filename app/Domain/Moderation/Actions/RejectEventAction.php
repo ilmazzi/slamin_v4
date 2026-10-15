@@ -12,8 +12,7 @@ class RejectEventAction
 {
     public function __construct(
         private readonly CreateNotificationAction $createNotificationAction,
-    ) {
-    }
+    ) {}
 
     public function execute(Event $event, int $moderatorUserId, string $note): Event
     {
@@ -51,8 +50,8 @@ class RejectEventAction
         $this->createNotificationAction->execute(
             userId: $event->user_id,
             type: 'event_rejected',
-            title: __('moderation.notifications.event_rejected_title'),
-            message: __('moderation.notifications.event_rejected_message', ['title' => $event->title]),
+            title: fn () => __('moderation.notifications.event_rejected_title'),
+            message: fn () => __('moderation.notifications.event_rejected_message', ['title' => $event->title]),
             data: [
                 'event_id' => $event->id,
                 'event_slug' => $event->slug,

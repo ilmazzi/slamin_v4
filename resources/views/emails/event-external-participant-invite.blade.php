@@ -8,7 +8,7 @@
     <p>{{ __('event.mail.external_participant_invite_greeting', ['name' => $invite->name ?: __('event.mail.external_participant_generic_recipient')]) }}</p>
 
     <p>{{ __('event.mail.external_participant_invite_intro', [
-        'role' => $invite->role,
+        'role' => $invite->roleLabel(),
         'title' => $event->title,
     ]) }}</p>
 

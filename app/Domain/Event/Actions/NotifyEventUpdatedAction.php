@@ -73,8 +73,8 @@ class NotifyEventUpdatedAction
             $this->createNotificationAction->execute(
                 userId: $id,
                 type: 'event_updated',
-                title: __('event.notifications.updated_title'),
-                message: __('event.notifications.updated_message', [
+                title: fn () => __('event.notifications.updated_title'),
+                message: fn () => __('event.notifications.updated_message', [
                     'title' => $event->title,
                 ]),
                 data: [

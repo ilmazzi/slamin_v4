@@ -9,8 +9,7 @@ class NotifyMediaSnapCreatedAction
 {
     public function __construct(
         private readonly CreateNotificationAction $createNotificationAction,
-    ) {
-    }
+    ) {}
 
     public function execute(MediaSnap $snap): void
     {
@@ -24,18 +23,17 @@ class NotifyMediaSnapCreatedAction
 
         $senderName = $snap->user?->profile?->display_name
             ?? $snap->user?->profile?->nickname
-            ?? $snap->user?->email
-            ?? 'User';
+            ?? $snap->user?->email;
 
         $this->createNotificationAction->execute(
             userId: $media->user_id,
             type: 'media_snap_created',
-            title: __('media.notifications.snap_created_title'),
-            message: __('media.notifications.snap_created_message', [
-                'user' => $senderName,
+            title: fn () => __('media.notifications.snap_created_title'),
+            message: fn () => __('media.notifications.snap_created_message', [
+                'user' => $senderName ?? __('notifications.someone'),
                 'title' => $media->title,
                 'second' => $snap->timestamp_seconds,
-                'kind' => $snap->kind?->value,
+                'kind' => $snap->kind ? __('media.notifications.snap_kinds.'.$snap->kind->value) : '',
             ]),
             data: [
                 'media_item_id' => $media->id,

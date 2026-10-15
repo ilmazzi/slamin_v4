@@ -42,14 +42,17 @@ class NotifyContentLikedAction
         }
 
         $profile = User::query()->with('profile')->find($like->user_id)?->profile;
-        $likerName = $profile?->display_name ?: ($profile?->nickname ?? __('notifications.someone'));
-        $title = $content->title ?: __('media.ui.untitled');
+        $likerName = $profile?->display_name ?: $profile?->nickname;
+        $title = $content->title ?: null;
 
         $this->createNotificationAction->execute(
             userId: $content->user_id,
             type: $type,
-            title: __('notifications.liked.title'),
-            message: __('notifications.liked.message', ['name' => $likerName, 'title' => $title]),
+            title: fn () => __('notifications.liked.title'),
+            message: fn () => __('notifications.liked.message', [
+                'name' => $likerName ?? __('notifications.someone'),
+                'title' => $title ?? __('media.ui.untitled'),
+            ]),
             data: [
                 'liker_id' => $like->user_id,
                 'liker_name' => $likerName,

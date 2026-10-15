@@ -81,8 +81,8 @@ class StoreReportAction
             $this->createNotificationAction->execute(
                 userId: $staffUser->id,
                 type: 'report_created',
-                title: __('report.notifications.created_title'),
-                message: __('report.notifications.created_message', [
+                title: fn () => __('report.notifications.created_title'),
+                message: fn () => __('report.notifications.created_message', [
                     'type' => __("report.types.{$reportableType}"),
                 ]),
                 data: [

@@ -43,8 +43,8 @@ class StoreTranslationCommentAction
         $this->createNotificationAction->execute(
             userId: $targetUserId,
             type: 'translation_comment.created',
-            title: __('gig.notifications.translation_comment_created_title'),
-            message: __('gig.notifications.translation_comment_created_message'),
+            title: fn () => __('gig.notifications.translation_comment_created_title'),
+            message: fn () => __('gig.notifications.translation_comment_created_message'),
             data: [
                 'translation_job_id' => $job->id,
                 'comment_id' => $comment->id,

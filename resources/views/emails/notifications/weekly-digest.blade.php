@@ -12,7 +12,7 @@
             <h2 style="margin:28px 0 12px;font-size:18px;border-bottom:2px solid #000;padding-bottom:6px;">{{ __('notifications.mail.digest.sections.'.$section) }}</h2>
             @foreach ($popular[$section] as $item)
                 <p style="margin:0 0 10px;">
-                    <a href="{{ $item['url'] }}" style="color:#000;font-weight:700;">{{ $item['title'] }}</a>
+                    <a href="{{ $item['url'] }}" style="color:#000;font-weight:700;">{{ $item['title'] ?: __('media.ui.untitled') }}</a>
                     @if (! empty($item['starts_at']))
                         <br><span style="font-size:14px;color:#666;">{{ \Illuminate\Support\Carbon::parse($item['starts_at'])->timezone($item['timezone'] ?: 'Europe/Rome')->locale(app()->getLocale())->isoFormat('dddd D MMMM, HH:mm') }}</span>
                     @elseif ($item['likes'] > 0)

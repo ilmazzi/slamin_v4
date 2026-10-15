@@ -100,8 +100,8 @@ class UpdateGigApplicationStatusAction
             $this->createNotificationAction->execute(
                 userId: $application->user_id,
                 type: 'gig.application_updated',
-                title: __('gig.notifications.application_updated_title'),
-                message: __('gig.notifications.application_status_message', [
+                title: fn () => __('gig.notifications.application_updated_title'),
+                message: fn () => __('gig.notifications.application_status_message', [
                     'status' => __('gig.application_statuses.'.$application->status->value),
                     'title' => $gigTitle,
                 ]),

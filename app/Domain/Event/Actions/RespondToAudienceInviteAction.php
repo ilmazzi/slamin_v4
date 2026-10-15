@@ -9,8 +9,7 @@ class RespondToAudienceInviteAction
 {
     public function __construct(
         private readonly CreateNotificationAction $createNotificationAction,
-    ) {
-    }
+    ) {}
 
     public function execute(EventAudienceInvite $invite, int $userId, string $status): EventAudienceInvite
     {
@@ -39,9 +38,9 @@ class RespondToAudienceInviteAction
         $this->createNotificationAction->execute(
             userId: $invite->event->user_id,
             type: 'event_audience_invite_response',
-            title: __('event.notifications.audience_response_title'),
-            message: __('event.notifications.audience_response_message', [
-                'response' => __('event.responses.' . ($status === 'accepted' ? 'accepted' : 'declined')),
+            title: fn () => __('event.notifications.audience_response_title'),
+            message: fn () => __('event.notifications.audience_response_message', [
+                'response' => __('event.responses.'.($status === 'accepted' ? 'accepted' : 'declined')),
                 'title' => $invite->event->title,
             ]),
             data: [

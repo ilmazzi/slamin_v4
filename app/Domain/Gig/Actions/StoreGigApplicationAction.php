@@ -71,8 +71,8 @@ class StoreGigApplicationAction
             $this->createNotificationAction->execute(
                 userId: $ownerId,
                 type: 'gig.application_received',
-                title: __('gig.notifications.application_received_title'),
-                message: __('gig.notifications.application_received_message', [
+                title: fn () => __('gig.notifications.application_received_title'),
+                message: fn () => __('gig.notifications.application_received_message', [
                     'name' => $applicantName ?? __('gig.notifications.someone'),
                     'title' => $gigTitle,
                 ]),

@@ -18,8 +18,7 @@ class RequestToJoinGroupAction
     public function __construct(
         private readonly CreateNotificationAction $createNotificationAction,
         private readonly AddGroupMemberToChatThreadAction $addGroupMemberToChatThreadAction,
-    ) {
-    }
+    ) {}
 
     public function execute(Group $group, int $userId): GroupMember
     {
@@ -89,8 +88,8 @@ class RequestToJoinGroupAction
             $this->createNotificationAction->execute(
                 userId: (int) $managerId,
                 type: 'group_join_requested',
-                title: __('group.notifications.join_requested_title'),
-                message: __('group.notifications.join_requested_message', [
+                title: fn () => __('group.notifications.join_requested_title'),
+                message: fn () => __('group.notifications.join_requested_message', [
                     'user' => $displayName,
                     'group' => $group->name,
                 ]),

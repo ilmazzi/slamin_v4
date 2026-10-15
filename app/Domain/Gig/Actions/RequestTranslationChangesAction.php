@@ -40,8 +40,8 @@ class RequestTranslationChangesAction
         $this->createNotificationAction->execute(
             userId: $job->translator_user_id,
             type: 'translation_job.changes_requested',
-            title: __('gig.notifications.translation_changes_requested_title'),
-            message: __('gig.notifications.translation_changes_requested_message'),
+            title: fn () => __('gig.notifications.translation_changes_requested_title'),
+            message: fn () => __('gig.notifications.translation_changes_requested_message'),
             data: [
                 'translation_job_id' => $job->id,
                 'gig_id' => $job->gig_id,

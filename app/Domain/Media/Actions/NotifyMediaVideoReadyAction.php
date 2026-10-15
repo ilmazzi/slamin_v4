@@ -9,16 +9,15 @@ class NotifyMediaVideoReadyAction
 {
     public function __construct(
         private readonly CreateNotificationAction $createNotificationAction,
-    ) {
-    }
+    ) {}
 
     public function execute(MediaItem $media): void
     {
         $this->createNotificationAction->execute(
             userId: $media->user_id,
             type: 'media_video_ready',
-            title: __('media.notifications.video_ready_title'),
-            message: __('media.notifications.video_ready_message', [
+            title: fn () => __('media.notifications.video_ready_title'),
+            message: fn () => __('media.notifications.video_ready_message', [
                 'title' => $media->title,
             ]),
             data: [

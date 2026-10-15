@@ -15,8 +15,7 @@ class ApproveGroupRequestAction
     public function __construct(
         private readonly CreateNotificationAction $createNotificationAction,
         private readonly AddGroupMemberToChatThreadAction $addGroupMemberToChatThreadAction,
-    ) {
-    }
+    ) {}
 
     public function execute(Group $group, GroupMember $member, int $actorUserId): GroupMember
     {
@@ -50,8 +49,8 @@ class ApproveGroupRequestAction
             $this->createNotificationAction->execute(
                 userId: $member->user_id,
                 type: 'group_join_approved',
-                title: __('group.notifications.join_approved_title'),
-                message: __('group.notifications.join_approved_message', [
+                title: fn () => __('group.notifications.join_approved_title'),
+                message: fn () => __('group.notifications.join_approved_message', [
                     'group' => $group->name,
                 ]),
                 data: [

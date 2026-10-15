@@ -122,13 +122,13 @@ class StoreCommentAction
             $this->createNotificationAction->execute(
                 userId: $commentable->user_id,
                 type: "{$commentableType}_commented",
-                title: match ($commentableType) {
+                title: fn () => match ($commentableType) {
                     'poem' => __('comment.notifications.poem_commented_title'),
                     'article' => __('comment.notifications.article_commented_title'),
                     'event' => __('comment.notifications.event_commented_title'),
                     default => __('comment.notifications.media_commented_title'),
                 },
-                message: match ($commentableType) {
+                message: fn () => match ($commentableType) {
                     'poem' => __('comment.notifications.poem_commented_message', ['title' => $commentable->title]),
                     'article' => __('comment.notifications.article_commented_message', ['title' => $commentable->title]),
                     'event' => __('comment.notifications.event_commented_message', ['title' => $commentable->title]),
@@ -148,8 +148,8 @@ class StoreCommentAction
             $this->createNotificationAction->execute(
                 userId: $parent->user_id,
                 type: 'comment_replied',
-                title: __('comment.notifications.reply_title'),
-                message: __('comment.notifications.reply_message'),
+                title: fn () => __('comment.notifications.reply_title'),
+                message: fn () => __('comment.notifications.reply_message'),
                 data: [
                     'comment_id' => $comment->id,
                     'parent_comment_id' => $parent->id,

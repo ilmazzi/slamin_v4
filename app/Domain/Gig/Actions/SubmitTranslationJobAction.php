@@ -48,8 +48,8 @@ class SubmitTranslationJobAction
         $this->createNotificationAction->execute(
             userId: $job->owner_user_id,
             type: 'translation_job.submitted',
-            title: __('gig.notifications.translation_submitted_title'),
-            message: __('gig.notifications.translation_submitted_message'),
+            title: fn () => __('gig.notifications.translation_submitted_title'),
+            message: fn () => __('gig.notifications.translation_submitted_message'),
             data: [
                 'translation_job_id' => $job->id,
                 'gig_id' => $job->gig_id,

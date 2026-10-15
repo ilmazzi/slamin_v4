@@ -50,8 +50,8 @@ class ApproveTranslationJobAction
         $this->createNotificationAction->execute(
             userId: $job->translator_user_id,
             type: 'translation_job.approved',
-            title: __('gig.notifications.translation_approved_title'),
-            message: __('gig.notifications.translation_approved_message'),
+            title: fn () => __('gig.notifications.translation_approved_title'),
+            message: fn () => __('gig.notifications.translation_approved_message'),
             data: [
                 'translation_job_id' => $job->id,
                 'gig_id' => $gig->id,

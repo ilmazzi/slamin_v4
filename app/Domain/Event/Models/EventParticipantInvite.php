@@ -27,4 +27,12 @@ class EventParticipantInvite extends Model
     {
         return $this->belongsTo(User::class);
     }
+
+    public function roleLabel(): string
+    {
+        $key = 'event.invite_roles.'.$this->role;
+        $label = __($key);
+
+        return $label === $key ? (string) $this->role : $label;
+    }
 }

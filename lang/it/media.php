@@ -26,6 +26,10 @@ return [
     'notifications' => [
         'snap_created_title' => 'Nuovo snap sul tuo video',
         'snap_created_message' => ':user ha aggiunto uno snap ":kind" al secondo :second del video ":title".',
+        'snap_kinds' => [
+            'highlight' => 'in evidenza',
+            'warning' => 'avviso',
+        ],
         'video_ready_title' => 'Video pronto',
         'video_ready_message' => 'Il video ":title" e pronto per essere visto.',
         'video_failed_title' => 'Video non disponibile',

@@ -62,4 +62,10 @@ return [
         'accepted' => 'accettato',
         'declined' => 'rifiutato',
     ],
+    'invite_roles' => [
+        'artist' => 'artista',
+        'organizer' => 'organizzatore',
+        'host' => 'host',
+        'technical_support' => 'supporto tecnico',
+    ],
 ];

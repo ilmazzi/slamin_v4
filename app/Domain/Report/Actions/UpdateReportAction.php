@@ -10,8 +10,7 @@ class UpdateReportAction
 {
     public function __construct(
         private readonly CreateNotificationAction $createNotificationAction,
-    ) {
-    }
+    ) {}
 
     public function execute(Report $report, int $moderatorUserId, string $status, ?string $resolutionNote = null): Report
     {
@@ -54,8 +53,8 @@ class UpdateReportAction
             $this->createNotificationAction->execute(
                 userId: $report->reporter_user_id,
                 type: 'report_updated',
-                title: __('report.notifications.updated_title'),
-                message: $resolvedStatus === ReportStatus::Resolved
+                title: fn () => __('report.notifications.updated_title'),
+                message: fn () => $resolvedStatus === ReportStatus::Resolved
                     ? __('report.notifications.resolved_message')
                     : __('report.notifications.dismissed_message'),
                 data: [

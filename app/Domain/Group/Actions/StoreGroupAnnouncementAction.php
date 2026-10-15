@@ -12,8 +12,7 @@ class StoreGroupAnnouncementAction
 {
     public function __construct(
         private readonly CreateNotificationAction $createNotificationAction,
-    ) {
-    }
+    ) {}
 
     public function execute(Group $group, StoreGroupAnnouncementData $data): GroupAnnouncement
     {
@@ -48,8 +47,8 @@ class StoreGroupAnnouncementAction
                 $this->createNotificationAction->execute(
                     userId: (int) $memberId,
                     type: 'group_announcement_published',
-                    title: __('group.notifications.announcement_published_title'),
-                    message: __('group.notifications.announcement_published_message', [
+                    title: fn () => __('group.notifications.announcement_published_title'),
+                    message: fn () => __('group.notifications.announcement_published_message', [
                         'group' => $group->name,
                         'title' => $announcement->title,
                     ]),

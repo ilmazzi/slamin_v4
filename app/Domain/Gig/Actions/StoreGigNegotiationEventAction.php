@@ -67,8 +67,8 @@ class StoreGigNegotiationEventAction
         $this->createNotificationAction->execute(
             userId: $targetUserId,
             type: 'gig.negotiation_event_created',
-            title: __('gig.notifications.negotiation_updated_title'),
-            message: __('gig.notifications.negotiation_updated_message'),
+            title: fn () => __('gig.notifications.negotiation_updated_title'),
+            message: fn () => __('gig.notifications.negotiation_updated_message'),
             data: [
                 'gig_id' => $negotiation->gig_id,
                 'negotiation_id' => $negotiation->id,

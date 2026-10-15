@@ -106,8 +106,8 @@ class OpenGigNegotiationAction
         $this->createNotificationAction->execute(
             userId: $application->user_id,
             type: 'gig.negotiation_opened',
-            title: __('gig.notifications.negotiation_opened_title'),
-            message: __('gig.notifications.negotiation_opened_message'),
+            title: fn () => __('gig.notifications.negotiation_opened_title'),
+            message: fn () => __('gig.notifications.negotiation_opened_message'),
             data: [
                 'gig_id' => $gig->id,
                 'negotiation_id' => $negotiation->id,

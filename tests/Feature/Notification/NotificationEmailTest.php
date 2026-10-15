@@ -6,6 +6,7 @@ use App\Mail\Notifications\NotificationMail;
 use App\Mail\Notifications\WeeklyDigestMail;
 use Domain\Chat\Jobs\SendUnreadChatMessageEmailsJob;
 use Domain\Chat\Models\ChatThreadMember;
+use Domain\Event\Models\EventParticipantInvite;
 use Domain\Notification\Actions\CreateNotificationAction;
 use Domain\Notification\Enums\NotificationCategory;
 use Domain\Notification\Jobs\SendLikesSummaryEmailJob;
@@ -93,6 +94,35 @@ it('emails a notification right away in the recipient language unless the catego
     app(CreateNotificationAction::class)->execute($recipient->id, 'event_participant_invited', 'Invito', 'Sei invitato');
 
     Mail::assertNothingSent();
+});
+
+it('writes the notification in the recipient language, not in the language of who triggered it', function () {
+    Mail::fake();
+    $recipient = User::factory()->create();
+    $recipient->profile()->update(['preferred_locale' => 'it']);
+    app()->setLocale('en');
+
+    $notification = app(CreateNotificationAction::class)->execute(
+        userId: $recipient->id,
+        type: 'gig.application_received',
+        title: fn () => __('gig.notifications.application_received_title'),
+        message: fn () => __('gig.notifications.application_received_message', ['name' => 'Giulia', 'title' => 'Slam']),
+    );
+
+    expect($notification->title)->toBe('Nuova candidatura')
+        ->and($notification->message)->toBe('Giulia ha inviato una candidatura per «Slam».')
+        ->and(app()->getLocale())->toBe('en');
+
+    Mail::assertSent(NotificationMail::class, fn (NotificationMail $mail) => $mail->locale === 'it'
+        && str_contains($mail->render(), 'Nuova candidatura')
+        && ! str_contains($mail->render(), 'New application'));
+});
+
+it('translates the invite role instead of showing its code', function () {
+    app()->setLocale('it');
+
+    expect((new EventParticipantInvite(['role' => 'technical_support']))->roleLabel())->toBe('supporto tecnico')
+        ->and((new EventParticipantInvite(['role' => 'custom']))->roleLabel())->toBe('custom');
 });
 
 it('does not email unverified accounts', function () {

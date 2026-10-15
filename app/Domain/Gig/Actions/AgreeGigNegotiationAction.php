@@ -142,8 +142,8 @@ class AgreeGigNegotiationAction
         $this->createNotificationAction->execute(
             userId: $targetUserId,
             type: 'gig.negotiation_agreed',
-            title: __('gig.notifications.negotiation_agreed_title'),
-            message: __('gig.notifications.negotiation_agreed_message'),
+            title: fn () => __('gig.notifications.negotiation_agreed_title'),
+            message: fn () => __('gig.notifications.negotiation_agreed_message'),
             data: [
                 'gig_id' => $gig->id,
                 'negotiation_id' => $negotiation->id,

@@ -16,8 +16,7 @@ class RemoveGroupMemberAction
     public function __construct(
         private readonly CreateNotificationAction $createNotificationAction,
         private readonly RemoveGroupMemberFromChatThreadAction $removeGroupMemberFromChatThreadAction,
-    ) {
-    }
+    ) {}
 
     public function execute(Group $group, GroupMember $member, int $actorUserId): GroupMember
     {
@@ -66,8 +65,8 @@ class RemoveGroupMemberAction
                 $this->createNotificationAction->execute(
                     userId: $member->user_id,
                     type: 'group_member_removed',
-                    title: __('group.notifications.member_removed_title'),
-                    message: __('group.notifications.member_removed_message', [
+                    title: fn () => __('group.notifications.member_removed_title'),
+                    message: fn () => __('group.notifications.member_removed_message', [
                         'group' => $group->name,
                     ]),
                     data: [

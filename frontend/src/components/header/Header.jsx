@@ -6,6 +6,7 @@ import HeaderLogo from './HeaderLogo.jsx'
 import styles from './Header.module.css'
 import { useI18n } from '../../app/hooks/useI18n.js'
 import { useAuth } from '../../app/hooks/useAuth.js'
+import { updateMyProfile } from '../../app/api/profile.js'
 const normalizeLocaleOption = (entry) => {
   if (typeof entry === 'string') {
     return { code: entry.toLowerCase(), name: entry }
@@ -28,13 +29,20 @@ export default function Header({
 }) {
     const [isCompact, setIsCompact] = useState(false)
   const { t, locale, setLocale, availableLocales } = useI18n()
-  const { isAuthenticated, hasAnyRole } = useAuth()
+  const { isAuthenticated, hasAnyRole, token } = useAuth()
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const [mainMenuLeft, setMainMenuLeft] = useState(null)
   const [mainMenuTop, setMainMenuTop] = useState(null)
   const headerRef = useRef(null)
   const canSeeAdminMenu = hasAnyRole(['admin', 'moderator'])
   const canSeeTranslations = hasAnyRole(['admin', 'translator'])
+
+  const changeLocale = (nextLocale) => {
+    setLocale(nextLocale)
+    if (isAuthenticated) {
+      updateMyProfile({ preferred_locale: nextLocale }, { token }).catch(() => {})
+    }
+  }
 
   const discoverItems = useMemo(() => {
     const items = [
@@ -320,7 +328,7 @@ export default function Header({
             <select
               className={styles.menuLocaleSelect}
               value={(locale || 'it').toLowerCase()}
-              onChange={(event) => setLocale(event.target.value)}
+              onChange={(event) => changeLocale(event.target.value)}
               aria-label={t('header.language_aria')}
             >
               {localeOptions.map((entry) => (

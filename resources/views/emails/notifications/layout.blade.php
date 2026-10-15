@@ -12,7 +12,7 @@
                 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:600px;background:#fff;">
                     <tr>
                         <td style="background:#000;padding:24px 32px;">
-                            <a href="{{ \Domain\Notification\Support\NotificationMailLinks::frontend() }}" style="color:#fff;text-decoration:none;font-size:26px;font-weight:800;font-style:italic;letter-spacing:-0.5px;">SLAM <span style="color:#e30613;">IN</span></a>
+                            <a href="{{ \Domain\Notification\Support\NotificationMailLinks::frontend() }}" style="text-decoration:none;"><img src="{{ $message->embed(resource_path('images/mail/slamin-logo.png')) }}" width="92" height="47" alt="Slam In" style="display:block;border:0;width:92px;height:47px;"></a>
                         </td>
                     </tr>
                     <tr>

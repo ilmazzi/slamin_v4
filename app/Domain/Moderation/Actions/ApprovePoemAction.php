@@ -12,8 +12,7 @@ class ApprovePoemAction
 {
     public function __construct(
         private readonly CreateNotificationAction $createNotificationAction,
-    ) {
-    }
+    ) {}
 
     public function execute(Poem $poem, int $moderatorUserId, ?string $note = null): Poem
     {
@@ -51,8 +50,8 @@ class ApprovePoemAction
         $this->createNotificationAction->execute(
             userId: $poem->user_id,
             type: 'poem_approved',
-            title: __('moderation.notifications.poem_approved_title'),
-            message: __('moderation.notifications.poem_approved_message', ['title' => $poem->title]),
+            title: fn () => __('moderation.notifications.poem_approved_title'),
+            message: fn () => __('moderation.notifications.poem_approved_message', ['title' => $poem->title]),
             data: [
                 'poem_id' => $poem->id,
                 'poem_slug' => $poem->slug,

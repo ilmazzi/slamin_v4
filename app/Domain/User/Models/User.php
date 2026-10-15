@@ -16,6 +16,7 @@ use Domain\Gig\Models\TranslationComment;
 use Domain\Gig\Models\TranslationJob;
 use Domain\Group\Models\GroupAnnouncement;
 use Domain\Group\Models\GroupMember;
+use Domain\I18n\Actions\ResolveDefaultLocaleAction;
 use Domain\Media\Models\MediaCheckoutOrder;
 use Domain\Media\Models\MediaItem;
 use Domain\Media\Models\UserMediaEntitlement;
@@ -138,7 +139,7 @@ class User extends Authenticatable implements HasLocalePreference, MustVerifyEma
 
     public function preferredLocale(): string
     {
-        return $this->profile?->preferred_locale ?: config('app.locale');
+        return $this->profile?->preferred_locale ?: app(ResolveDefaultLocaleAction::class)->execute();
     }
 
     public function isAudience(): bool

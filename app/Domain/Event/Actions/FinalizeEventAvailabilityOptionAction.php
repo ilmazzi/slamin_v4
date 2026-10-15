@@ -13,8 +13,7 @@ class FinalizeEventAvailabilityOptionAction
 {
     public function __construct(
         private readonly CreateNotificationAction $createNotificationAction,
-    ) {
-    }
+    ) {}
 
     public function execute(Event $event, EventAvailabilityOption $option, int $userId): Event
     {
@@ -82,8 +81,8 @@ class FinalizeEventAvailabilityOptionAction
             $this->createNotificationAction->execute(
                 userId: (int) $recipientId,
                 type: 'event_availability_finalized',
-                title: __('event.notifications.availability_finalized_title'),
-                message: __('event.notifications.availability_finalized_message', [
+                title: fn () => __('event.notifications.availability_finalized_title'),
+                message: fn () => __('event.notifications.availability_finalized_message', [
                     'title' => $event->title,
                     'starts_at' => $option->starts_at?->timezone($option->timezone)->format('Y-m-d H:i'),
                     'timezone' => $option->timezone,

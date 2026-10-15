@@ -38,9 +38,9 @@ class NotifyEventInvitesAction
             $this->createNotificationAction->execute(
                 userId: $invite->user_id,
                 type: 'event_participant_invited',
-                title: __('event.notifications.participant_invited_title'),
-                message: __('event.notifications.participant_invited_message', [
-                    'role' => $invite->role,
+                title: fn () => __('event.notifications.participant_invited_title'),
+                message: fn () => __('event.notifications.participant_invited_message', [
+                    'role' => $invite->roleLabel(),
                     'title' => $event->title,
                 ]),
                 data: [
@@ -74,8 +74,8 @@ class NotifyEventInvitesAction
             $this->createNotificationAction->execute(
                 userId: $invite->user_id,
                 type: 'event_audience_invited',
-                title: __('event.notifications.audience_invited_title'),
-                message: __('event.notifications.audience_invited_message', [
+                title: fn () => __('event.notifications.audience_invited_title'),
+                message: fn () => __('event.notifications.audience_invited_message', [
                     'title' => $event->title,
                 ]),
                 data: [
