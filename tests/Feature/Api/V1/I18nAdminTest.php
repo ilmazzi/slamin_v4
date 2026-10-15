@@ -2,6 +2,7 @@
 
 use Domain\I18n\Actions\ImportLangFilesAction;
 use Domain\I18n\Models\Language;
+use Domain\I18n\Models\Translation;
 use Domain\User\Models\Role;
 use Domain\User\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -110,6 +111,18 @@ it('allows an admin to create a language and a translation key', function () {
         ->assertOk()
         ->assertJsonPath('data.locale', 'de')
         ->assertJsonPath('data.translations.common.brand_new_label', 'Neues Label');
+});
+
+it('updates on import the translations whose text changed in the lang files and were never edited from the panel', function () {
+    Translation::query()
+        ->whereHas('key', fn ($query) => $query->where('key', 'gig.notifications.application_received_title'))
+        ->whereHas('language', fn ($query) => $query->where('code', 'it'))
+        ->update(['value' => 'Nuova candidatura gig']);
+
+    app(ImportLangFilesAction::class)->execute();
+    App::setLocale('it');
+
+    expect(__('gig.notifications.application_received_title'))->toBe('Nuova candidatura');
 });
 
 it('does not overwrite existing database translations on import', function () {

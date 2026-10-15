@@ -67,7 +67,8 @@ class ImportLangFilesAction
                     ->where('language_id', $languageId)
                     ->first();
 
-                if ($existing && filled($existing->value) && ! $overwrite) {
+                if ($existing && filled($existing->value) && ! $overwrite
+                    && ($existing->updated_by !== null || $existing->value === $value)) {
                     continue;
                 }
 

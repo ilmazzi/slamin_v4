@@ -7,9 +7,9 @@ use Illuminate\Console\Command;
 
 class ImportI18nLangFilesCommand extends Command
 {
-    protected $signature = 'i18n:import {--force : Overwrite existing database translations from lang files}';
+    protected $signature = 'i18n:import {--force : Overwrite also the translations edited from the panel}';
 
-    protected $description = 'Seed missing languages, keys and translations from lang/{locale}/*.php into the database';
+    protected $description = 'Sync languages, keys and translations from lang/{locale}/*.php into the database, keeping panel edits';
 
     public function handle(ImportLangFilesAction $importLangFiles): int
     {
