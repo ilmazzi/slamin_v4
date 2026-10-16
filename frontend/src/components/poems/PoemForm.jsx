@@ -1,15 +1,22 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { createPoem, listPoemCategories, listPoemTypes } from '../../app/api/poems.js'
+import {
+  createPoem,
+  getPoemBySlug,
+  listPoemCategories,
+  listPoemTypes,
+  updatePoem,
+} from '../../app/api/poems.js'
 import { useAuth } from '../../app/hooks/useAuth.js'
 import { useI18n } from '../../app/hooks/useI18n.js'
 import AppToast from '../shared/AppToast.jsx'
 import styles from './PoemForm.module.css'
 
-export default function PoemForm() {
+export default function PoemForm({ slug = null }) {
   const navigate = useNavigate()
-  const { token, isAuthenticated } = useAuth()
+  const { token, isAuthenticated, user } = useAuth()
   const { t } = useI18n()
+  const isEditing = Boolean(slug)
   const [formValues, setFormValues] = useState({
     title: '',
     content: '',
@@ -21,6 +28,7 @@ export default function PoemForm() {
   })
   const [categories, setCategories] = useState([])
   const [types, setTypes] = useState([])
+  const [editingPoem, setEditingPoem] = useState(null)
   const [isLoadingLookups, setIsLoadingLookups] = useState(true)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [errorMessage, setErrorMessage] = useState('')
@@ -34,13 +42,33 @@ export default function PoemForm() {
       setErrorMessage('')
 
       try {
-        const [{ categories: nextCategories }, { types: nextTypes }] = await Promise.all([
+        const [{ categories: nextCategories }, { types: nextTypes }, poem] = await Promise.all([
           listPoemCategories({ signal: controller.signal }),
           listPoemTypes({ signal: controller.signal }),
+          isEditing
+            ? getPoemBySlug(slug, { token, signal: controller.signal })
+            : Promise.resolve(null),
         ])
 
         setCategories(nextCategories)
         setTypes(nextTypes)
+
+        if (isEditing) {
+          if (!poem || String(poem.author?.id) !== String(user?.id)) {
+            throw new Error(t('poems.form.error_not_owner'))
+          }
+
+          setEditingPoem(poem)
+          setFormValues({
+            title: poem.title ?? '',
+            content: poem.content ?? '',
+            description: poem.description ?? '',
+            poem_category_id: poem.poem_category_id ?? '',
+            poem_type_id: poem.poem_type_id ?? '',
+            language: poem.language ?? 'it',
+            image: null,
+          })
+        }
       } catch (error) {
         if (error?.name !== 'AbortError') {
           setErrorMessage(error?.message || t('poems.form.error_loading_lookups'))
@@ -55,7 +83,7 @@ export default function PoemForm() {
     return () => {
       controller.abort()
     }
-  }, [t])
+  }, [isEditing, slug, t, token, user?.id])
 
   function handleFieldChange(event) {
     const { name, value, type, checked, files } = event.target
@@ -79,29 +107,37 @@ export default function PoemForm() {
       return
     }
 
+    if (isEditing && !editingPoem) {
+      setErrorMessage(t('poems.form.error_updating_poem'))
+      return
+    }
+
     setIsSubmitting(true)
     setErrorMessage('')
     const requestedStatus = event.nativeEvent?.submitter?.value
     const status = requestedStatus === 'published' ? 'published' : 'draft'
 
     try {
-      const createdPoem = await createPoem(
-        {
-          ...formValues,
-          status,
-          is_public: true,
-          poem_category_id: formValues.poem_category_id || null,
-          poem_type_id: formValues.poem_type_id || null,
-        },
-        { token },
-      )
+      const payload = {
+        ...formValues,
+        status,
+        is_public: true,
+        poem_category_id: formValues.poem_category_id || null,
+        poem_type_id: formValues.poem_type_id || null,
+      }
+      const savedPoem = isEditing
+        ? await updatePoem(editingPoem.id, payload, { token })
+        : await createPoem(payload, { token })
 
-      setToastMessage(t('poems.form.success_creating_poem'))
+      setToastMessage(t(isEditing ? 'poems.form.success_updating_poem' : 'poems.form.success_creating_poem'))
 
-      const nextId = createdPoem?.slug ?? createdPoem?.id
+      const nextId = savedPoem?.slug ?? savedPoem?.id
       navigate(nextId ? `/poems/${nextId}` : '/poems')
     } catch (error) {
-      setErrorMessage(error?.message || t('poems.form.error_creating_poem'))
+      setErrorMessage(
+        error?.message
+          || t(isEditing ? 'poems.form.error_updating_poem' : 'poems.form.error_creating_poem'),
+      )
     } finally {
       setIsSubmitting(false)
     }
@@ -113,8 +149,8 @@ export default function PoemForm() {
     <>
       <form className={styles.form} onSubmit={handleSubmit}>
         <div className={styles.header}>
-          <h2 className={styles.title}>{t('poems.form.title')}</h2>
-          <p className={styles.lead}>{t('poems.form.lead')}</p>
+          <h2 className={styles.title}>{t(isEditing ? 'poems.form.edit_title' : 'poems.form.title')}</h2>
+          <p className={styles.lead}>{t(isEditing ? 'poems.form.edit_lead' : 'poems.form.lead')}</p>
         </div>
 
         {errorMessage ? <p className={styles.error}>{errorMessage}</p> : null}
@@ -220,7 +256,7 @@ export default function PoemForm() {
             type="submit"
             name="status"
             value="published"
-            disabled={isSubmitting}
+            disabled={isSubmitting || isLoadingLookups}
           >
             <span>{isSubmitting ? t('common.loading') : t('poems.form.publish_button')}</span>
             <small>{t('poems.form.publish_button_hint')}</small>
@@ -230,7 +266,7 @@ export default function PoemForm() {
             type="submit"
             name="status"
             value="draft"
-            disabled={isSubmitting}
+            disabled={isSubmitting || isLoadingLookups}
           >
             <span>{isSubmitting ? t('common.loading') : t('poems.form.save_draft_button')}</span>
             <small>{t('poems.form.save_draft_button_hint')}</small>

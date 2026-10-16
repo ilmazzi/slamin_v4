@@ -114,12 +114,17 @@ export async function listMyArticles(
 
 export async function updateArticle(articleId, article, { token, signal } = {}) {
   const payload = buildArticlePayload(article)
-  const { data } = await authApiPatch(`/api/v1/articles/${encodeURIComponent(articleId)}`, payload, {
-    token,
-    signal,
-    fallbackMessage: 'Unable to update article',
-  })
+  const path = `/api/v1/articles/${encodeURIComponent(articleId)}`
+  const options = { token, signal, fallbackMessage: 'Unable to update article' }
+  const { data } = typeof FormData !== 'undefined' && payload instanceof FormData
+    ? await authApiPost(path, appendMethodOverride(payload), options)
+    : await authApiPatch(path, payload, options)
   return data?.article ?? null
+}
+
+function appendMethodOverride(formData) {
+  formData.append('_method', 'PATCH')
+  return formData
 }
 
 export async function deleteArticle(articleId, { token, signal } = {}) {

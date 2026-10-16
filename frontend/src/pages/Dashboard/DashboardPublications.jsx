@@ -46,6 +46,14 @@ function itemHref(kind, item) {
   return null
 }
 
+function itemEditHref(kind, item) {
+  if (!item?.slug || !['poems', 'events', 'articles'].includes(kind)) {
+    return null
+  }
+
+  return `/${kind}/${encodeURIComponent(item.slug)}/edit`
+}
+
 function itemKey(kind, item, index) {
   return `${kind}-${item?.id ?? item?.slug ?? index}`
 }
@@ -306,6 +314,7 @@ export default function DashboardPublications({ nickname, canManage = false, tok
         <ul className={styles.list}>
           {visibleItems.map((item, index) => {
             const href = itemHref(kind, item)
+            const editHref = itemEditHref(kind, item)
             const status = statusKey(kind, item)
             const rowBusy = busyId.endsWith(String(item.id))
 
@@ -321,8 +330,8 @@ export default function DashboardPublications({ nickname, canManage = false, tok
                       {t('profile.works.open')}
                     </Link>
                   ) : null}
-                  {canManage && kind === 'events' && item.slug ? (
-                    <Link className={styles.link} to={`/events/${encodeURIComponent(item.slug)}/edit`}>
+                  {canManage && editHref ? (
+                    <Link className={styles.link} to={editHref}>
                       {t('profile.works.edit')}
                     </Link>
                   ) : null}

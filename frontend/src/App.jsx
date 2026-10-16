@@ -162,11 +162,27 @@ export default function App() {
               </ProtectedRoute>
             }
           />
+          <Route
+            path="/poems/:slug/edit"
+            element={
+              <ProtectedRoute accountTypes={['poet_organizer']} redirectTo="/poems">
+                <PoemCreate />
+              </ProtectedRoute>
+            }
+          />
           <Route path="/poems/:slug" element={<PoemDetailPage />} />
           <Route path="/share/poems/:slug" element={<ShareContentRedirect toBase="/poems" />} />
           <Route path="/articles" element={<ArticlePage />} />
           <Route
             path="/articles/create"
+            element={
+              <ProtectedRoute accountTypes={['poet_organizer']} redirectTo="/articles">
+                <ArticleCreate />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/articles/:slug/edit"
             element={
               <ProtectedRoute accountTypes={['poet_organizer']} redirectTo="/articles">
                 <ArticleCreate />

@@ -66,6 +66,8 @@ return [
     'form' => [
         'title' => 'Nuovo articolo',
         'lead' => '',
+        'edit_title' => 'Modifica articolo',
+        'edit_lead' => 'Aggiorna il testo e le informazioni del tuo articolo.',
         'label_title' => 'Titolo',
         'label_language' => 'Lingua',
         'label_category' => 'Categoria',
@@ -79,7 +81,10 @@ return [
         'save_draft_button_hint' => 'Continua a lavorarci più tardi',
         'error_loading_lookups' => 'Impossibile caricare le opzioni del form.',
         'error_not_authenticated' => 'Devi essere autenticato per pubblicare un articolo.',
+        'error_not_owner' => 'Non puoi modificare questo articolo.',
         'error_creating_article' => 'Impossibile creare l\'articolo.',
+        'error_updating_article' => 'Impossibile aggiornare l\'articolo.',
         'success_creating_article' => 'Articolo creato con successo.',
+        'success_updating_article' => 'Articolo aggiornato con successo.',
     ],
 ];

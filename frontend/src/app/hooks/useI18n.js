@@ -25,6 +25,24 @@ const staticFallbacks = {
       loading: 'Caricamento...',
       no_results: 'Nessun risultato',
     },
+    poems: {
+      form: {
+        edit_title: 'Modifica poesia',
+        edit_lead: 'Aggiorna il testo e le informazioni della tua poesia.',
+        error_not_owner: 'Non puoi modificare questa poesia.',
+        error_updating_poem: 'Impossibile aggiornare la poesia.',
+        success_updating_poem: 'Poesia aggiornata con successo.',
+      },
+    },
+    articles: {
+      form: {
+        edit_title: 'Modifica articolo',
+        edit_lead: 'Aggiorna il testo e le informazioni del tuo articolo.',
+        error_not_owner: 'Non puoi modificare questo articolo.',
+        error_updating_article: 'Impossibile aggiornare l’articolo.',
+        success_updating_article: 'Articolo aggiornato con successo.',
+      },
+    },
     contact: {
       title: 'Contattaci',
       subtitle: 'Hai domande? Siamo qui per aiutarti',
@@ -87,6 +105,24 @@ const staticFallbacks = {
     common: {
       loading: 'Loading...',
       no_results: 'No results',
+    },
+    poems: {
+      form: {
+        edit_title: 'Edit poem',
+        edit_lead: 'Update your poem text and details.',
+        error_not_owner: 'You cannot edit this poem.',
+        error_updating_poem: 'Unable to update the poem.',
+        success_updating_poem: 'Poem updated successfully.',
+      },
+    },
+    articles: {
+      form: {
+        edit_title: 'Edit article',
+        edit_lead: 'Update your article text and details.',
+        error_not_owner: 'You cannot edit this article.',
+        error_updating_article: 'Unable to update the article.',
+        success_updating_article: 'Article updated successfully.',
+      },
     },
     contact: {
       title: 'Contact us',

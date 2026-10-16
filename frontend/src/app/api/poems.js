@@ -143,12 +143,17 @@ export async function listMyPoems(
 
 export async function updatePoem(poemId, poem, { token, signal } = {}) {
   const payload = buildPoemPayload(poem)
-  const { data } = await authApiPatch(`/api/v1/poems/${encodeURIComponent(poemId)}`, payload, {
-    token,
-    signal,
-    fallbackMessage: 'Unable to update poem',
-  })
+  const path = `/api/v1/poems/${encodeURIComponent(poemId)}`
+  const options = { token, signal, fallbackMessage: 'Unable to update poem' }
+  const { data } = typeof FormData !== 'undefined' && payload instanceof FormData
+    ? await authApiPost(path, appendMethodOverride(payload), options)
+    : await authApiPatch(path, payload, options)
   return data?.poem ?? null
+}
+
+function appendMethodOverride(formData) {
+  formData.append('_method', 'PATCH')
+  return formData
 }
 
 export async function deletePoem(poemId, { token, signal } = {}) {

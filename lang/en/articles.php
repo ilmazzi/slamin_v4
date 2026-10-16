@@ -63,6 +63,8 @@ return [
     'form' => [
         'title' => 'New article',
         'lead' => '',
+        'edit_title' => 'Edit article',
+        'edit_lead' => 'Update your article text and details.',
         'label_title' => 'Title',
         'label_language' => 'Language',
         'label_category' => 'Category',
@@ -76,7 +78,10 @@ return [
         'save_draft_button_hint' => 'Continue working on it later',
         'error_loading_lookups' => 'Unable to load form options.',
         'error_not_authenticated' => 'You must be signed in to publish an article.',
+        'error_not_owner' => 'You cannot edit this article.',
         'error_creating_article' => 'Unable to create the article.',
+        'error_updating_article' => 'Unable to update the article.',
         'success_creating_article' => 'Article created successfully.',
+        'success_updating_article' => 'Article updated successfully.',
     ],
 ];

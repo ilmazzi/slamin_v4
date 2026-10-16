@@ -1,15 +1,21 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { createArticle, listArticleCategories } from '../../app/api/articles.js'
+import {
+  createArticle,
+  getArticleBySlug,
+  listArticleCategories,
+  updateArticle,
+} from '../../app/api/articles.js'
 import { useAuth } from '../../app/hooks/useAuth.js'
 import { useI18n } from '../../app/hooks/useI18n.js'
 import AppToast from '../shared/AppToast.jsx'
 import styles from './ArticleForm.module.css'
 
-export default function ArticleForm() {
+export default function ArticleForm({ slug = null }) {
   const navigate = useNavigate()
-  const { token, isAuthenticated } = useAuth()
+  const { token, isAuthenticated, user } = useAuth()
   const { t } = useI18n()
+  const isEditing = Boolean(slug)
   const [formValues, setFormValues] = useState({
     title: '',
     content: '',
@@ -19,6 +25,7 @@ export default function ArticleForm() {
     cover_image: null,
   })
   const [categories, setCategories] = useState([])
+  const [editingArticle, setEditingArticle] = useState(null)
   const [isLoadingLookups, setIsLoadingLookups] = useState(true)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [errorMessage, setErrorMessage] = useState('')
@@ -32,8 +39,29 @@ export default function ArticleForm() {
       setErrorMessage('')
 
       try {
-        const { categories: nextCategories } = await listArticleCategories({ signal: controller.signal })
+        const [{ categories: nextCategories }, article] = await Promise.all([
+          listArticleCategories({ signal: controller.signal }),
+          isEditing
+            ? getArticleBySlug(slug, { token, signal: controller.signal })
+            : Promise.resolve(null),
+        ])
         setCategories(nextCategories)
+
+        if (isEditing) {
+          if (!article || String(article.author?.id) !== String(user?.id)) {
+            throw new Error(t('articles.form.error_not_owner'))
+          }
+
+          setEditingArticle(article)
+          setFormValues({
+            title: article.title ?? '',
+            content: article.content ?? '',
+            excerpt: article.excerpt ?? '',
+            article_category_id: article.article_category_id ?? '',
+            language: article.language ?? 'it',
+            cover_image: null,
+          })
+        }
       } catch (error) {
         if (error?.name !== 'AbortError') {
           setErrorMessage(error?.message || t('articles.form.error_loading_lookups'))
@@ -48,7 +76,7 @@ export default function ArticleForm() {
     return () => {
       controller.abort()
     }
-  }, [t])
+  }, [isEditing, slug, t, token, user?.id])
 
   function handleFieldChange(event) {
     const { name, value, type, files } = event.target
@@ -67,28 +95,38 @@ export default function ArticleForm() {
       return
     }
 
+    if (isEditing && !editingArticle) {
+      setErrorMessage(t('articles.form.error_updating_article'))
+      return
+    }
+
     setIsSubmitting(true)
     setErrorMessage('')
     const requestedStatus = event.nativeEvent?.submitter?.value
     const status = requestedStatus === 'published' ? 'published' : 'draft'
 
     try {
-      const createdArticle = await createArticle(
-        {
-          ...formValues,
-          status,
-          is_public: true,
-          article_category_id: formValues.article_category_id || null,
-        },
-        { token },
-      )
+      const payload = {
+        ...formValues,
+        status,
+        is_public: true,
+        article_category_id: formValues.article_category_id || null,
+      }
+      const savedArticle = isEditing
+        ? await updateArticle(editingArticle.id, payload, { token })
+        : await createArticle(payload, { token })
 
-      setToastMessage(t('articles.form.success_creating_article'))
+      setToastMessage(t(
+        isEditing ? 'articles.form.success_updating_article' : 'articles.form.success_creating_article',
+      ))
 
-      const nextSlug = createdArticle?.slug
+      const nextSlug = savedArticle?.slug
       navigate(nextSlug ? `/articles/${nextSlug}` : '/articles')
     } catch (error) {
-      setErrorMessage(error?.message || t('articles.form.error_creating_article'))
+      setErrorMessage(
+        error?.message
+          || t(isEditing ? 'articles.form.error_updating_article' : 'articles.form.error_creating_article'),
+      )
     } finally {
       setIsSubmitting(false)
     }
@@ -98,8 +136,8 @@ export default function ArticleForm() {
     <>
       <form className={styles.form} onSubmit={handleSubmit}>
         <div className={styles.header}>
-          <h2 className={styles.title}>{t('articles.form.title')}</h2>
-          <p className={styles.lead}>{t('articles.form.lead')}</p>
+          <h2 className={styles.title}>{t(isEditing ? 'articles.form.edit_title' : 'articles.form.title')}</h2>
+          <p className={styles.lead}>{t(isEditing ? 'articles.form.edit_lead' : 'articles.form.lead')}</p>
         </div>
 
         {errorMessage ? <p className={styles.error}>{errorMessage}</p> : null}
@@ -187,7 +225,7 @@ export default function ArticleForm() {
             type="submit"
             name="status"
             value="published"
-            disabled={isSubmitting}
+            disabled={isSubmitting || isLoadingLookups}
           >
             <span>{isSubmitting ? t('common.loading') : t('articles.form.publish_button')}</span>
             <small>{t('articles.form.publish_button_hint')}</small>
@@ -197,7 +235,7 @@ export default function ArticleForm() {
             type="submit"
             name="status"
             value="draft"
-            disabled={isSubmitting}
+            disabled={isSubmitting || isLoadingLookups}
           >
             <span>{isSubmitting ? t('common.loading') : t('articles.form.save_draft_button')}</span>
             <small>{t('articles.form.save_draft_button_hint')}</small>
