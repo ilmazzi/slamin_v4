@@ -115,4 +115,8 @@ return [
         'name' => env('MAIL_FROM_NAME', env('APP_NAME', 'Laravel')),
     ],
 
+    'support' => [
+        'address' => env('MAIL_SUPPORT_ADDRESS', 'mail@slamin.it'),
+    ],
+
 ];

@@ -27,5 +27,6 @@ Route::prefix('v1')->group(function (): void {
     require __DIR__.'/api/v1/media.php';
     require __DIR__.'/api/v1/search.php';
     require __DIR__.'/api/v1/help.php';
+    require __DIR__.'/api/v1/support.php';
     require __DIR__.'/api/v1/admin-settings.php';
 });

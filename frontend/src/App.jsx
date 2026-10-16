@@ -55,6 +55,7 @@ const TermsPage = lazy(() => import('./pages/Legal/TermsPage.jsx'))
 const PrivacyPage = lazy(() => import('./pages/Legal/PrivacyPage.jsx'))
 const ContactPage = lazy(() => import('./pages/Contact/ContactPage.jsx'))
 const AboutPage = lazy(() => import('./pages/About/AboutPage.jsx'))
+const SupportPage = lazy(() => import('./pages/Support/SupportPage.jsx'))
 const ModerationDashboardPage = lazy(() => import('./pages/Moderation/ModerationDashboardPage.jsx'))
 const ModerationQueuePage = lazy(() => import('./pages/Moderation/ModerationQueuePage.jsx'))
 const ModerationReviewPage = lazy(() => import('./pages/Moderation/ModerationReviewPage.jsx'))
@@ -285,15 +286,7 @@ export default function App() {
           />
           <Route path="/faq" element={<HelpPage section="faq" />} />
           <Route path="/help" element={<HelpPage />} />
-          <Route
-            path="/support"
-            element={
-              <PlaceholderPage
-                titleKey="common.coming_soon.support_title"
-                descriptionKey="common.coming_soon.support_description"
-              />
-            }
-          />
+          <Route path="/support" element={<SupportPage />} />
           <Route path="/contact" element={<ContactPage />} />
           <Route
             path="/contacts"
