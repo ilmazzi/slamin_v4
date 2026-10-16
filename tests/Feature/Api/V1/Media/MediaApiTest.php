@@ -388,7 +388,7 @@ it('uploads a video media item through peertube using admin settings', function 
 
     $response = $this->post('/api/v1/media/videos', [
         'title' => 'My Video',
-        'description' => 'Video description',
+        'description' => '   ',
         'visibility' => 'private',
         'tags' => ['poetry', 'slam'],
         'file' => UploadedFile::fake()->create('recording.final.MKV', 1024, 'video/x-matroska'),
@@ -406,7 +406,8 @@ it('uploads a video media item through peertube using admin settings', function 
         ->assertJsonPath('data.media.duration_seconds', 123);
 
     Http::assertSent(fn ($request): bool => $request->url() === 'https://video.example.test/api/v1/videos/upload'
-        && $request->hasFile('videofile', null, 'video.mkv'));
+        && $request->hasFile('videofile', null, 'video.mkv')
+        && ! array_key_exists('description', $request->data()));
 });
 
 it('logs the underlying peertube upload failure without exposing it to the user', function () {

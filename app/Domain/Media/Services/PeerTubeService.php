@@ -70,7 +70,6 @@ class PeerTubeService
         $payload = [
             'channelId' => (string) $settings['peertube_upload_channel_id'],
             'name' => (string) ($videoData['name'] ?? 'Untitled video'),
-            'description' => (string) ($videoData['description'] ?? ''),
             'privacy' => (string) ($videoData['privacy'] ?? $settings['peertube_default_privacy']),
             'category' => (string) ($videoData['category'] ?? $settings['peertube_default_category']),
             'licence' => (string) ($videoData['licence'] ?? $settings['peertube_default_licence']),
@@ -79,6 +78,11 @@ class PeerTubeService
             'language' => (string) ($videoData['language'] ?? app()->getLocale()),
             'nsfw' => ($videoData['nsfw'] ?? false) ? 'true' : 'false',
         ];
+
+        $description = trim((string) ($videoData['description'] ?? ''));
+        if ($description !== '') {
+            $payload['description'] = $description;
+        }
 
         if (! empty($videoData['tags']) && is_array($videoData['tags'])) {
             foreach ($videoData['tags'] as $tag) {
