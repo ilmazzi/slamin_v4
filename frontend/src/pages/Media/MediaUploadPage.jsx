@@ -61,6 +61,12 @@ function mimeLabel(mimes) {
     .join(', ')
 }
 
+function formatElapsed(seconds) {
+  const minutes = Math.floor(seconds / 60)
+  const remainder = seconds % 60
+  return `${String(minutes).padStart(2, '0')}:${String(remainder).padStart(2, '0')}`
+}
+
 export default function MediaUploadPage() {
   const navigate = useNavigate()
   const { t } = useI18n()
@@ -78,6 +84,9 @@ export default function MediaUploadPage() {
   const [errorMessage, setErrorMessage] = useState('')
   const [toastMessage, setToastMessage] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [uploadStage, setUploadStage] = useState(null)
+  const [uploadPercent, setUploadPercent] = useState(0)
+  const [elapsedSeconds, setElapsedSeconds] = useState(0)
 
   useEffect(() => {
     if (!token || !canUpload) {
@@ -124,6 +133,18 @@ export default function MediaUploadPage() {
       controller.abort()
     }
   }, [token, canUpload, t])
+
+  useEffect(() => {
+    if (!isSubmitting || !uploadStage) {
+      return undefined
+    }
+
+    const timer = window.setInterval(() => {
+      setElapsedSeconds((current) => current + 1)
+    }, 1000)
+
+    return () => window.clearInterval(timer)
+  }, [isSubmitting, uploadStage])
 
   const remainingPhotos = limits?.remaining_photo_uploads ?? 0
   const remainingVideos = limits?.remaining_video_uploads ?? 0
@@ -231,10 +252,20 @@ export default function MediaUploadPage() {
 
     setIsSubmitting(true)
     setErrorMessage('')
+    setElapsedSeconds(0)
+    setUploadPercent(0)
+    setUploadStage(isVideo ? 'uploading' : null)
 
     try {
       const media = isVideo
-        ? await uploadVideoMedia(formData, { token })
+        ? await uploadVideoMedia(formData, {
+            token,
+            onProgress: ({ percent }) => setUploadPercent(percent),
+            onUploaded: () => {
+              setUploadPercent(100)
+              setUploadStage('peertube')
+            },
+          })
         : await uploadPhotoMedia(formData, { token })
 
       setToastMessage(t('media.upload.success'))
@@ -248,6 +279,7 @@ export default function MediaUploadPage() {
       setErrorMessage(error?.message || t('media.upload.error'))
     } finally {
       setIsSubmitting(false)
+      setUploadStage(null)
     }
   }
 
@@ -381,9 +413,59 @@ export default function MediaUploadPage() {
 
           <div className={styles.actions}>
             <button className={styles.submit} type="submit" disabled={!canSubmit}>
-              {isSubmitting ? t('media.upload.submitting') : t('media.upload.submit')}
+              {isSubmitting && uploadStage === 'peertube'
+                ? t('media.upload.stage_peertube_short')
+                : isSubmitting
+                  ? t('media.upload.submitting')
+                  : t('media.upload.submit')}
             </button>
           </div>
+
+          {isSubmitting && isVideo && uploadStage ? (
+            <section className={styles.uploadStatus}>
+              <div className={styles.uploadStatusHeader}>
+                <span className={styles.spinner} aria-hidden="true" />
+                <div>
+                  <strong aria-live="polite">
+                    {uploadStage === 'uploading'
+                      ? t('media.upload.stage_uploading')
+                      : t('media.upload.stage_peertube')}
+                  </strong>
+                  <p>
+                    {uploadStage === 'uploading'
+                      ? t('media.upload.stage_uploading_detail', { percent: uploadPercent })
+                      : t('media.upload.stage_peertube_detail')}
+                  </p>
+                </div>
+                <span className={styles.elapsed}>{formatElapsed(elapsedSeconds)}</span>
+              </div>
+
+              <div
+                className={uploadStage === 'uploading' ? styles.progressTrack : styles.progressTrackIndeterminate}
+                aria-label={t('media.upload.progress_label')}
+                role="progressbar"
+                aria-valuemin="0"
+                aria-valuemax="100"
+                aria-valuenow={uploadStage === 'uploading' ? uploadPercent : undefined}
+              >
+                <span
+                  className={styles.progressBar}
+                  style={uploadStage === 'uploading' ? { width: `${uploadPercent}%` } : undefined}
+                />
+              </div>
+
+              <ol className={styles.activityLog}>
+                <li className={styles.activityDone}>{t('media.upload.activity_prepare')}</li>
+                <li className={uploadStage === 'peertube' ? styles.activityDone : styles.activityCurrent}>
+                  {t('media.upload.activity_upload', { percent: uploadPercent })}
+                </li>
+                <li className={uploadStage === 'peertube' ? styles.activityCurrent : styles.activityPending}>
+                  {t('media.upload.activity_peertube')}
+                </li>
+              </ol>
+              <p className={styles.keepOpen}>{t('media.upload.keep_open')}</p>
+            </section>
+          ) : null}
         </form>
       </div>
       <AppToast message={toastMessage} onDismiss={() => setToastMessage('')} />

@@ -1,4 +1,7 @@
 import { apiGet, authApiDelete, authApiGet, authApiPatch, authApiPost } from './client.js'
+import { localeHeaders } from '../i18n/locale.js'
+import { readApiErrorMessage } from './slaminApi.js'
+import { getApiUrl } from './url.js'
 
 export async function listMedia({
   page = 1,
@@ -120,14 +123,66 @@ export async function uploadPhotoMedia(payload, { token, signal } = {}) {
   return data?.media ?? null
 }
 
-export async function uploadVideoMedia(payload, { token, signal } = {}) {
-  const { data } = await authApiPost('/api/v1/media/videos', payload, {
-    token,
-    signal,
-    fallbackMessage: 'Unable to upload video',
-  })
+export async function uploadVideoMedia(
+  payload,
+  { token, signal, onProgress, onUploaded } = {},
+) {
+  return new Promise((resolve, reject) => {
+    const request = new XMLHttpRequest()
+    const abort = () => request.abort()
 
-  return data?.media ?? null
+    request.open('POST', getApiUrl('/api/v1/media/videos'))
+    request.setRequestHeader('Accept', 'application/json')
+    request.setRequestHeader('Authorization', `Bearer ${token}`)
+    Object.entries(localeHeaders()).forEach(([name, value]) => request.setRequestHeader(name, value))
+
+    request.upload.addEventListener('progress', (event) => {
+      if (!event.lengthComputable || typeof onProgress !== 'function') {
+        return
+      }
+
+      onProgress({
+        loaded: event.loaded,
+        total: event.total,
+        percent: Math.min(100, Math.round((event.loaded / event.total) * 100)),
+      })
+    })
+    request.upload.addEventListener('load', () => onUploaded?.())
+
+    request.addEventListener('load', () => {
+      signal?.removeEventListener('abort', abort)
+
+      let response = {}
+      try {
+        response = request.responseText ? JSON.parse(request.responseText) : {}
+      } catch {
+        response = {}
+      }
+
+      if (request.status >= 200 && request.status < 300) {
+        resolve(response?.data?.media ?? null)
+        return
+      }
+
+      reject(new Error(readApiErrorMessage(response, 'Unable to upload video')))
+    })
+    request.addEventListener('error', () => {
+      signal?.removeEventListener('abort', abort)
+      reject(new Error('Unable to upload video'))
+    })
+    request.addEventListener('abort', () => {
+      signal?.removeEventListener('abort', abort)
+      reject(new DOMException('The operation was aborted.', 'AbortError'))
+    })
+
+    if (signal?.aborted) {
+      request.abort()
+      return
+    }
+
+    signal?.addEventListener('abort', abort, { once: true })
+    request.send(payload)
+  })
 }
 
 export async function getMediaSettings({ token, signal } = {}) {
