@@ -79,9 +79,11 @@
   color: var(--color-red);
 }
 
-.metricIcon svg {
+.metricIcon svg,
+.metricIcon img {
   width: 22px;
   height: 22px;
+  object-fit: contain;
 }
 
 .metricCard strong,
@@ -231,9 +233,11 @@
   font-size: 13px;
 }
 
-.contentMetrics svg {
-  width: 14px;
-  height: 14px;
+.contentMetrics img {
+  width: 15px;
+  height: 15px;
+  object-fit: contain;
+  filter: invert(1);
 }
 
 .empty {

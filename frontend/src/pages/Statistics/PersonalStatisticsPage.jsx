@@ -3,10 +3,7 @@ import { Link } from 'react-router-dom'
 import {
   BookOpen,
   CalendarDays,
-  Eye,
-  Heart,
   Images,
-  MessageCircle,
   Newspaper,
   Users,
 } from 'lucide-react'
@@ -14,13 +11,18 @@ import { getPersonalStatistics } from '../../app/api/statistics.js'
 import { formatLocaleNumber } from '../../app/formatters/number.js'
 import { useAuth } from '../../app/hooks/useAuth.js'
 import { useI18n } from '../../app/hooks/useI18n.js'
+import {
+  mediaCommentsDesktopIcon,
+  mediaLikeDesktopIcon,
+  mediaViewsDesktopIcon,
+} from '../../assets/home/media/index.js'
 import MainLayout from '../../components/layout/MainLayout.jsx'
 import styles from './PersonalStatisticsPage.module.css'
 
 const METRICS = [
-  { key: 'views_received', icon: Eye },
-  { key: 'likes_received', icon: Heart },
-  { key: 'comments_received', icon: MessageCircle },
+  { key: 'views_received', iconSrc: mediaViewsDesktopIcon },
+  { key: 'likes_received', iconSrc: mediaLikeDesktopIcon },
+  { key: 'comments_received', iconSrc: mediaCommentsDesktopIcon },
   { key: 'followers', icon: Users },
 ]
 
@@ -50,15 +52,15 @@ function Ranking({ title, items, t, locale }) {
               </div>
               <div className={styles.contentMetrics} aria-label={t('statistics.item_metrics')}>
                 <span title={t('statistics.metrics.views_received')}>
-                  <Eye aria-hidden="true" />
+                  <img src={mediaViewsDesktopIcon} alt="" aria-hidden="true" />
                   {formatLocaleNumber(item.views_count, locale)}
                 </span>
                 <span title={t('statistics.metrics.likes_received')}>
-                  <Heart aria-hidden="true" />
+                  <img src={mediaLikeDesktopIcon} alt="" aria-hidden="true" />
                   {formatLocaleNumber(item.likes_count, locale)}
                 </span>
                 <span title={t('statistics.metrics.comments_received')}>
-                  <MessageCircle aria-hidden="true" />
+                  <img src={mediaCommentsDesktopIcon} alt="" aria-hidden="true" />
                   {formatLocaleNumber(item.comments_count, locale)}
                 </span>
               </div>
@@ -141,10 +143,14 @@ export default function PersonalStatisticsPage({ user }) {
         {statistics && !isLoading ? (
           <>
             <section className={styles.metricsGrid} aria-label={t('statistics.metrics_title')}>
-              {METRICS.map(({ key, icon }) => (
+              {METRICS.map(({ key, icon, iconSrc }) => (
                 <article key={key} className={styles.metricCard}>
                   <span className={styles.metricIcon}>
-                    {createElement(icon, { 'aria-hidden': true })}
+                    {iconSrc ? (
+                      <img src={iconSrc} alt="" aria-hidden="true" />
+                    ) : (
+                      createElement(icon, { 'aria-hidden': true })
+                    )}
                   </span>
                   <strong>{formatLocaleNumber(statistics.totals?.[key] ?? 0, locale)}</strong>
                   <span>{t(`statistics.metrics.${key}`)}</span>
