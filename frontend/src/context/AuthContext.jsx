@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { authApiGet, authApiRequest } from '../app/api/client.js'
 import { normalizeSessionUser } from '../app/api/slaminApi.js'
+import { useI18n } from '../app/hooks/useI18n.js'
 import { AuthContext } from './auth-context.js'
 
 const TOKEN_STORAGE_KEY = 'token'
@@ -65,6 +66,7 @@ export function AuthProvider({ children }) {
   const [token, setToken] = useState(() => getStoredToken())
   const [user, setUser] = useState(null)
   const [isLoading, setIsLoading] = useState(true)
+  const { setLocale } = useI18n()
 
   useEffect(() => {
     let isMounted = true
@@ -116,6 +118,14 @@ export function AuthProvider({ children }) {
       isMounted = false
     }
   }, [])
+
+  useEffect(() => {
+    const preferredLocale = String(user?.profile?.preferred_locale ?? '').trim().toLowerCase()
+
+    if (preferredLocale) {
+      setLocale(preferredLocale)
+    }
+  }, [setLocale, user?.id, user?.profile?.preferred_locale])
 
   const login = async (nextToken, nextUser) => {
     setStoredToken(nextToken)

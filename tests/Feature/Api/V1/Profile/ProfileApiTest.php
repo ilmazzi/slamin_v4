@@ -84,6 +84,31 @@ it('keeps the same nickname when updating other profile fields', function () {
         ->assertJsonPath('data.profile.bio', 'Bio aggiornata');
 });
 
+it('stores the preferred interface locale on the authenticated profile', function () {
+    $user = profileTestUser();
+    Sanctum::actingAs($user);
+
+    $this->patchJson('/api/v1/me/profile', [
+        'preferred_locale' => 'en',
+    ])
+        ->assertOk()
+        ->assertJsonPath('data.profile.preferred_locale', 'en');
+
+    expect($user->fresh()->profile->preferred_locale)->toBe('en');
+});
+
+it('rejects an unsupported preferred interface locale', function () {
+    $user = profileTestUser();
+    Sanctum::actingAs($user);
+
+    $response = $this->patchJson('/api/v1/me/profile', [
+        'preferred_locale' => 'xx',
+    ]);
+
+    $response->assertUnprocessable();
+    expect($response->json('errors.fields'))->toHaveKey('preferred_locale');
+});
+
 it('stores and publicly exposes social channels and custom links', function () {
     $owner = profileTestUser();
     $owner->profile->update(['nickname' => 'social_poet']);

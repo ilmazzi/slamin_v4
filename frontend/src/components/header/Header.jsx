@@ -211,7 +211,7 @@ export default function Header({
             user={user}
             loginHref={loginHref}
             registerHref={registerHref}
-            onLanguageChange={setLocale}
+            onLanguageChange={changeLocale}
             onMainMenuToggle={handleToggleMobileMenu}
             onMainMenuClose={handleCloseMobileMenu}
             onMenuClick={handleToggleMobileMenu}
