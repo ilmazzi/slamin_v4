@@ -8,7 +8,7 @@ return [
     'page_title' => 'Cookie e tecnologie locali',
     'page_version' => 'Versione 1.0 - Ottobre 2026',
     'page_lead' => 'Slam In non utilizza cookie pubblicitari, strumenti di profilazione o analytics di terze parti.',
-    'technical_title' => 'Tecnologie tecniche utilizzate',
+    'technical_title' => 'Tecnologie utilizzate',
     'technical_intro' => 'La piattaforma usa esclusivamente strumenti necessari a fornire le funzionalità richieste:',
     'auth_name' => 'Accesso',
     'auth_description' => 'il token di autenticazione viene conservato nello spazio locale del dispositivo per mantenere attiva la sessione e viene rimosso al logout;',
