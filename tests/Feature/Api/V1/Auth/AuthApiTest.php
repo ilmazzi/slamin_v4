@@ -303,5 +303,12 @@ it('sends verification notification for authenticated unverified user', function
         ->assertOk()
         ->assertJsonPath('errors', null);
 
-    Notification::assertSentTo($user, VerifyEmail::class);
+    Notification::assertSentTo($user, VerifyEmail::class, function (VerifyEmail $notification) use ($user): bool {
+        $mail = $notification->toMail($user);
+
+        expect($mail->view)->toBe('emails.auth.verify-email')
+            ->and($mail->viewData['verificationUrl'] ?? null)->toContain('/verify-email?');
+
+        return true;
+    });
 });

@@ -10,7 +10,11 @@ export default function VerifyEmailPage() {
   const { t } = useI18n()
   const { token, user, isAuthenticated, refreshUser } = useAuth()
   const [searchParams] = useSearchParams()
-  const verificationStarted = useRef(false)
+  const refreshUserRef = useRef(refreshUser)
+  const tRef = useRef(t)
+  refreshUserRef.current = refreshUser
+  tRef.current = t
+  const verificationPayload = searchParams.toString()
   const hasVerificationPayload = ['id', 'hash', 'expires', 'signature']
     .every((key) => Boolean(searchParams.get(key)))
   const [status, setStatus] = useState(
@@ -20,29 +24,29 @@ export default function VerifyEmailPage() {
   const [isResending, setIsResending] = useState(false)
 
   useEffect(() => {
-    if (!hasVerificationPayload || verificationStarted.current) return undefined
+    if (!hasVerificationPayload) return undefined
 
-    verificationStarted.current = true
     const controller = new AbortController()
+    const params = new URLSearchParams(verificationPayload)
 
     async function runVerification() {
       setStatus('verifying')
       setMessage('')
 
       try {
-        await verifyEmail(searchParams, { signal: controller.signal })
-        if (token) await refreshUser()
+        await verifyEmail(params, { signal: controller.signal })
+        if (token) await refreshUserRef.current()
         setStatus('success')
       } catch (error) {
         if (error?.name === 'AbortError') return
-        setMessage(error?.message || t('auth.verify_email_error'))
+        setMessage(error?.message || tRef.current('auth.verify_email_error'))
         setStatus('error')
       }
     }
 
     runVerification()
     return () => controller.abort()
-  }, [hasVerificationPayload, refreshUser, searchParams, t, token])
+  }, [hasVerificationPayload, verificationPayload, token])
 
   async function handleResend() {
     if (!token) return

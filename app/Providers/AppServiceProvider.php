@@ -13,6 +13,7 @@ use Domain\User\Models\User;
 use Illuminate\Auth\Notifications\VerifyEmail;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
+use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\RateLimiter;
@@ -100,6 +101,15 @@ class AppServiceProvider extends ServiceProvider
                 'expires' => $expires,
                 'signature' => $signature,
             ]);
+        });
+
+        VerifyEmail::toMailUsing(function (User $user, string $url): MailMessage {
+            return (new MailMessage)
+                ->subject(__('auth.verification_mail_subject'))
+                ->view('emails.auth.verify-email', [
+                    'user' => $user,
+                    'verificationUrl' => $url,
+                ]);
         });
 
         RateLimiter::for('reset-password', function (Request $request) {
