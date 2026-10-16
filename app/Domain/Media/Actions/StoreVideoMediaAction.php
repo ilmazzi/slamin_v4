@@ -8,6 +8,7 @@ use Domain\Media\Enums\MediaType;
 use Domain\Media\Models\MediaItem;
 use Domain\Media\Services\PeerTubeService;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\ValidationException;
 
@@ -104,6 +105,14 @@ class StoreVideoMediaAction
                 return $media->load('user.profile');
             });
         } catch (\Throwable $exception) {
+            Log::error('PeerTube video upload failed.', [
+                'exception' => $exception,
+                'user_id' => $data->userId,
+                'file_size' => $data->file->getSize(),
+                'mime_type' => $data->file->getMimeType(),
+                'peertube_base_url' => $this->peerTubeService->getBaseUrl(),
+            ]);
+
             throw ValidationException::withMessages([
                 'file' => [__('media.validation.peertube_upload_failed')],
             ]);

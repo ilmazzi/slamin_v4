@@ -58,7 +58,7 @@ class PeerTubeService
         $settings = $this->resolveMediaSettingsAction->execute();
         $token = $this->getAdminToken();
 
-        $request = $this->baseRequest()
+        $request = $this->baseRequest((int) config('services.peertube.upload_timeout', 900))
             ->withToken($token)
             ->attach('videofile', fopen($videoPath, 'r'), basename($videoPath))
             ->asMultipart();
@@ -190,11 +190,13 @@ class PeerTubeService
         return $this->accessToken;
     }
 
-    private function baseRequest(): PendingRequest
+    private function baseRequest(int $timeout = 60): PendingRequest
     {
         $settings = $this->resolveMediaSettingsAction->execute();
 
-        $request = Http::timeout(60);
+        $request = Http::connectTimeout(
+            max(1, (int) config('services.peertube.connect_timeout', 15))
+        )->timeout(max(1, $timeout));
 
         if (($settings['peertube_verify_ssl'] ?? true) === false) {
             $request = $request->withoutVerifying();

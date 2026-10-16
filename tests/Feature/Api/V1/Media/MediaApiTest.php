@@ -10,6 +10,7 @@ use Domain\User\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Laravel\Sanctum\Sanctum;
 
@@ -403,6 +404,54 @@ it('uploads a video media item through peertube using admin settings', function 
         ->assertJsonPath('data.media.peertube_short_uuid', 'short-77')
         ->assertJsonPath('data.media.peertube_thumbnail_url', 'https://video.example.test/static/thumbnails/77.jpg')
         ->assertJsonPath('data.media.duration_seconds', 123);
+});
+
+it('logs the underlying peertube upload failure without exposing it to the user', function () {
+    Storage::fake('local');
+    Log::spy();
+
+    $admin = mediaAdmin();
+    Sanctum::actingAs($admin);
+    $this->patchJson('/api/v1/admin/media/settings', [
+        'peertube_base_url' => 'https://video.example.test',
+        'peertube_admin_username' => 'admin',
+        'peertube_admin_password' => 'secret',
+        'peertube_upload_channel_id' => '12',
+        'video_allowed_mimes' => ['video/mp4'],
+    ])->assertOk();
+
+    Http::fake([
+        'https://video.example.test/api/v1/oauth-clients/local' => Http::response([
+            'client_id' => 'client-id',
+            'client_secret' => 'client-secret',
+        ]),
+        'https://video.example.test/api/v1/users/token' => Http::response([
+            'access_token' => 'token-123',
+        ]),
+        'https://video.example.test/api/v1/videos/upload' => Http::response([
+            'error' => 'PeerTube rejected the upload.',
+        ], 500),
+    ]);
+
+    Sanctum::actingAs(mediaPoetOrganizer());
+
+    $this->post('/api/v1/media/videos', [
+        'title' => 'Failed Video',
+        'visibility' => 'private',
+        'file' => UploadedFile::fake()->create('video.mp4', 1024, 'video/mp4'),
+    ], [
+        'Accept' => 'application/json',
+    ])
+        ->assertUnprocessable()
+        ->assertJsonPath('errors.fields.file.0', __('media.validation.peertube_upload_failed'));
+
+    Log::shouldHaveReceived('error')
+        ->once()
+        ->withArgs(fn (string $message, array $context): bool => $message === 'PeerTube video upload failed.'
+            && $context['file_size'] > 0
+            && $context['mime_type'] === 'video/mp4'
+            && $context['peertube_base_url'] === 'https://video.example.test'
+            && $context['exception'] instanceof Throwable);
 });
 
 it('allows the owner to view a processing video with a bearer token', function () {

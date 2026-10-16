@@ -42,4 +42,9 @@ return [
         'type_id' => env('OPENPROJECT_TYPE_ID', 1),
     ],
 
+    'peertube' => [
+        'upload_timeout' => (int) env('PEERTUBE_UPLOAD_TIMEOUT', 900),
+        'connect_timeout' => (int) env('PEERTUBE_CONNECT_TIMEOUT', 15),
+    ],
+
 ];
