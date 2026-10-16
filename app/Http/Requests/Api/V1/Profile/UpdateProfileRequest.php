@@ -35,6 +35,14 @@ class UpdateProfileRequest extends FormRequest
             }
         }
 
+        $spokenLanguages = $this->input('spoken_languages');
+        if (is_string($spokenLanguages)) {
+            $decoded = json_decode($spokenLanguages, true);
+            if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
+                $updates['spoken_languages'] = $decoded;
+            }
+        }
+
         foreach (['is_public', 'remove_avatar', 'remove_banner'] as $field) {
             $value = $this->input($field);
             if (! is_string($value)) {
@@ -106,6 +114,8 @@ class UpdateProfileRequest extends FormRequest
             'social_links.*.platform' => ['required', 'string', Rule::in([...SocialLinks::PLATFORMS, 'custom'])],
             'social_links.*.label' => ['nullable', 'required_if:social_links.*.platform,custom', 'string', 'max:60'],
             'social_links.*.url' => ['required', 'url:http,https', 'max:500'],
+            'spoken_languages' => ['sometimes', 'array', 'max:20'],
+            'spoken_languages.*' => ['required', 'string', 'max:50'],
             'preferred_locale' => [
                 'sometimes',
                 'required',

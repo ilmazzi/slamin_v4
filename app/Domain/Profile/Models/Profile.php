@@ -24,6 +24,7 @@ class Profile extends Model
         'location',
         'website_url',
         'social_links',
+        'spoken_languages',
         'preferred_locale',
         'is_public',
         'avatar_path',
@@ -35,6 +36,7 @@ class Profile extends Model
         'is_public' => 'boolean',
         'visibility' => 'array',
         'social_links' => 'array',
+        'spoken_languages' => 'array',
     ];
 
     protected static function booted(): void

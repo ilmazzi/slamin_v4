@@ -52,6 +52,7 @@ export function ownerProfileFromUser(user) {
     location: profile.location ?? user.location ?? '',
     website_url: profile.website_url ?? user.website_url ?? '',
     social_links: Array.isArray(profile.social_links) ? profile.social_links : [],
+    spoken_languages: Array.isArray(profile.spoken_languages) ? profile.spoken_languages : [],
     preferred_locale: profile.preferred_locale ?? null,
     is_public: profile.is_public ?? user.is_public ?? true,
     visibility: defaultVisibility(profile.visibility ?? user.visibility),
@@ -86,6 +87,23 @@ export function normalizeSocialLinks(platformValues, customLinks = []) {
   })
 
   return [...platformLinks, ...additionalLinks]
+}
+
+export function normalizeSpokenLanguages(value) {
+  const seen = new Set()
+
+  return String(value ?? '')
+    .split(',')
+    .map((language) => language.trim())
+    .filter((language) => {
+      const key = language.toLocaleLowerCase()
+      if (!language || seen.has(key)) {
+        return false
+      }
+      seen.add(key)
+      return true
+    })
+    .slice(0, 20)
 }
 
 export async function getPublicProfile(nickname, { token, signal } = {}) {
@@ -157,8 +175,8 @@ export async function updateMyProfile(values, { token, signal } = {}) {
       if (key === 'avatar' || key === 'banner') {
         return
       }
-      if ((key === 'visibility' || key === 'social_links') && value && typeof value === 'object') {
-        formData.append('visibility', JSON.stringify(value))
+      if (['visibility', 'social_links', 'spoken_languages'].includes(key) && value && typeof value === 'object') {
+        formData.append(key, JSON.stringify(value))
         return
       }
       if (typeof value === 'boolean') {

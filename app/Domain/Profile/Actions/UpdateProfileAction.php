@@ -42,6 +42,15 @@ class UpdateProfileAction
             $updates['social_links'] = SocialLinks::normalize($data->socialLinks);
         }
 
+        if ($data->wasProvided('spoken_languages')) {
+            $updates['spoken_languages'] = collect($data->spokenLanguages ?? [])
+                ->map(fn (string $language): string => trim($language))
+                ->filter()
+                ->unique(fn (string $language): string => mb_strtolower($language))
+                ->values()
+                ->all();
+        }
+
         if ($data->wasProvided('is_public') && $data->isPublic !== null) {
             $updates['is_public'] = $data->isPublic;
         }

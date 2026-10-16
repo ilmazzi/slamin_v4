@@ -75,6 +75,13 @@ const staticFallbacks = {
         other: 'Altro',
       },
     },
+    profile: {
+      page: {
+        spoken_languages: 'Lingue parlate',
+        spoken_languages_placeholder: 'Italiano, Inglese, Spagnolo',
+        spoken_languages_hint: 'Separa le lingue con una virgola. Saranno visibili nel tuo profilo pubblico.',
+      },
+    },
   },
   en: {
     common: {
@@ -129,6 +136,13 @@ const staticFallbacks = {
         events: 'Events and opportunities',
         media: 'Photos and videos',
         other: 'Other',
+      },
+    },
+    profile: {
+      page: {
+        spoken_languages: 'Spoken languages',
+        spoken_languages_placeholder: 'Italian, English, Spanish',
+        spoken_languages_hint: 'Separate languages with commas. They will appear on your public profile.',
       },
     },
   },

@@ -14,6 +14,13 @@ export default function ProfileCard({ profile, t, onWrite = null, isWriting = fa
       ? { id: 'website', label: t('profile.page.website'), value: profile.website_url, href: profile.website_url }
       : null,
     profile.email ? { id: 'email', label: t('profile.page.email'), value: profile.email, href: `mailto:${profile.email}` } : null,
+    Array.isArray(profile.spoken_languages) && profile.spoken_languages.length
+      ? {
+          id: 'spoken-languages',
+          label: t('profile.page.spoken_languages'),
+          value: profile.spoken_languages.join(', '),
+        }
+      : null,
   ].filter(Boolean)
   const socialLinks = Array.isArray(profile.social_links) ? profile.social_links : []
 

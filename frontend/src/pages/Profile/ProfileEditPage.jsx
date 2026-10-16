@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import {
   defaultVisibility,
+  normalizeSpokenLanguages,
   normalizeWebsiteUrl,
   normalizeSocialLinks,
   ownerProfileFromUser,
@@ -30,6 +31,7 @@ function formFromProfile(profile) {
     bio: profile?.bio ?? '',
     location: profile?.location ?? '',
     website_url: profile?.website_url ?? '',
+    spoken_languages: Array.isArray(profile?.spoken_languages) ? profile.spoken_languages.join(', ') : '',
     social_platforms: Object.fromEntries(
       SOCIAL_PLATFORMS.map(({ id }) => [id, socialLinks.find((link) => link.platform === id)?.url ?? '']),
     ),
@@ -226,6 +228,7 @@ export default function ProfileEditPage() {
           bio: form.bio.trim() || null,
           location: form.location.trim() || null,
           website_url: normalizeWebsiteUrl(form.website_url),
+          spoken_languages: normalizeSpokenLanguages(form.spoken_languages),
           social_links: normalizeSocialLinks(form.social_platforms, form.custom_links),
           is_public: form.is_public,
           visibility: form.visibility,
@@ -383,6 +386,18 @@ export default function ProfileEditPage() {
                 inputMode="url"
                 placeholder={t('profile.page.website_placeholder')}
               />
+            </label>
+            <label className={`${styles.field} ${styles.full}`}>
+              <span className={styles.label}>{t('profile.page.spoken_languages')}</span>
+              <input
+                className={styles.input}
+                name="spoken_languages"
+                value={form.spoken_languages}
+                onChange={onFieldChange}
+                maxLength={500}
+                placeholder={t('profile.page.spoken_languages_placeholder')}
+              />
+              <span className={styles.hint}>{t('profile.page.spoken_languages_hint')}</span>
             </label>
           </div>
 

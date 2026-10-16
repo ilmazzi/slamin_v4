@@ -24,6 +24,7 @@ class UpdateProfileController extends Controller
             location: array_key_exists('location', $validated) ? $validated['location'] : null,
             websiteUrl: array_key_exists('website_url', $validated) ? $validated['website_url'] : null,
             socialLinks: array_key_exists('social_links', $validated) ? $validated['social_links'] : null,
+            spokenLanguages: array_key_exists('spoken_languages', $validated) ? $validated['spoken_languages'] : null,
             isPublic: array_key_exists('is_public', $validated) ? (bool) $validated['is_public'] : null,
             visibility: $validated['visibility'] ?? null,
             avatar: $request->file('avatar'),

@@ -109,6 +109,24 @@ it('stores and publicly exposes social channels and custom links', function () {
         ->assertJsonPath('data.profile.social_links.2.url', 'https://example.com/podcast');
 });
 
+it('stores and publicly exposes spoken languages without duplicates', function () {
+    $owner = profileTestUser();
+    $owner->profile->update(['nickname' => 'international_poet']);
+    Sanctum::actingAs($owner);
+
+    $this->patchJson('/api/v1/me/profile', [
+        'spoken_languages' => ['Italiano', 'English', ' italiano ', 'Español'],
+    ])
+        ->assertOk()
+        ->assertJsonPath('data.profile.spoken_languages', ['Italiano', 'English', 'Español']);
+
+    $this->app['auth']->forgetGuards();
+
+    $this->getJson('/api/v1/profiles/international_poet')
+        ->assertOk()
+        ->assertJsonPath('data.profile.spoken_languages', ['Italiano', 'English', 'Español']);
+});
+
 it('rejects unsafe and malformed profile links', function () {
     $user = profileTestUser();
     Sanctum::actingAs($user);
