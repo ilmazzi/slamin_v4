@@ -31,6 +31,23 @@ const staticFallbacks = {
       intro: 'Per qualsiasi domanda, suggerimento o supporto, non esitare a contattarci.',
       email_label: 'E-mail',
     },
+    about: {
+      title: 'chi siamo',
+      statement_first: 'due entità,',
+      statement_second: 'una community open-source',
+      entities_label: 'Le realtà dietro Slam In',
+      slamin_description: 'Slam In It OÜ è un’azienda estone che ha avuto l’idea di creare una piattaforma mondiale per la poesia e gli eventi.',
+      contribute: 'Se ti interessa contribuire alla comunità, contattaci via',
+      haevol_description: 'Hævol è un’impresa sociale italiana. Sviluppa infrastrutture open-source per progetti culturali e umanitari',
+      dashboard: {
+        title: 'dashboard',
+        person: 'Nome Cognome',
+        poems: 'Poesie',
+        events: 'Eventi',
+        views: 'Visualizzazioni',
+        likes: 'Like',
+      },
+    },
   },
   en: {
     common: {
@@ -42,6 +59,23 @@ const staticFallbacks = {
       subtitle: 'Have questions? We are here to help',
       intro: 'For any questions, suggestions or support, please do not hesitate to contact us.',
       email_label: 'Email',
+    },
+    about: {
+      title: 'about us',
+      statement_first: 'two organizations,',
+      statement_second: 'one open-source community',
+      entities_label: 'The organizations behind Slam In',
+      slamin_description: 'Slam In It OÜ is an Estonian company that came up with the idea of creating a worldwide platform for poetry and events.',
+      contribute: 'If you are interested in contributing to the community, contact us at',
+      haevol_description: 'Hævol is an Italian social enterprise. It develops open-source infrastructure for cultural and humanitarian projects.',
+      dashboard: {
+        title: 'dashboard',
+        person: 'First Last',
+        poems: 'Poems',
+        events: 'Events',
+        views: 'Views',
+        likes: 'Likes',
+      },
     },
   },
 }
