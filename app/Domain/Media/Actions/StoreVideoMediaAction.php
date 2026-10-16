@@ -54,6 +54,7 @@ class StoreVideoMediaAction
 
         try {
             $video = $this->peerTubeService->uploadVideo($fullPath, [
+                'filename' => $data->file->getClientOriginalName(),
                 'name' => $data->title,
                 'description' => $data->description,
                 'privacy' => $settings['peertube_default_privacy'],

@@ -57,10 +57,14 @@ class PeerTubeService
 
         $settings = $this->resolveMediaSettingsAction->execute();
         $token = $this->getAdminToken();
+        $uploadFilename = $this->uploadFilename(
+            $videoPath,
+            isset($videoData['filename']) ? (string) $videoData['filename'] : null,
+        );
 
         $request = $this->baseRequest((int) config('services.peertube.upload_timeout', 900))
             ->withToken($token)
-            ->attach('videofile', fopen($videoPath, 'r'), basename($videoPath))
+            ->attach('videofile', fopen($videoPath, 'r'), $uploadFilename)
             ->asMultipart();
 
         $payload = [
@@ -203,5 +207,21 @@ class PeerTubeService
         }
 
         return $request;
+    }
+
+    private function uploadFilename(string $videoPath, ?string $originalName): string
+    {
+        $extension = strtolower(pathinfo(
+            str_replace('\\', '/', (string) $originalName),
+            PATHINFO_EXTENSION,
+        ));
+
+        if (! preg_match('/^[a-z0-9]{1,10}$/', $extension)) {
+            $extension = strtolower(pathinfo($videoPath, PATHINFO_EXTENSION));
+        }
+
+        return preg_match('/^[a-z0-9]{1,10}$/', $extension)
+            ? 'video.'.$extension
+            : 'video';
     }
 }

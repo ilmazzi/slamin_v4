@@ -359,7 +359,7 @@ it('uploads a video media item through peertube using admin settings', function 
         'peertube_admin_username' => 'admin',
         'peertube_admin_password' => 'secret',
         'peertube_upload_channel_id' => '12',
-        'video_allowed_mimes' => ['video/mp4'],
+        'video_allowed_mimes' => ['video/x-matroska'],
     ])->assertOk();
 
     Http::fake([
@@ -391,7 +391,7 @@ it('uploads a video media item through peertube using admin settings', function 
         'description' => 'Video description',
         'visibility' => 'private',
         'tags' => ['poetry', 'slam'],
-        'file' => UploadedFile::fake()->create('video.mp4', 1024, 'video/mp4'),
+        'file' => UploadedFile::fake()->create('recording.final.MKV', 1024, 'video/x-matroska'),
     ], [
         'Accept' => 'application/json',
     ]);
@@ -404,6 +404,9 @@ it('uploads a video media item through peertube using admin settings', function 
         ->assertJsonPath('data.media.peertube_short_uuid', 'short-77')
         ->assertJsonPath('data.media.peertube_thumbnail_url', 'https://video.example.test/static/thumbnails/77.jpg')
         ->assertJsonPath('data.media.duration_seconds', 123);
+
+    Http::assertSent(fn ($request): bool => $request->url() === 'https://video.example.test/api/v1/videos/upload'
+        && $request->hasFile('videofile', null, 'video.mkv'));
 });
 
 it('logs the underlying peertube upload failure without exposing it to the user', function () {
