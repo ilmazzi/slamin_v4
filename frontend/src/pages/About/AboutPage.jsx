@@ -1,13 +1,7 @@
 import MainLayout from '../../components/layout/MainLayout.jsx'
+import HomeDashboardPromoSection from '../../components/home/HomeDashboardPromoSection.jsx'
 import { useI18n } from '../../app/hooks/useI18n.js'
 import styles from './AboutPage.module.css'
-
-const stats = [
-  ['321', 'about.dashboard.poems'],
-  ['321', 'about.dashboard.events'],
-  ['321', 'about.dashboard.views'],
-  ['321', 'about.dashboard.likes'],
-]
 
 export default function AboutPage() {
   const { t } = useI18n()
@@ -60,25 +54,7 @@ export default function AboutPage() {
         </article>
       </section>
 
-      <section className={styles.dashboard}>
-        <div className={styles.dashboardLead}>
-          <h2>{t('about.dashboard.title')}</h2>
-          <div className={styles.profilePill}>
-            <img src="/about/profile.png" alt="" width="52" height="52" />
-            <strong>{t('about.dashboard.person')}</strong>
-            <img className={styles.profileArrow} src="/about/arrow.svg" alt="" width="44" height="31" />
-          </div>
-        </div>
-
-        <div className={styles.stats}>
-          {stats.map(([value, labelKey]) => (
-            <div className={styles.stat} key={labelKey}>
-              <strong>{value}</strong>
-              <span>{t(labelKey)}</span>
-            </div>
-          ))}
-        </div>
-      </section>
+      <HomeDashboardPromoSection />
     </MainLayout>
   )
 }

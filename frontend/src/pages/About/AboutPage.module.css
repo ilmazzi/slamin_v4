@@ -103,98 +103,6 @@
   font-weight: 700;
 }
 
-.dashboard {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  min-height: 651px;
-  padding: 38px clamp(24px, 5.73vw, 110px) 72px;
-  background: var(--color-black);
-  color: var(--color-white);
-}
-
-.dashboardLead {
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  min-width: 0;
-}
-
-.dashboard h2 {
-  margin: 0;
-  font-size: clamp(4rem, 6.771vw, 8.125rem);
-  font-weight: 800;
-  line-height: 1;
-  letter-spacing: -0.01em;
-}
-
-.profilePill {
-  display: flex;
-  align-items: center;
-  gap: 15px;
-  width: min(100%, 496px);
-  min-height: 76px;
-  padding: 8px 20px 8px 15px;
-  border-radius: 40px;
-  background: var(--color-red);
-}
-
-.profilePill > img:first-child {
-  width: 52px;
-  height: 52px;
-  flex: 0 0 auto;
-  border-radius: 50%;
-  object-fit: cover;
-}
-
-.profilePill strong {
-  flex: 1;
-  min-width: 0;
-  overflow: hidden;
-  font-size: clamp(1.5rem, 2.083vw, 2.5rem);
-  font-weight: 700;
-  line-height: 1;
-  white-space: nowrap;
-  text-overflow: ellipsis;
-}
-
-.profilePill .profileArrow {
-  width: 40px;
-  height: auto;
-  flex: 0 0 auto;
-  transform: rotate(90deg);
-}
-
-.stats {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  justify-content: center;
-  gap: 40px;
-  padding-top: 34px;
-}
-
-.stat {
-  display: flex;
-  align-items: baseline;
-  width: min(100%, 496px);
-  min-height: 99px;
-  padding: 5px 30px 14px 68px;
-  border: 1px solid var(--color-red);
-  border-radius: 100px;
-}
-
-.stat strong {
-  font-size: clamp(3.25rem, 3.646vw, 4.375rem);
-  font-weight: 800;
-  line-height: 1.2;
-}
-
-.stat span {
-  margin-left: 42px;
-  font-size: clamp(1.25rem, 1.563vw, 1.875rem);
-  font-weight: 300;
-}
-
 @media (max-width: 1100px) {
   .statement {
     min-height: 220px;
@@ -223,14 +131,6 @@
     padding-top: 60px;
   }
 
-  .dashboard {
-    min-height: 520px;
-  }
-
-  .stat {
-    min-height: 76px;
-    padding-left: 44px;
-  }
 }
 
 @media (max-width: 767px) {
@@ -301,48 +201,4 @@
     line-height: 1.15;
   }
 
-  .dashboard {
-    grid-template-columns: 1fr;
-    gap: 52px;
-    min-height: 0;
-    padding-block: 48px 56px;
-  }
-
-  .dashboardLead {
-    gap: 60px;
-  }
-
-  .dashboard h2 {
-    font-size: clamp(3.3rem, 15vw, 5rem);
-  }
-
-  .profilePill {
-    min-height: 58px;
-    padding: 6px 16px 6px 9px;
-  }
-
-  .profilePill > img:first-child {
-    width: 44px;
-    height: 44px;
-  }
-
-  .stats {
-    gap: 20px;
-    padding-top: 0;
-  }
-
-  .stat {
-    width: 100%;
-    min-height: 68px;
-    padding: 4px 28px;
-  }
-
-  .stat strong {
-    font-size: 2.7rem;
-  }
-
-  .stat span {
-    margin-left: auto;
-    font-size: 1.15rem;
-  }
 }
