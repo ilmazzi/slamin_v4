@@ -44,7 +44,7 @@ export default function HomeIntro({
       </section>
 
       <section className={styles.ctaRow}>
-        <Link to="/dashboard" className={styles.button}>
+        <Link to="/articles/ti-diamo-il-benvenuto-su-slam-in" className={styles.button}>
           <span>{ctaLabel}</span>
           <span className={styles.buttonArrow} aria-hidden="true">
             &gt;
