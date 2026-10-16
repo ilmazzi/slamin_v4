@@ -25,11 +25,23 @@ const staticFallbacks = {
       loading: 'Caricamento...',
       no_results: 'Nessun risultato',
     },
+    contact: {
+      title: 'Contattaci',
+      subtitle: 'Hai domande? Siamo qui per aiutarti',
+      intro: 'Per qualsiasi domanda, suggerimento o supporto, non esitare a contattarci.',
+      email_label: 'E-mail',
+    },
   },
   en: {
     common: {
       loading: 'Loading...',
       no_results: 'No results',
+    },
+    contact: {
+      title: 'Contact us',
+      subtitle: 'Have questions? We are here to help',
+      intro: 'For any questions, suggestions or support, please do not hesitate to contact us.',
+      email_label: 'Email',
     },
   },
 }

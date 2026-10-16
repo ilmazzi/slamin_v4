@@ -53,6 +53,7 @@ const AdminEmailTestsPage = lazy(() => import('./pages/Admin/AdminEmailTestsPage
 const HelpPage = lazy(() => import('./pages/Help/HelpPage.jsx'))
 const TermsPage = lazy(() => import('./pages/Legal/TermsPage.jsx'))
 const PrivacyPage = lazy(() => import('./pages/Legal/PrivacyPage.jsx'))
+const ContactPage = lazy(() => import('./pages/Contact/ContactPage.jsx'))
 const ModerationDashboardPage = lazy(() => import('./pages/Moderation/ModerationDashboardPage.jsx'))
 const ModerationQueuePage = lazy(() => import('./pages/Moderation/ModerationQueuePage.jsx'))
 const ModerationReviewPage = lazy(() => import('./pages/Moderation/ModerationReviewPage.jsx'))
@@ -292,15 +293,7 @@ export default function App() {
               />
             }
           />
-          <Route
-            path="/contact"
-            element={
-              <PlaceholderPage
-                titleKey="common.coming_soon.contacts_title"
-                descriptionKey="common.coming_soon.contacts_description"
-              />
-            }
-          />
+          <Route path="/contact" element={<ContactPage />} />
           <Route
             path="/contacts"
             element={<Navigate to="/contact" replace />}

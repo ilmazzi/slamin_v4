@@ -27,7 +27,8 @@ class I18nTest extends TestCase
                 'errors',
             ])
             ->assertJsonPath('data.translations.articles.title', 'articoli')
-            ->assertJsonPath('data.translations.articles.filters.sort_newest', 'Più recenti');
+            ->assertJsonPath('data.translations.articles.filters.sort_newest', 'Più recenti')
+            ->assertJsonPath('data.translations.contact.title', 'Contattaci');
     }
 
     public function test_unknown_locale_returns_404_with_api_envelope(): void

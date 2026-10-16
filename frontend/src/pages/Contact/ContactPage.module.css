@@ -1,0 +1,104 @@
+.page {
+  width: 100%;
+  padding-bottom: 79px;
+  color: var(--color-black);
+}
+
+.header {
+  display: grid;
+  gap: 22px;
+  justify-items: center;
+  padding: 65px 24px;
+  text-align: center;
+}
+
+.header h1,
+.header p,
+.intro {
+  margin: 0;
+}
+
+.header h1 {
+  font-size: clamp(3rem, 3.333vw, 4rem);
+  font-weight: 800;
+  line-height: 1;
+}
+
+.header p,
+.intro {
+  font-size: clamp(1.25rem, 1.667vw, 2rem);
+  font-weight: 300;
+  line-height: 1.25;
+}
+
+.card {
+  display: grid;
+  gap: 50px;
+  width: min(calc(100% - 48px), 1334px);
+  margin: 0 auto;
+  padding: 55px 130px;
+  border: 3px solid var(--color-black);
+  border-radius: 20px;
+}
+
+.email {
+  display: flex;
+  align-items: center;
+  gap: 30px;
+  width: fit-content;
+}
+
+.email img {
+  flex: 0 0 auto;
+  width: 60px;
+  height: 60px;
+}
+
+.email > span {
+  display: grid;
+  gap: 14px;
+  font-size: clamp(1.5rem, 1.875vw, 2.25rem);
+  font-weight: 300;
+  line-height: 1;
+}
+
+.email strong {
+  font-weight: 700;
+}
+
+.email:hover span span,
+.email:focus-visible span span {
+  color: var(--color-red);
+}
+
+@media (max-width: 1200px) {
+  .card {
+    padding-inline: 72px;
+  }
+}
+
+@media (max-width: 768px) {
+  .page {
+    padding-bottom: 56px;
+  }
+
+  .header {
+    padding-block: 48px;
+  }
+
+  .card {
+    gap: 36px;
+    width: calc(100% - 48px);
+    padding: 36px 28px;
+    border-width: 2px;
+  }
+
+  .email {
+    gap: 20px;
+  }
+
+  .email img {
+    width: 48px;
+    height: 48px;
+  }
+}
