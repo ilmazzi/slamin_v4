@@ -31,6 +31,32 @@ export async function apiGet(path, { signal, cache = 'no-store', fallbackMessage
   }
 }
 
+export async function apiPost(path, data, { signal, cache = 'no-store', fallbackMessage = 'Request failed' } = {}) {
+  const response = await fetch(getApiUrl(path), {
+    signal,
+    method: 'POST',
+    headers: {
+      Accept: 'application/json',
+      'Content-Type': 'application/json',
+      ...localeHeaders(),
+    },
+    cache,
+    body: JSON.stringify(data),
+  })
+
+  const payload = await readJsonSafe(response)
+
+  if (!response.ok) {
+    throw new Error(readApiErrorMessage(payload, fallbackMessage))
+  }
+
+  return {
+    data: payload?.data,
+    meta: normalizeMeta(payload),
+    payload,
+  }
+}
+
 export async function authApiRequest(
   path,
   {
