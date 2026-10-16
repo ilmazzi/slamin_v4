@@ -37,12 +37,24 @@ class SendNewsletterCampaignController extends Controller
                 ]);
             }
 
-            return NewsletterCampaign::query()->create([
+            $campaign = NewsletterCampaign::query()->create([
                 'created_by_user_id' => $request->user()->id,
                 'subject' => $request->string('subject')->trim()->toString(),
                 'content' => $sanitizer->sanitize($request->string('content')->toString()),
                 'status' => 'queued',
             ]);
+
+            audit()->log(
+                event: 'newsletter.campaign.queued',
+                userId: $request->user()->id,
+                auditable: $campaign,
+                newValues: [
+                    'subject' => $campaign->subject,
+                    'status' => $campaign->status,
+                ],
+            );
+
+            return $campaign;
         });
 
         SendNewsletterCampaignJob::dispatch($campaign->id);
