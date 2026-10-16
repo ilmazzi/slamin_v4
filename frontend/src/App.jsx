@@ -2,6 +2,7 @@ import { lazy, Suspense, useEffect } from 'react'
 import { Navigate, Route, Routes, useParams } from 'react-router-dom'
 import ProtectedRoute from './components/ProtectedRoute.jsx'
 import ScrollToTop from './components/ScrollToTop.jsx'
+import CookieNotice from './components/privacy/CookieNotice.jsx'
 import { useAuth } from './app/hooks/useAuth.js'
 
 const DashboardPage = lazy(() => import('./pages/Dashboard/DashboardPage.jsx'))
@@ -56,6 +57,7 @@ const AdminEmailTestsPage = lazy(() => import('./pages/Admin/AdminEmailTestsPage
 const HelpPage = lazy(() => import('./pages/Help/HelpPage.jsx'))
 const TermsPage = lazy(() => import('./pages/Legal/TermsPage.jsx'))
 const PrivacyPage = lazy(() => import('./pages/Legal/PrivacyPage.jsx'))
+const CookiePolicyPage = lazy(() => import('./pages/Legal/CookiePolicyPage.jsx'))
 const ContactPage = lazy(() => import('./pages/Contact/ContactPage.jsx'))
 const AboutPage = lazy(() => import('./pages/About/AboutPage.jsx'))
 const SupportPage = lazy(() => import('./pages/Support/SupportPage.jsx'))
@@ -331,6 +333,7 @@ export default function App() {
           <Route path="/about" element={<AboutPage />} />
           <Route path="/terms" element={<TermsPage />} />
           <Route path="/privacy" element={<PrivacyPage />} />
+          <Route path="/cookies" element={<CookiePolicyPage />} />
           <Route
             path="/newsletter"
             element={
@@ -451,6 +454,7 @@ export default function App() {
         <ChatWidget />
         <OpenProjectFeedbackWidget />
       </Suspense>
+      <CookieNotice />
     </>
   )
 }

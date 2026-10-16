@@ -18,6 +18,7 @@ return [
     'info_about' => 'Chi siamo',
     'info_terms' => 'Termini e servizi',
     'info_privacy' => 'Privacy policy',
+    'info_cookies' => 'Informativa cookie',
     'newsletter_title' => 'Newsletter',
     'newsletter_description' => 'Ricevi comunicazioni importanti dalla piattaforma, assicuriamo che non invieremo più di una mail a settimana!',
     'newsletter_cta' => 'Iscriviti alla Newsletter',

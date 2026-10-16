@@ -61,20 +61,21 @@ class GetUiTranslationBundleAction
      */
     private function buildTranslations(string $locale, string $defaultLocale): array
     {
+        $fileFallback = $this->files->translations($defaultLocale);
+        $fileCurrent = $locale === $defaultLocale ? [] : $this->files->translations($locale);
+        $translations = array_replace_recursive($fileFallback, $fileCurrent);
+
         if ($this->databaseHasTranslations()) {
             $fallback = $this->dottedForLocale($defaultLocale);
             $current = $locale === $defaultLocale ? [] : $this->dottedForLocale($locale);
             $merged = [...$fallback, ...$current];
 
             if ($merged !== []) {
-                return TranslationTree::nest($merged);
+                return array_replace_recursive($translations, TranslationTree::nest($merged));
             }
         }
 
-        $fileFallback = $this->files->translations($defaultLocale);
-        $fileCurrent = $locale === $defaultLocale ? [] : $this->files->translations($locale);
-
-        return array_replace_recursive($fileFallback, $fileCurrent);
+        return $translations;
     }
 
     /**

@@ -43,6 +43,16 @@ it('serves the ui bundle from the database after import', function () {
         ->assertJsonPath('data.translations.i18n.panel.title', 'Traduzioni');
 });
 
+it('falls back to language files for keys that are not yet in the database', function () {
+    Translation::query()
+        ->whereHas('key', fn ($query) => $query->where('key', 'cookies.notice_title'))
+        ->delete();
+
+    $this->getJson('/api/v1/i18n/it.json')
+        ->assertOk()
+        ->assertJsonPath('data.translations.cookies.notice_title', 'Solo tecnologie necessarie');
+});
+
 it('uses a database translation for laravel messages after an update', function () {
     Sanctum::actingAs(i18nTranslatorUser());
 

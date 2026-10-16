@@ -18,6 +18,7 @@ return [
     'info_about' => 'About us',
     'info_terms' => 'Terms of service',
     'info_privacy' => 'Privacy policy',
+    'info_cookies' => 'Cookie notice',
     'newsletter_title' => 'Newsletter',
     'newsletter_description' => 'Receive important communications from the platform, we assure you that we will not send more than one email per week!',
     'newsletter_cta' => 'Subscribe to the Newsletter',

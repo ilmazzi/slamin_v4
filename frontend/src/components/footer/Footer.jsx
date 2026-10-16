@@ -39,6 +39,7 @@ export default function Footer() {
               <Link to="/about">{t('footer.info_about')}</Link>
               <Link to="/terms">{t('footer.info_terms')}</Link>
               <Link to="/privacy">{t('footer.info_privacy')}</Link>
+              <Link to="/cookies">{t('footer.info_cookies')}</Link>
             </div>
           </nav>
 
