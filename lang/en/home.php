@@ -47,7 +47,7 @@ return [
     'forum' => [
         'title' => 'forum',
         'description' => 'join the community, share ideas and discuss',
-        'cta' => 'Discover more',
+        'cta' => 'Coming soon',
     ],
     'stats' => [
         'title' => 'The community in numbers',

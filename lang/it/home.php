@@ -47,7 +47,7 @@ return [
     'forum' => [
         'title' => 'forum',
         'description' => 'unisciti alla community, condividi idee e discuti',
-        'cta' => 'Scopri di più',
+        'cta' => 'Disponibile a breve',
     ],
     'stats' => [
         'title' => 'La community in numeri',

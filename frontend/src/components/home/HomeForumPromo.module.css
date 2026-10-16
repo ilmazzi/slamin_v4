@@ -70,8 +70,7 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 2.448vw;
-  width: 15.471vw;
+  min-width: 15.471vw;
   min-height: 2.917vw;
   padding: 0.417vw 1.042vw 0.417vw 1.563vw;
   border: 1px solid #000;
@@ -82,27 +81,10 @@
 }
 
 .buttonLabel {
-  width: 9.622vw;
   font-size: 1.563vw;
   font-weight: 300;
   line-height: normal;
-}
-
-.buttonIconWrap {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 0.9vw;
-  height: 0.9vw;
-}
-
-.buttonChevron {
-  display: block;
-  width: 0.5vw;
-  height: 0.5vw;
-  border-top: 2px solid #000;
-  border-right: 2px solid #000;
-  transform: rotate(45deg);
+  white-space: nowrap;
 }
 
 @media (max-width: 768px) {
@@ -143,8 +125,7 @@
   }
 
   .button {
-    gap: 18px;
-    width: 102px;
+    min-width: 126px;
     min-height: 21px;
     padding: 4px 8px;
   }
@@ -156,13 +137,4 @@
     font-size: 10px;
   }
 
-  .buttonIconWrap {
-    width: 8px;
-    height: 8px;
-  }
-
-  .buttonChevron {
-    width: 6px;
-    height: 6px;
-  }
 }

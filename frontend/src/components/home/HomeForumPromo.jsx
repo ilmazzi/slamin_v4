@@ -1,4 +1,3 @@
-import { Link } from 'react-router-dom'
 import styles from './HomeForumPromo.module.css'
 
 const forumImageDesktop = '/images/home/forum.webp'
@@ -41,12 +40,9 @@ export default function HomeForumPromo({
           <h2 className={styles.title}>{title}</h2>
           <p className={styles.description}>{description}</p>
         </div>
-        <Link to="/forum" className={styles.button}>
+        <span className={styles.button}>
           <span className={styles.buttonLabel}>{ctaLabel}</span>
-          <span className={styles.buttonIconWrap} aria-hidden="true">
-            <span className={styles.buttonChevron} />
-          </span>
-        </Link>
+        </span>
       </div>
     </section>
   )
