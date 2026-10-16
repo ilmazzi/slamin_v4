@@ -159,6 +159,12 @@ border-bottom: 30px solid black;
   margin-bottom: 24px;
 }
 
+.ownerActions {
+  width: 100%;
+  max-width: 1280px;
+  margin: 24px auto 0;
+}
+
 .translationsManager {
   width: 100%;
   max-width: 1280px;

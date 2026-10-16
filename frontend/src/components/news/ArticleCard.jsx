@@ -109,20 +109,6 @@ export default function ArticleCard({ slug, onComments, onLoaded }) {
 
       <div className={styles.inner}>
         <ContentLanguageSwitcher item={article} view={translationView} className={styles.languageSwitcher} />
-        {isOwner ? (
-          <OwnerContentActions
-            editHref={`/articles/${encodeURIComponent(article.slug)}/edit`}
-            editLabel={t('articles.actions.edit')}
-            deleteLabel={t('articles.actions.delete')}
-            deletingLabel={t('articles.actions.deleting')}
-            confirmMessage={t('articles.actions.delete_confirm')}
-            deleteErrorMessage={t('articles.actions.delete_failed')}
-            onDelete={async () => {
-              await deleteArticle(article.id, { token })
-              navigate('/articles', { replace: true })
-            }}
-          />
-        ) : null}
         <h1 className={styles.title} lang={contentLang}>{displayTitle}</h1>
 
         <div className={styles.contentGrid}>
@@ -138,6 +124,22 @@ export default function ArticleCard({ slug, onComments, onLoaded }) {
         </div>
       </div>
     </article>
+    {isOwner ? (
+      <div className={styles.ownerActions}>
+        <OwnerContentActions
+          editHref={`/articles/${encodeURIComponent(article.slug)}/edit`}
+          editLabel={t('articles.actions.edit')}
+          deleteLabel={t('articles.actions.delete')}
+          deletingLabel={t('articles.actions.deleting')}
+          confirmMessage={t('articles.actions.delete_confirm')}
+          deleteErrorMessage={t('articles.actions.delete_failed')}
+          onDelete={async () => {
+            await deleteArticle(article.id, { token })
+            navigate('/articles', { replace: true })
+          }}
+        />
+      </div>
+    ) : null}
     {isOwner ? (
       <div className={styles.translationsManager}>
         <ContentTranslationsManager

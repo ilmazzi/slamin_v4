@@ -38,6 +38,12 @@
   margin: clamp(32px, 4vw, 56px) auto 0;
 }
 
+.ownerActions {
+  width: 100%;
+  max-width: 1700px;
+  margin: clamp(20px, 2.5vw, 32px) auto 0;
+}
+
 /* Blocco alto: titolo (Frame 106) + colonna categoria (Frame 107, padding-top 20px) */
 .top {
   display: flex;

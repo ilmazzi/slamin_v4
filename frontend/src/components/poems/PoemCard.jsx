@@ -71,20 +71,6 @@ export default function PoemCard({ slug, onComments, onLoaded }) {
       <article className={styles.card}>
         <div className={styles.top}>
           <ContentLanguageSwitcher item={poem} view={translationView} />
-          {isOwner ? (
-            <OwnerContentActions
-              editHref={`/poems/${encodeURIComponent(poem.slug)}/edit`}
-              editLabel={t('poems.actions.edit')}
-              deleteLabel={t('poems.actions.delete')}
-              deletingLabel={t('poems.actions.deleting')}
-              confirmMessage={t('poems.actions.delete_confirm')}
-              deleteErrorMessage={t('poems.actions.delete_failed')}
-              onDelete={async () => {
-                await deletePoem(poem.id, { token })
-                navigate('/poems', { replace: true })
-              }}
-            />
-          ) : null}
           <div className={styles.titleRow}>
             <h1 className={styles.title} lang={contentLang}>&ldquo;{displayTitle}&rdquo;</h1>
             <div className={styles.categoryColumn}>
@@ -154,6 +140,22 @@ export default function PoemCard({ slug, onComments, onLoaded }) {
           </div>
         </footer>
       </article>
+      {isOwner ? (
+        <div className={styles.ownerActions}>
+          <OwnerContentActions
+            editHref={`/poems/${encodeURIComponent(poem.slug)}/edit`}
+            editLabel={t('poems.actions.edit')}
+            deleteLabel={t('poems.actions.delete')}
+            deletingLabel={t('poems.actions.deleting')}
+            confirmMessage={t('poems.actions.delete_confirm')}
+            deleteErrorMessage={t('poems.actions.delete_failed')}
+            onDelete={async () => {
+              await deletePoem(poem.id, { token })
+              navigate('/poems', { replace: true })
+            }}
+          />
+        </div>
+      ) : null}
       {isOwner ? (
         <div className={styles.translationsManager}>
           <ContentTranslationsManager
