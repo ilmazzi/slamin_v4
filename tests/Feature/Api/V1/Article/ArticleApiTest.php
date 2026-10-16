@@ -46,6 +46,28 @@ it('creates an article and auto publishes it by default', function () {
     ]);
 });
 
+it('sanitizes rich text when creating an article', function () {
+    Sanctum::actingAs(articleAuthor());
+
+    $this->postJson('/api/v1/articles', [
+        'title' => 'Formatted article',
+        'content' => '<h2 style="position:fixed; text-align:center" onclick="alert(1)">Hello <strong>world</strong></h2><script>alert(1)</script><a href="javascript:alert(1)">Bad link</a>',
+        'status' => 'draft',
+        'language' => 'it',
+        'is_public' => true,
+    ])->assertOk();
+
+    $content = Article::query()->where('slug', 'formatted-article')->value('content');
+
+    expect($content)
+        ->toContain('<h2 data-text-align="center">')
+        ->toContain('<strong>world</strong>')
+        ->not->toContain('script')
+        ->not->toContain('onclick')
+        ->not->toContain('style=')
+        ->not->toContain('javascript:');
+});
+
 it('lists article categories publicly', function () {
     $category = ArticleCategory::query()->create([
         'slug' => 'annunci',

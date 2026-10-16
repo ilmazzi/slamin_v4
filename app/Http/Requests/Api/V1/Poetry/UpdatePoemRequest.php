@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\Api\V1\Poetry;
 
+use App\Rules\RichTextContent;
 use Domain\Poetry\Enums\PoemStatus;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
@@ -40,7 +41,7 @@ class UpdatePoemRequest extends FormRequest
     {
         return [
             'title' => ['required', 'string', 'max:255'],
-            'content' => ['required', 'string'],
+            'content' => ['required', 'string', new RichTextContent],
             'description' => ['nullable', 'string'],
             'image' => ['nullable', 'image', 'max:5120'],
             'remove_image' => ['nullable', 'boolean'],

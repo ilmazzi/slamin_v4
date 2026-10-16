@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\Api\V1\ContentTranslation;
 
+use App\Rules\RichTextContent;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Validator;
@@ -17,7 +18,7 @@ class UpsertContentTranslationRequest extends FormRequest
     {
         return [
             'title' => ['required', 'string', 'max:255'],
-            'content' => ['required', 'string'],
+            'content' => ['required', 'string', new RichTextContent],
             'summary' => ['nullable', 'string', 'max:5000'],
         ];
     }

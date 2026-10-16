@@ -2,10 +2,13 @@ import { useCallback, useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import MainLayout from '../../components/layout/MainLayout.jsx'
 import AppToast from '../../components/shared/AppToast.jsx'
+import RichTextContent from '../../components/shared/RichTextContent.jsx'
+import RichTextEditor from '../../components/shared/RichTextEditor.jsx'
 import { formatGigDeadline, formatGigDateTime, formatGigMoney } from '../../components/gigs/gigFormat.js'
 import styles from './GigWorkspace.module.css'
 import { useI18n } from '../../app/hooks/useI18n.js'
 import { useAuth } from '../../app/hooks/useAuth.js'
+import { isRichTextEmpty } from '../../app/content/richText.js'
 import {
   addTranslationComment,
   approveTranslationJob,
@@ -220,7 +223,7 @@ export default function TranslationJobPage() {
               <h2 className={styles.panelTitle}>{t('gigs.job.source')}</h2>
             </header>
             <div className={styles.panelBody}>
-              <pre className={styles.sourceText}>{job.poem?.content ?? ''}</pre>
+              <RichTextContent content={job.poem?.content} className={styles.sourceText} />
             </div>
           </section>
 
@@ -231,24 +234,22 @@ export default function TranslationJobPage() {
             <div className={styles.panelBody}>
               {canEditContent ? (
                 <>
-                  <textarea
-                    className={[styles.textarea, styles.textareaTall].join(' ')}
+                  <RichTextEditor
                     value={content}
-                    onChange={(event) => setContent(event.target.value)}
-                    placeholder={t('gigs.job.translation_placeholder')}
+                    onChange={setContent}
                     aria-label={t('gigs.job.translation')}
                   />
                   <div className={styles.actions}>
                     <button type="button" className={styles.btn} disabled={busy !== '' || !isDirty} onClick={saveContent}>
                       {t('gigs.job.save')}
                     </button>
-                    <button type="button" className={[styles.btn, styles.btnDark].join(' ')} disabled={busy !== '' || !content.trim()} onClick={submit}>
+                    <button type="button" className={[styles.btn, styles.btnDark].join(' ')} disabled={busy !== '' || isRichTextEmpty(content)} onClick={submit}>
                       {t('gigs.job.submit')}
                     </button>
                   </div>
                 </>
               ) : job.translated_content ? (
-                <pre className={styles.sourceText}>{job.translated_content}</pre>
+                <RichTextContent content={job.translated_content} className={styles.sourceText} />
               ) : (
                 <p className={styles.muted}>{t('gigs.job.empty_translation')}</p>
               )}

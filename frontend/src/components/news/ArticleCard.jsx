@@ -11,6 +11,7 @@ import {
 } from '../../app/hooks/useContentTranslationView.js'
 import ContentLanguageSwitcher from '../shared/ContentLanguageSwitcher.jsx'
 import ContentTranslationsManager from '../shared/ContentTranslationsManager.jsx'
+import RichTextContent from '../shared/RichTextContent.jsx'
 import styles from './ArticleCard.module.css'
 import { useEffect } from 'react'
 
@@ -114,7 +115,7 @@ export default function ArticleCard({ slug, onComments, onLoaded }) {
           <div className={styles.copy} lang={contentLang}>
             {displayExcerpt ? <p className={styles.lead}>{displayExcerpt}</p> : null}
             <div className={styles.rule} aria-hidden="true" />
-            {displayContent ? <div className={styles.bodyText}>{displayContent}</div> : null}
+            <RichTextContent content={displayContent} className={styles.bodyText} lang={contentLang} />
           </div>
         </div>
       </div>

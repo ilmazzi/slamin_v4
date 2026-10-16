@@ -8,14 +8,15 @@ use Domain\Article\Enums\ArticleStatus;
 use Domain\Article\Models\Article;
 use Domain\Shared\Enums\ContentType;
 use Domain\Shared\Enums\PublicationFlow;
+use Domain\Shared\Support\RichTextSanitizer;
 use Illuminate\Support\Str;
 
 class StoreArticleAction
 {
     public function __construct(
         private readonly ResolveContentPublicationFlowAction $resolveContentPublicationFlowAction,
-    ) {
-    }
+        private readonly RichTextSanitizer $richTextSanitizer,
+    ) {}
 
     public function execute(StoreArticleData $data): Article
     {
@@ -30,7 +31,7 @@ class StoreArticleAction
             'article_category_id' => $data->articleCategoryId,
             'title' => $data->title,
             'slug' => $this->generateUniqueSlug($data->title),
-            'content' => $data->content,
+            'content' => $this->richTextSanitizer->sanitize($data->content),
             'excerpt' => $data->excerpt,
             'cover_image_path' => $coverImagePath,
             'language' => $data->language,

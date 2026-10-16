@@ -4,9 +4,14 @@ namespace Domain\ContentTranslation\Actions;
 
 use Domain\ContentTranslation\Contracts\TranslatableContent;
 use Domain\ContentTranslation\Models\ContentTranslation;
+use Domain\Shared\Support\RichTextSanitizer;
 
 class UpsertContentTranslationAction
 {
+    public function __construct(
+        private readonly RichTextSanitizer $richTextSanitizer,
+    ) {}
+
     /**
      * @param  array{title: string, content: string, summary?: string|null}  $data
      */
@@ -16,7 +21,7 @@ class UpsertContentTranslationAction
             ['locale' => $locale],
             [
                 'title' => $data['title'],
-                'content' => $data['content'],
+                'content' => $this->richTextSanitizer->sanitize($data['content']),
                 'summary' => $data['summary'] ?? null,
                 'user_id' => $userId,
             ],

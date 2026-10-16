@@ -7,9 +7,11 @@ import {
   listPoemTypes,
   updatePoem,
 } from '../../app/api/poems.js'
+import { isRichTextEmpty } from '../../app/content/richText.js'
 import { useAuth } from '../../app/hooks/useAuth.js'
 import { useI18n } from '../../app/hooks/useI18n.js'
 import AppToast from '../shared/AppToast.jsx'
+import RichTextEditor from '../shared/RichTextEditor.jsx'
 import styles from './PoemForm.module.css'
 
 export default function PoemForm({ slug = null }) {
@@ -109,6 +111,11 @@ export default function PoemForm({ slug = null }) {
 
     if (isEditing && !editingPoem) {
       setErrorMessage(t('poems.form.error_updating_poem'))
+      return
+    }
+
+    if (isRichTextEmpty(formValues.content)) {
+      setErrorMessage(t('rich_text.required'))
       return
     }
 
@@ -225,17 +232,14 @@ export default function PoemForm({ slug = null }) {
             />
           </label>
 
-          <label className={`${styles.field} ${styles.full}`}>
-            <span className={styles.label}>{t('poems.form.label_content')} *</span>
-            <textarea
-              className={styles.textarea}
-              name="content"
+          <div className={`${styles.field} ${styles.full}`}>
+            <span id="poem-content-label" className={styles.label}>{t('poems.form.label_content')} *</span>
+            <RichTextEditor
               value={formValues.content}
-              onChange={handleFieldChange}
-              rows={12}
-              required
+              ariaLabel={t('poems.form.label_content')}
+              onChange={(content) => setFormValues((prev) => ({ ...prev, content }))}
             />
-          </label>
+          </div>
 
           <label className={`${styles.field} ${styles.full}`}>
             <span className={styles.label}>{t('poems.form.label_image')}</span>

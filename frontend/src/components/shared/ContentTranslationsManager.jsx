@@ -4,9 +4,11 @@ import {
   getContentTranslation,
   saveContentTranslation,
 } from '../../app/api/contentTranslations.js'
+import { isRichTextEmpty } from '../../app/content/richText.js'
 import { useAuth } from '../../app/hooks/useAuth.js'
 import { useI18n } from '../../app/hooks/useI18n.js'
 import { contentLanguageOptions, languageName } from '../../app/i18n/contentLanguages.js'
+import RichTextEditor from './RichTextEditor.jsx'
 import styles from './ContentTranslationsManager.module.css'
 
 const EMPTY_FORM = { locale: '', title: '', content: '', summary: '' }
@@ -63,6 +65,11 @@ export default function ContentTranslationsManager({ contentType, item, withSumm
   async function handleSubmit(event) {
     event.preventDefault()
     if (!form?.locale || isBusy) {
+      return
+    }
+
+    if (isRichTextEmpty(form.content)) {
+      setError(t('rich_text.required'))
       return
     }
 
@@ -200,16 +207,14 @@ export default function ContentTranslationsManager({ contentType, item, withSumm
             </label>
           ) : null}
 
-          <label className={styles.field}>
+          <div className={styles.field}>
             <span className={styles.label}>{t('content_translations.manage.content_field')}</span>
-            <textarea
-              className={[styles.input, styles.content].join(' ')}
+            <RichTextEditor
               value={form.content}
-              required
-              lang={form.locale || undefined}
-              onChange={(event) => updateField('content', event.target.value)}
+              ariaLabel={t('content_translations.manage.content_field')}
+              onChange={(content) => updateField('content', content)}
             />
-          </label>
+          </div>
 
           <div className={styles.formActions}>
             <button type="button" className={styles.secondaryButton} onClick={() => setForm(null)} disabled={isBusy}>

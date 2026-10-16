@@ -59,26 +59,6 @@ export default function Header({
     return items
   }, [isAuthenticated, t])
 
-  const communityItems = useMemo(
-    () => [
-      { id: 'faq', label: t('header.menu.community.faq'), href: '/faq' },
-      { id: 'help', label: t('header.menu.community.help'), href: '/help' },
-      { id: 'support', label: t('header.menu.community.support'), href: '/support', emphasized: true },
-      { id: 'contacts', label: t('header.menu.community.contacts'), href: '/contacts' },
-      { id: 'tutorial', label: t('header.menu.community.tutorial'), href: '/tutorial' },
-    ],
-    [t],
-  )
-
-  const infoItems = useMemo(
-    () => [
-      { id: 'about', label: t('header.menu.info.about'), href: '/about' },
-      { id: 'terms', label: t('header.menu.info.terms'), href: '/terms' },
-      { id: 'privacy', label: t('header.menu.info.privacy'), href: '/privacy', emphasized: true },
-    ],
-    [t],
-  )
-
   const localeOptions = useMemo(() => {
     const entries = (availableLocales.length ? availableLocales : [locale]).map(normalizeLocaleOption)
     return entries.filter((entry) => entry.code)

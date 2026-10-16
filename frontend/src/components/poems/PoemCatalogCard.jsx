@@ -1,4 +1,5 @@
 import { resolvePublicUrl } from '../../app/api/url.js'
+import { richTextToPlainText } from '../../app/content/richText.js'
 import { formatShortPublishedDate } from '../../app/formatters/date.js'
 import PillButton from '../shared/PillButton.jsx'
 import SocialActions from '../shared/SocialActions.jsx'
@@ -16,7 +17,7 @@ export default function PoemCatalogCard({ poem, locale, t }) {
   const authorName = poem?.author?.nickname ?? poem?.author?.display_name ?? t('poems.all.no_author')
   const authorAvatar = resolvePublicUrl(poem?.author?.avatar_url)
   const publishedDate = formatShortPublishedDate(poem?.published_at, locale, '-')
-  const excerpt = poem?.description || poem?.content || t('poems.all.no_excerpt')
+  const excerpt = poem?.description || richTextToPlainText(poem?.content) || t('poems.all.no_excerpt')
   const title = poem?.title ?? t('poems.all.no_title')
   const detailId = poem?.slug ?? poem?.id
   const metrics = buildPoemMetrics(poem)

@@ -30,15 +30,17 @@ function audienceUser(): User
 it('allows an admin to create a poem category with translations', function () {
     Sanctum::actingAs(adminUser());
 
-    $response = $this->postJson('/api/v1/admin/poem-categories', [
-        'slug' => 'test-category',
-        'is_active' => true,
-        'sort_order' => 5,
-        'translations' => [
-            ['locale' => 'it', 'name' => 'Categoria test'],
-            ['locale' => 'en', 'name' => 'Test category'],
+    $response = $this->withHeader('X-Locale', 'en')
+        ->postJson('/api/v1/admin/poem-categories', [
+            'slug' => 'test-category',
+            'is_active' => true,
+            'sort_order' => 5,
+            'translations' => [
+                ['locale' => 'it', 'name' => 'Categoria test'],
+                ['locale' => 'en', 'name' => 'Test category'],
+            ],
         ],
-    ]);
+        );
 
     $response
         ->assertCreated()

@@ -8,14 +8,15 @@ use Domain\Article\Enums\ArticleStatus;
 use Domain\Article\Models\Article;
 use Domain\Shared\Enums\ContentType;
 use Domain\Shared\Enums\PublicationFlow;
+use Domain\Shared\Support\RichTextSanitizer;
 use Illuminate\Support\Facades\Storage;
 
 class UpdateArticleAction
 {
     public function __construct(
         private readonly ResolveContentPublicationFlowAction $resolveContentPublicationFlowAction,
-    ) {
-    }
+        private readonly RichTextSanitizer $richTextSanitizer,
+    ) {}
 
     public function execute(Article $article, UpdateArticleData $data): Article
     {
@@ -53,7 +54,7 @@ class UpdateArticleAction
 
         $article->update([
             'title' => $data->title,
-            'content' => $data->content,
+            'content' => $this->richTextSanitizer->sanitize($data->content),
             'excerpt' => $data->excerpt,
             'article_category_id' => $data->articleCategoryId,
             'cover_image_path' => $coverImagePath,

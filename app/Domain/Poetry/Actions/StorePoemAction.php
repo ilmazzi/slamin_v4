@@ -8,14 +8,15 @@ use Domain\Poetry\Enums\PoemStatus;
 use Domain\Poetry\Models\Poem;
 use Domain\Shared\Enums\ContentType;
 use Domain\Shared\Enums\PublicationFlow;
+use Domain\Shared\Support\RichTextSanitizer;
 use Illuminate\Support\Str;
 
 class StorePoemAction
 {
     public function __construct(
         private readonly ResolveContentPublicationFlowAction $resolveContentPublicationFlowAction,
-    ) {
-    }
+        private readonly RichTextSanitizer $richTextSanitizer,
+    ) {}
 
     public function execute(StorePoemData $data): Poem
     {
@@ -35,7 +36,7 @@ class StorePoemAction
             'poem_type_id' => $data->poemTypeId,
             'title' => $data->title,
             'slug' => $this->generateUniqueSlug($data->title),
-            'content' => $data->content,
+            'content' => $this->richTextSanitizer->sanitize($data->content),
             'description' => $data->description,
             'image_path' => $imagePath,
             'language' => $data->language,

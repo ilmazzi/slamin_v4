@@ -6,12 +6,17 @@ use Domain\Poetry\Models\Poem;
 use Domain\Share\Support\ShareCardFormat;
 use Domain\Share\Support\ShareCardLogo;
 use Domain\Share\Support\SlaminShareMark;
+use Domain\Shared\Support\RichTextSanitizer;
 use GdImage;
 use RuntimeException;
 
 class PoemShareCardRenderer
 {
     private const BACKGROUND = [107, 33, 168];
+
+    public function __construct(
+        private readonly RichTextSanitizer $richTextSanitizer,
+    ) {}
 
     public function render(Poem $poem, ShareCardFormat $format = ShareCardFormat::Square): string
     {
@@ -333,7 +338,7 @@ class PoemShareCardRenderer
 
     private function poemBody(Poem $poem): string
     {
-        $raw = html_entity_decode(strip_tags((string) $poem->content), ENT_QUOTES | ENT_HTML5, 'UTF-8');
+        $raw = $this->richTextSanitizer->toPlainText((string) $poem->content);
         $raw = preg_replace("/\r\n|\r/u", "\n", $raw) ?? $raw;
         $raw = trim($raw);
 

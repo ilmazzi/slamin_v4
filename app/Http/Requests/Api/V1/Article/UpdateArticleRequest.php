@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\Api\V1\Article;
 
+use App\Rules\RichTextContent;
 use Domain\Article\Enums\ArticleStatus;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
@@ -17,7 +18,7 @@ class UpdateArticleRequest extends FormRequest
     {
         return [
             'title' => ['required', 'string', 'max:255'],
-            'content' => ['required', 'string'],
+            'content' => ['required', 'string', new RichTextContent],
             'excerpt' => ['nullable', 'string'],
             'cover_image' => ['nullable', 'image', 'max:5120'],
             'remove_cover_image' => ['nullable', 'boolean'],

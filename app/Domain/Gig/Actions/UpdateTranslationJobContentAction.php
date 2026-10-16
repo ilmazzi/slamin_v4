@@ -5,11 +5,16 @@ namespace Domain\Gig\Actions;
 use Domain\Gig\DTOs\UpdateTranslationJobData;
 use Domain\Gig\Enums\TranslationJobStatus;
 use Domain\Gig\Models\TranslationJob;
+use Domain\Shared\Support\RichTextSanitizer;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\ValidationException;
 
 class UpdateTranslationJobContentAction
 {
+    public function __construct(
+        private readonly RichTextSanitizer $richTextSanitizer,
+    ) {}
+
     public function execute(TranslationJob $job, UpdateTranslationJobData $data): TranslationJob
     {
         $isTranslator = (int) Auth::id() === (int) $job->translator_user_id;
@@ -33,7 +38,9 @@ class UpdateTranslationJobContentAction
         ];
 
         if ($data->translatedContentProvided) {
-            $job->translated_content = $data->translatedContent;
+            $job->translated_content = $data->translatedContent === null
+                ? null
+                : $this->richTextSanitizer->sanitize($data->translatedContent);
         }
 
         if ($data->deadlineProvided) {

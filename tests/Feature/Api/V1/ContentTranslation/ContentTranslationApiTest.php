@@ -107,6 +107,25 @@ it('lets the owner translate and delete an article translation', function () {
     $this->deleteJson("/api/v1/articles/{$article->id}/translations/fr")->assertNotFound();
 });
 
+it('sanitizes translated rich text', function () {
+    $owner = translationAuthor();
+    $article = translatableArticle($owner);
+    Sanctum::actingAs($owner);
+
+    $this->putJson("/api/v1/articles/{$article->id}/translations/en", [
+        'title' => 'Safe translation',
+        'content' => '<blockquote>Quote</blockquote><p style="text-align:justify">Body</p><iframe src="https://example.com"></iframe>',
+    ])->assertOk();
+
+    $content = $article->translations()->where('locale', 'en')->value('content');
+
+    expect($content)
+        ->toContain('<blockquote>Quote</blockquote>')
+        ->toContain('data-text-align="justify"')
+        ->not->toContain('iframe')
+        ->not->toContain('style=');
+});
+
 it('forbids translating content owned by someone else', function () {
     $poem = translatablePoem(translationAuthor());
     $article = translatableArticle(translationAuthor());

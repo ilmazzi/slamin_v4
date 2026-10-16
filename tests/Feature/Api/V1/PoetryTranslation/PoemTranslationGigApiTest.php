@@ -1,10 +1,8 @@
 <?php
 
-use Domain\Event\Models\EventCategory;
 use Domain\Gig\Models\Gig;
 use Domain\Gig\Models\GigApplication;
 use Domain\Gig\Models\GigNegotiation;
-use Domain\Gig\Models\TranslationComment;
 use Domain\Gig\Models\TranslationJob;
 use Domain\Poetry\Models\Poem;
 use Domain\Poetry\Models\PoemCategory;
@@ -507,10 +505,13 @@ it('allows the translator to update and submit a translation job', function () {
     ]);
 
     $this->patchJson(route('api.v1.translation-jobs.update', $job), [
-        'translated_content' => 'Przetlumaczony tekst.',
+        'translated_content' => '<p style="text-align:center">Przetlumaczony <strong>tekst.</strong></p><script>alert(1)</script>',
     ])
         ->assertOk()
-        ->assertJsonPath('data.translation_job.translated_content', 'Przetlumaczony tekst.');
+        ->assertJsonPath(
+            'data.translation_job.translated_content',
+            '<p data-text-align="center">Przetlumaczony <strong>tekst.</strong></p>',
+        );
 
     $this->postJson(route('api.v1.translation-jobs.submit', $job))
         ->assertOk()

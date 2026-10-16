@@ -6,9 +6,11 @@ import {
   listArticleCategories,
   updateArticle,
 } from '../../app/api/articles.js'
+import { isRichTextEmpty } from '../../app/content/richText.js'
 import { useAuth } from '../../app/hooks/useAuth.js'
 import { useI18n } from '../../app/hooks/useI18n.js'
 import AppToast from '../shared/AppToast.jsx'
+import RichTextEditor from '../shared/RichTextEditor.jsx'
 import styles from './ArticleForm.module.css'
 
 export default function ArticleForm({ slug = null }) {
@@ -97,6 +99,11 @@ export default function ArticleForm({ slug = null }) {
 
     if (isEditing && !editingArticle) {
       setErrorMessage(t('articles.form.error_updating_article'))
+      return
+    }
+
+    if (isRichTextEmpty(formValues.content)) {
+      setErrorMessage(t('rich_text.required'))
       return
     }
 
@@ -195,17 +202,15 @@ export default function ArticleForm({ slug = null }) {
             />
           </label>
 
-          <label className={`${styles.field} ${styles.full}`}>
+          <div className={`${styles.field} ${styles.full}`}>
             <span className={styles.label}>{t('articles.form.label_content')} *</span>
-            <textarea
-              className={styles.textarea}
-              name="content"
+            <RichTextEditor
               value={formValues.content}
-              onChange={handleFieldChange}
-              rows={16}
-              required
+              ariaLabel={t('articles.form.label_content')}
+              minHeight="360px"
+              onChange={(content) => setFormValues((prev) => ({ ...prev, content }))}
             />
-          </label>
+          </div>
 
           <label className={`${styles.field} ${styles.full}`}>
             <span className={styles.label}>{t('articles.form.label_cover_image')}</span>

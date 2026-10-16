@@ -1,5 +1,6 @@
 import { useI18n } from '../../app/hooks/useI18n.js'
 import { resolvePublicUrl } from '../../app/api/url.js'
+import { richTextToPlainText } from '../../app/content/richText.js'
 import SocialActions from '../shared/SocialActions.jsx'
 import styles from './FeaturedPoemCard.module.css'
 
@@ -53,7 +54,7 @@ export default function FeaturedPoemCard({ poem }) {
 
       <div className={styles.body}>
         <h2 className={styles.title}>{poem?.title}</h2>
-        <p className={styles.excerpt}>{poem?.description || poem?.content}</p>
+        <p className={styles.excerpt}>{poem?.description || richTextToPlainText(poem?.content)}</p>
       </div>
 
       <div className={styles.footer}>

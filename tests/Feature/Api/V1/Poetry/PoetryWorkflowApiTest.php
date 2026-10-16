@@ -80,6 +80,27 @@ function poetryWorkflowPoem(
     ], $attributes));
 }
 
+it('sanitizes rich text when creating a poem', function () {
+    Sanctum::actingAs(poetryWorkflowOrganizer());
+
+    $this->postJson('/api/v1/poems', [
+        'title' => 'Poesia formattata',
+        'content' => '<p style="text-align:right" onmouseover="alert(1)">Verso <em>corsivo</em></p><img src=x onerror=alert(1)>',
+        'status' => 'draft',
+        'language' => 'it',
+        'is_public' => true,
+    ])->assertOk();
+
+    $content = Poem::query()->where('slug', 'poesia-formattata')->value('content');
+
+    expect($content)
+        ->toContain('<p data-text-align="right">')
+        ->toContain('<em>corsivo</em>')
+        ->not->toContain('<img')
+        ->not->toContain('onmouseover')
+        ->not->toContain('style=');
+});
+
 it('lists only published public poems', function () {
     $author = poetryWorkflowOrganizer();
     $category = poetryWorkflowCategory('pubblico');

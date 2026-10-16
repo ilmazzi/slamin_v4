@@ -1,0 +1,56 @@
+.content {
+  overflow-wrap: anywhere;
+}
+
+.content > :first-child {
+  margin-top: 0;
+}
+
+.content > :last-child {
+  margin-bottom: 0;
+}
+
+.content p {
+  margin: 0 0 0.9em;
+}
+
+.content h2,
+.content h3 {
+  margin: 1.15em 0 0.5em;
+  line-height: 1.15;
+}
+
+.content blockquote {
+  margin: 1em 0;
+  padding-left: 1em;
+  border-left: 4px solid currentColor;
+}
+
+.content ul,
+.content ol {
+  margin: 0.85em 0;
+  padding-left: 1.6em;
+}
+
+.content a {
+  color: inherit;
+  text-decoration: underline;
+  text-decoration-thickness: 0.08em;
+  text-underline-offset: 0.14em;
+}
+
+.content [data-text-align='left'] {
+  text-align: left;
+}
+
+.content [data-text-align='center'] {
+  text-align: center;
+}
+
+.content [data-text-align='right'] {
+  text-align: right;
+}
+
+.content [data-text-align='justify'] {
+  text-align: justify;
+}

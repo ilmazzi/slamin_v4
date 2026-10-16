@@ -14,6 +14,7 @@ import {
 } from '../../app/hooks/useContentTranslationView.js'
 import ContentLanguageSwitcher from '../shared/ContentLanguageSwitcher.jsx'
 import ContentTranslationsManager from '../shared/ContentTranslationsManager.jsx'
+import RichTextContent from '../shared/RichTextContent.jsx'
 import { useEffect } from 'react'
 
 export default function PoemCard({ slug, onComments, onLoaded }) {
@@ -83,7 +84,7 @@ export default function PoemCard({ slug, onComments, onLoaded }) {
         <div className={styles.corpo} lang={contentLang}>
           {poem.excerpt ? <p className={styles.lead}>{poem.excerpt}</p> : null}
           {poem.excerpt && displayContent ? <div className={styles.rule} aria-hidden="true" /> : null}
-          {displayContent ? <div className={styles.bodyText}>{displayContent}</div> : null}
+          <RichTextContent content={displayContent} className={styles.bodyText} lang={contentLang} />
         </div>
 
         {/* Figma: autore sotto il testo, su sfondo bianco (non nella barra nera) */}

@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\Api\V1\Gig;
 
+use App\Rules\RichTextContent;
 use Illuminate\Foundation\Http\FormRequest;
 
 class UpdateTranslationJobRequest extends FormRequest
@@ -14,7 +15,7 @@ class UpdateTranslationJobRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'translated_content' => ['sometimes', 'nullable', 'string'],
+            'translated_content' => ['sometimes', 'nullable', 'string', new RichTextContent],
             'deadline' => ['sometimes', 'nullable', 'date'],
         ];
     }
