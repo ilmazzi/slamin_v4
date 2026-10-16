@@ -72,6 +72,47 @@ function Field({ label, children, full = false, hint = '' }) {
   )
 }
 
+function DateTimeField({ label, value, onChange, required = false, t }) {
+  const parts = splitDateTimeParts(value)
+  const dateRequired = required || Boolean(parts.time)
+  const timeRequired = required || Boolean(parts.date)
+
+  const setPart = (part, nextValue) => {
+    const nextDate = part === 'date' ? nextValue : parts.date
+    const nextTime = part === 'time' ? nextValue : parts.time
+    onChange(nextDate || nextTime ? `${nextDate}T${nextTime}` : '')
+  }
+
+  return (
+    <div className={styles.dateTimeField} role="group" aria-label={label}>
+      <span className={styles.fieldLabel}>{label}</span>
+      <div className={styles.dateTimeParts}>
+        <label className={styles.field}>
+          <span className={styles.fieldHint}>{t('events.date')}</span>
+          <input
+            className={styles.input}
+            type="date"
+            value={parts.date}
+            onChange={(event) => setPart('date', event.target.value)}
+            required={dateRequired}
+          />
+        </label>
+        <label className={styles.field}>
+          <span className={styles.fieldHint}>{t('events.time')}</span>
+          <input
+            className={styles.input}
+            type="time"
+            step="900"
+            value={parts.time}
+            onChange={(event) => setPart('time', event.target.value)}
+            required={timeRequired}
+          />
+        </label>
+      </div>
+    </div>
+  )
+}
+
 function Toggle({ checked, onChange }) {
     return (
       <button
@@ -897,12 +938,25 @@ export default function EventCreateForm({ eventSlug = null }) {
         {!isAvailability ? (
           <>
             <div className={styles.twoCols}>
-              <Field label={t('events.create_page.ui.starts_at')}>
-                <input className={styles.input} type="datetime-local" name="starts_at" value={v.occurrence.starts_at} onChange={(event) => setNested('occurrence', event)} required />
-              </Field>
-              <Field label={t('events.create_page.ui.ends_at').replace(/\s*\*+\s*$/, '')}>
-                <input className={styles.input} type="datetime-local" name="ends_at" value={v.occurrence.ends_at} onChange={(event) => setNested('occurrence', event)} />
-              </Field>
+              <DateTimeField
+                label={t('events.create_page.ui.starts_at')}
+                value={v.occurrence.starts_at}
+                onChange={(value) => setV((prev) => ({
+                  ...prev,
+                  occurrence: { ...prev.occurrence, starts_at: value },
+                }))}
+                required
+                t={t}
+              />
+              <DateTimeField
+                label={t('events.create_page.ui.ends_at').replace(/\s*\*+\s*$/, '')}
+                value={v.occurrence.ends_at}
+                onChange={(value) => setV((prev) => ({
+                  ...prev,
+                  occurrence: { ...prev.occurrence, ends_at: value },
+                }))}
+                t={t}
+              />
             </div>
 
             <div>
@@ -952,9 +1006,16 @@ export default function EventCreateForm({ eventSlug = null }) {
             </div>
 
             <div className={styles.twoCols}>
-              <Field label={`${t('events.create_page.fields.availability_deadline')} *`}>
-                <input className={styles.input} type="datetime-local" name="response_deadline" value={v.availability_poll.response_deadline} onChange={(event) => setNested('availability_poll', event)} required />
-              </Field>
+              <DateTimeField
+                label={`${t('events.create_page.fields.availability_deadline')} *`}
+                value={v.availability_poll.response_deadline}
+                onChange={(value) => setV((prev) => ({
+                  ...prev,
+                  availability_poll: { ...prev.availability_poll, response_deadline: value },
+                }))}
+                required
+                t={t}
+              />
               <Field label={t('events.create_page.ui.instructions')}>
                 <input className={styles.input} name="instructions" value={v.availability_poll.instructions} onChange={(event) => setNested('availability_poll', event)} placeholder={t('events.create_page.ui.instructions_placeholder')} />
               </Field>
@@ -986,9 +1047,13 @@ export default function EventCreateForm({ eventSlug = null }) {
                   </button>
                 </div>
                 <div className={styles.twoCols}>
-                  <Field label={`${t('events.create_page.ui.option_datetime')} *`}>
-                    <input className={styles.input} type="datetime-local" value={option.starts_at} onChange={(event) => setRow('availability_options', index, 'starts_at', event.target.value)} required />
-                  </Field>
+                  <DateTimeField
+                    label={`${t('events.create_page.ui.option_datetime')} *`}
+                    value={option.starts_at}
+                    onChange={(value) => setRow('availability_options', index, 'starts_at', value)}
+                    required
+                    t={t}
+                  />
                   <Field label={t('events.create_page.ui.option_description')}>
                     <input className={styles.input} value={option.description} onChange={(event) => setRow('availability_options', index, 'description', event.target.value)} placeholder={t('events.create_page.ui.option_description_placeholder')} />
                   </Field>
