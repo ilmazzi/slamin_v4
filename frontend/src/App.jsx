@@ -51,6 +51,7 @@ const AdminUsersPage = lazy(() => import('./pages/Admin/AdminUsersPage.jsx'))
 const EventCategoriesAdminPage = lazy(() => import('./pages/Admin/EventCategoriesAdminPage.jsx'))
 const AdminEmailTestsPage = lazy(() => import('./pages/Admin/AdminEmailTestsPage.jsx'))
 const HelpPage = lazy(() => import('./pages/Help/HelpPage.jsx'))
+const TermsPage = lazy(() => import('./pages/Legal/TermsPage.jsx'))
 const ModerationDashboardPage = lazy(() => import('./pages/Moderation/ModerationDashboardPage.jsx'))
 const ModerationQueuePage = lazy(() => import('./pages/Moderation/ModerationQueuePage.jsx'))
 const ModerationReviewPage = lazy(() => import('./pages/Moderation/ModerationReviewPage.jsx'))
@@ -321,15 +322,7 @@ export default function App() {
               />
             }
           />
-          <Route
-            path="/terms"
-            element={
-              <PlaceholderPage
-                titleKey="common.coming_soon.terms_title"
-                descriptionKey="common.coming_soon.terms_description"
-              />
-            }
-          />
+          <Route path="/terms" element={<TermsPage />} />
           <Route
             path="/privacy"
             element={
