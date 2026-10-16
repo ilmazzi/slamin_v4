@@ -54,14 +54,40 @@
 
 .kind,
 .kindActive {
+  --kind-accent: #111;
+
   min-height: 52px;
   padding: 12px 18px;
   font-size: clamp(14px, 1vw, 18px);
 }
 
+.kind[data-kind='poems'],
+.kindActive[data-kind='poems'] {
+  --kind-accent: var(--color-poems);
+}
+
+.kind[data-kind='events'],
+.kindActive[data-kind='events'] {
+  --kind-accent: var(--color-event);
+}
+
+.kind[data-kind='articles'],
+.kindActive[data-kind='articles'] {
+  --kind-accent: var(--color-articles);
+}
+
+.kind[data-kind='media'],
+.kindActive[data-kind='media'] {
+  --kind-accent: var(--color-media);
+}
+
 .tab:hover,
 .kind:hover {
   color: #111;
+}
+
+.kind:hover {
+  background: color-mix(in srgb, var(--kind-accent) 10%, transparent);
 }
 
 .tabActive,
@@ -76,21 +102,34 @@
   bottom: -1px;
   left: 0;
   height: 3px;
-  background: #111;
   content: '';
 }
 
+.tabActive::after {
+  background: #111;
+}
+
+.kindActive::after {
+  background: var(--kind-accent);
+}
+
 .kindActive {
-  background: rgb(0 0 0 / 0.045);
+  background: color-mix(in srgb, var(--kind-accent) 14%, white);
 }
 
 .tab:focus-visible,
-.tabActive:focus-visible,
+.tabActive:focus-visible {
+  z-index: 1;
+  border-radius: 4px;
+  outline: 3px solid var(--color-poems, #a553dd);
+  outline-offset: 3px;
+}
+
 .kind:focus-visible,
 .kindActive:focus-visible {
   z-index: 1;
   border-radius: 4px;
-  outline: 3px solid var(--color-poems, #a553dd);
+  outline: 3px solid var(--kind-accent);
   outline-offset: 3px;
 }
 

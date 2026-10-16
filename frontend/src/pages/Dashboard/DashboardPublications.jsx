@@ -295,6 +295,7 @@ export default function DashboardPublications({ nickname, canManage = false, tok
             type="button"
             role="tab"
             aria-selected={kind === nextKind}
+            data-kind={nextKind}
             className={kind === nextKind ? styles.kindActive : styles.kind}
             onClick={() => setKind(nextKind)}
           >
