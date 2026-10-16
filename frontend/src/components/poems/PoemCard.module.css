@@ -153,6 +153,14 @@
   white-space: pre-wrap;
 }
 
+.bodyText p {
+  margin: 0;
+}
+
+.bodyText p:empty {
+  min-height: 1.31em;
+}
+
 /* Autore sotto il testo (sfondo bianco) — cerchio nero + nome grassetto */
 .authorRow {
   display: flex;
