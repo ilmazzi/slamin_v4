@@ -42,7 +42,13 @@ function ToolbarButton({ active = false, disabled = false, label, onClick, child
   )
 }
 
-export default function RichTextEditor({ value, onChange, ariaLabel, minHeight = '280px' }) {
+export default function RichTextEditor({
+  value,
+  onChange,
+  ariaLabel,
+  minHeight = '280px',
+  compactParagraphs = false,
+}) {
   const { t } = useI18n()
   const editor = useEditor({
     extensions: [
@@ -68,7 +74,9 @@ export default function RichTextEditor({ value, onChange, ariaLabel, minHeight =
     editorProps: {
       attributes: {
         'aria-label': ariaLabel,
-        class: styles.editable,
+        class: [styles.editable, compactParagraphs ? styles.compactParagraphs : '']
+          .filter(Boolean)
+          .join(' '),
         style: `min-height: ${minHeight}`,
       },
     },

@@ -212,6 +212,7 @@ export default function ContentTranslationsManager({ contentType, item, withSumm
             <RichTextEditor
               value={form.content}
               ariaLabel={t('content_translations.manage.content_field')}
+              compactParagraphs={contentType === 'poem'}
               onChange={(content) => updateField('content', content)}
             />
           </div>

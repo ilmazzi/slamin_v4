@@ -237,7 +237,8 @@ export default function TranslationJobPage() {
                   <RichTextEditor
                     value={content}
                     onChange={setContent}
-                    aria-label={t('gigs.job.translation')}
+                    ariaLabel={t('gigs.job.translation')}
+                    compactParagraphs
                   />
                   <div className={styles.actions}>
                     <button type="button" className={styles.btn} disabled={busy !== '' || !isDirty} onClick={saveContent}>

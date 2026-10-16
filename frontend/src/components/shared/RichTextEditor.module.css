@@ -89,6 +89,14 @@
   margin: 0 0 0.85em;
 }
 
+.compactParagraphs p {
+  margin: 0;
+}
+
+.compactParagraphs p:empty {
+  min-height: 1.6em;
+}
+
 .editable h2,
 .editable h3 {
   margin: 1.1em 0 0.5em;

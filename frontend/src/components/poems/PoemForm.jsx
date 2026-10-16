@@ -237,6 +237,7 @@ export default function PoemForm({ slug = null }) {
             <RichTextEditor
               value={formValues.content}
               ariaLabel={t('poems.form.label_content')}
+              compactParagraphs
               onChange={(content) => setFormValues((prev) => ({ ...prev, content }))}
             />
           </div>
