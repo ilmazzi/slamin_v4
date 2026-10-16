@@ -46,6 +46,11 @@ return [
         'no_excerpt' => 'Preview not available',
     ],
     'actions' => [
+        'edit' => 'Edit article',
+        'delete' => 'Delete article',
+        'deleting' => 'Deleting…',
+        'delete_confirm' => 'Delete this article? This action cannot be undone.',
+        'delete_failed' => 'Unable to delete the article.',
         'share_copied' => 'Article link copied',
         'share_sent' => 'Share opened',
         'share_failed' => 'Unable to share right now',

@@ -49,6 +49,11 @@ return [
         'no_excerpt' => 'Anteprima non disponibile',
     ],
     'actions' => [
+        'edit' => 'Modifica articolo',
+        'delete' => 'Elimina articolo',
+        'deleting' => 'Eliminazione…',
+        'delete_confirm' => 'Eliminare questo articolo? L\'azione non può essere annullata.',
+        'delete_failed' => 'Impossibile eliminare l\'articolo.',
         'share_copied' => 'Link articolo copiato',
         'share_sent' => 'Condivisione aperta',
         'share_failed' => 'Impossibile condividere adesso',

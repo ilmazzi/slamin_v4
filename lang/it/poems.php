@@ -52,6 +52,11 @@ return [
     'actions' => [
         'share' => 'Condividi poesia',
         'report' => 'Segnala poesia',
+        'edit' => 'Modifica poesia',
+        'delete' => 'Elimina poesia',
+        'deleting' => 'Eliminazione…',
+        'delete_confirm' => 'Eliminare questa poesia? L\'azione non può essere annullata.',
+        'delete_failed' => 'Impossibile eliminare la poesia.',
         'share_copied' => 'Link poesia copiato',
         'share_sent' => 'Condivisione avviata',
         'share_failed' => 'Impossibile condividere la poesia',

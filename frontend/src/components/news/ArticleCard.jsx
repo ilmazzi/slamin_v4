@@ -12,12 +12,16 @@ import {
 import ContentLanguageSwitcher from '../shared/ContentLanguageSwitcher.jsx'
 import ContentTranslationsManager from '../shared/ContentTranslationsManager.jsx'
 import RichTextContent from '../shared/RichTextContent.jsx'
+import OwnerContentActions from '../shared/OwnerContentActions.jsx'
 import styles from './ArticleCard.module.css'
 import { useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
+import { deleteArticle } from '../../app/api/articles.js'
 
 export default function ArticleCard({ slug, onComments, onLoaded }) {
   const { t, locale } = useI18n()
-  const { user } = useAuth()
+  const { user, token } = useAuth()
+  const navigate = useNavigate()
   const { data: article, isLoading, error, setData } = useArticleDetail(slug)
   const translationView = useContentTranslationView('article', article)
 
@@ -105,6 +109,20 @@ export default function ArticleCard({ slug, onComments, onLoaded }) {
 
       <div className={styles.inner}>
         <ContentLanguageSwitcher item={article} view={translationView} className={styles.languageSwitcher} />
+        {isOwner ? (
+          <OwnerContentActions
+            editHref={`/articles/${encodeURIComponent(article.slug)}/edit`}
+            editLabel={t('articles.actions.edit')}
+            deleteLabel={t('articles.actions.delete')}
+            deletingLabel={t('articles.actions.deleting')}
+            confirmMessage={t('articles.actions.delete_confirm')}
+            deleteErrorMessage={t('articles.actions.delete_failed')}
+            onDelete={async () => {
+              await deleteArticle(article.id, { token })
+              navigate('/articles', { replace: true })
+            }}
+          />
+        ) : null}
         <h1 className={styles.title} lang={contentLang}>{displayTitle}</h1>
 
         <div className={styles.contentGrid}>

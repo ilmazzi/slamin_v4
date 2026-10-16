@@ -1,0 +1,89 @@
+.wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 8px;
+  width: 100%;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.editButton,
+.deleteButton {
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  padding: 9px 16px;
+  border: 2px solid #000;
+  border-radius: 999px;
+  font: inherit;
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 1;
+  text-decoration: none;
+  cursor: pointer;
+  transition: transform 140ms ease, box-shadow 140ms ease;
+}
+
+.editButton {
+  background: #000;
+  color: #fff;
+}
+
+.deleteButton {
+  background: #fff;
+  color: #b42318;
+  border-color: #b42318;
+}
+
+.editButton:hover,
+.deleteButton:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 0 rgb(0 0 0 / 0.18);
+}
+
+.editButton:focus-visible,
+.deleteButton:focus-visible {
+  outline: 3px solid var(--page-hero-accent, #6574de);
+  outline-offset: 3px;
+}
+
+.deleteButton:disabled {
+  cursor: wait;
+  opacity: 0.6;
+  transform: none;
+  box-shadow: none;
+}
+
+.icon {
+  width: 18px;
+  height: 18px;
+  flex: 0 0 auto;
+}
+
+.error {
+  margin: 0;
+  color: #b42318;
+  font-size: 14px;
+  font-weight: 600;
+  text-align: right;
+}
+
+@media (max-width: 560px) {
+  .actions {
+    width: 100%;
+  }
+
+  .editButton,
+  .deleteButton {
+    flex: 1 1 0;
+    padding-inline: 12px;
+  }
+}

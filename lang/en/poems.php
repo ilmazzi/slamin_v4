@@ -52,6 +52,11 @@ return [
     'actions' => [
         'share' => 'Share poem',
         'report' => 'Report poem',
+        'edit' => 'Edit poem',
+        'delete' => 'Delete poem',
+        'deleting' => 'Deleting…',
+        'delete_confirm' => 'Delete this poem? This action cannot be undone.',
+        'delete_failed' => 'Unable to delete the poem.',
         'share_copied' => 'Poem link copied',
         'share_sent' => 'Share started',
         'share_failed' => 'Unable to share the poem',
