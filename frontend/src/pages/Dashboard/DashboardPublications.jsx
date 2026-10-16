@@ -268,6 +268,8 @@ export default function DashboardPublications({ nickname, canManage = false, tok
           <div className={styles.buckets} role="tablist" aria-label={t('profile.works.title')}>
             <button
               type="button"
+              role="tab"
+              aria-selected={bucket === 'published'}
               className={bucket === 'published' ? styles.tabActive : styles.tab}
               onClick={() => setBucket('published')}
             >
@@ -275,6 +277,8 @@ export default function DashboardPublications({ nickname, canManage = false, tok
             </button>
             <button
               type="button"
+              role="tab"
+              aria-selected={bucket === 'drafts'}
               className={bucket === 'drafts' ? styles.tabActive : styles.tab}
               onClick={() => setBucket('drafts')}
             >
@@ -284,11 +288,13 @@ export default function DashboardPublications({ nickname, canManage = false, tok
         ) : null}
       </div>
 
-      <div className={styles.kinds}>
+      <div className={styles.kinds} role="tablist" aria-label={t('profile.works.title')}>
         {KINDS.map((nextKind) => (
           <button
             key={nextKind}
             type="button"
+            role="tab"
+            aria-selected={kind === nextKind}
             className={kind === nextKind ? styles.kindActive : styles.kind}
             onClick={() => setKind(nextKind)}
           >

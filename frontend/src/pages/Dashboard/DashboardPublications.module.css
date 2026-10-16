@@ -7,22 +7,93 @@
 }
 
 .header {
-  display: grid;
-  gap: 12px;
+  border-bottom: 1px solid rgb(0 0 0 / 0.16);
 }
 
 .buckets,
-.kinds,
 .rowActions {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
 }
 
+.buckets {
+  gap: clamp(24px, 3vw, 48px);
+}
+
+.kinds {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  border-bottom: 1px solid rgb(0 0 0 / 0.16);
+}
+
 .tab,
 .kind,
 .tabActive,
-.kindActive,
+.kindActive {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  background: transparent;
+  color: var(--color-text-muted);
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+  transition:
+    color 160ms ease,
+    background-color 160ms ease;
+}
+
+.tab,
+.tabActive {
+  padding: 12px 2px 14px;
+  font-size: clamp(16px, 1.25vw, 22px);
+}
+
+.kind,
+.kindActive {
+  min-height: 52px;
+  padding: 12px 18px;
+  font-size: clamp(14px, 1vw, 18px);
+}
+
+.tab:hover,
+.kind:hover {
+  color: #111;
+}
+
+.tabActive,
+.kindActive {
+  color: #111;
+}
+
+.tabActive::after,
+.kindActive::after {
+  position: absolute;
+  right: 0;
+  bottom: -1px;
+  left: 0;
+  height: 3px;
+  background: #111;
+  content: '';
+}
+
+.kindActive {
+  background: rgb(0 0 0 / 0.045);
+}
+
+.tab:focus-visible,
+.tabActive:focus-visible,
+.kind:focus-visible,
+.kindActive:focus-visible {
+  z-index: 1;
+  border-radius: 4px;
+  outline: 3px solid var(--color-poems, #a553dd);
+  outline-offset: 3px;
+}
+
 .link,
 .primary,
 .danger {
@@ -36,21 +107,6 @@
   font-weight: 700;
   text-decoration: none;
   cursor: pointer;
-}
-
-.tab,
-.kind,
-.tabActive,
-.kindActive {
-  border-radius: 999px;
-  padding: 8px 14px;
-}
-
-.tabActive,
-.kindActive {
-  background: #111;
-  border-color: #111;
-  color: #fff;
 }
 
 .link,
@@ -131,4 +187,21 @@
 
 .error {
   color: #8f1f1f;
+}
+
+@media (max-width: 640px) {
+  .section {
+    gap: 14px;
+  }
+
+  .buckets {
+    gap: 24px;
+  }
+
+  .kind,
+  .kindActive {
+    min-height: 46px;
+    padding-inline: 8px;
+    font-size: 13px;
+  }
 }
