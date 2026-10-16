@@ -6,8 +6,8 @@ use App\Http\Controllers\Controller;
 use App\Support\Responses\ApiResponse;
 use Domain\Chat\Models\ChatMessage;
 use Domain\Chat\Models\ChatThreadMember;
+use Domain\Dashboard\Actions\GetPersonalStatisticsAction;
 use Domain\Dashboard\Actions\ListRecentActivitiesAction;
-use Domain\Engagement\Models\Like;
 use Domain\Event\Models\Event;
 use Domain\Event\Models\EventAudienceInvite;
 use Domain\Event\Models\EventParticipantInvite;
@@ -21,6 +21,7 @@ class GetDashboardWidgetsController extends Controller
 {
     public function __construct(
         private readonly ListRecentActivitiesAction $recentActivities,
+        private readonly GetPersonalStatisticsAction $personalStatistics,
     ) {}
 
     public function __invoke(Request $request): JsonResponse
@@ -32,7 +33,7 @@ class GetDashboardWidgetsController extends Controller
 
         $poemsCount = Poem::query()->where('user_id', $user->id)->count();
         $eventsCount = Event::query()->where('user_id', $user->id)->count();
-        $likesCount = Like::query()->where('user_id', $user->id)->count();
+        $statistics = $this->personalStatistics->summary($user);
 
         $groupsCount = GroupMember::query()
             ->where('user_id', $user->id)
@@ -68,8 +69,8 @@ class GetDashboardWidgetsController extends Controller
             'widgets' => [
                 ['id' => 'poems', 'value' => $poemsCount],
                 ['id' => 'events', 'value' => $eventsCount],
-                ['id' => 'views', 'value' => 0],
-                ['id' => 'likes', 'value' => $likesCount],
+                ['id' => 'views', 'value' => $statistics['totals']['views_received']],
+                ['id' => 'likes', 'value' => $statistics['totals']['likes_received']],
             ],
             'community_cards' => [
                 [

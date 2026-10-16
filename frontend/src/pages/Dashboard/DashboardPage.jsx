@@ -94,6 +94,11 @@ export default function DashboardPage({ user }) {
             <span className={`${styles.statLabel} typeBody textBlack`}>{t('home.dashboard.likes').toLowerCase()}</span>
           </article>
         </section>
+        <div className={styles.statisticsLinkWrap}>
+          <Link to="/dashboard/statistics" className={styles.statisticsLink}>
+            {t('statistics.view_all')} <span aria-hidden="true">→</span>
+          </Link>
+        </div>
 
         <PersonalEventsCalendar />
         <section className={styles.communityTitleWrap}>

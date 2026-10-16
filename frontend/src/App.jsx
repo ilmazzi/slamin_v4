@@ -5,6 +5,9 @@ import ScrollToTop from './components/ScrollToTop.jsx'
 import { useAuth } from './app/hooks/useAuth.js'
 
 const DashboardPage = lazy(() => import('./pages/Dashboard/DashboardPage.jsx'))
+const PersonalStatisticsPage = lazy(() =>
+  import('./pages/Statistics/PersonalStatisticsPage.jsx'),
+)
 const OpenProjectFeedbackWidget = lazy(() =>
   import('./components/feedback/OpenProjectFeedbackWidget.jsx'),
 )
@@ -124,6 +127,14 @@ export default function App() {
             element={
               <ProtectedRoute>
                 <DashboardPage user={user} />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/dashboard/statistics"
+            element={
+              <ProtectedRoute>
+                <PersonalStatisticsPage user={user} />
               </ProtectedRoute>
             }
           />
