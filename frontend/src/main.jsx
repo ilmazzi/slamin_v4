@@ -5,6 +5,7 @@ import './index.css'
 import App from './App.jsx'
 import { AuthProvider } from './context/AuthContext.jsx'
 import { I18nProvider } from './app/hooks/useI18n.js'
+import { initializeMobileApp } from './app/mobile/initializeMobileApp.js'
 import 'leaflet/dist/leaflet.css'
 
 createRoot(document.getElementById('root')).render(
@@ -18,3 +19,5 @@ createRoot(document.getElementById('root')).render(
     </BrowserRouter>
   </StrictMode>,
 )
+
+void initializeMobileApp()

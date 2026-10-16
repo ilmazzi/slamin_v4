@@ -1,4 +1,5 @@
 import path from 'node:path'
+import process from 'node:process'
 import { fileURLToPath } from 'node:url'
 import { defineConfig, loadEnv } from 'vite'
 import react from '@vitejs/plugin-react'
@@ -58,9 +59,21 @@ const applyReverbClientEnv = (localEnv, rootEnv) => {
   return resolved
 }
 
+const applyApiClientEnv = (localEnv, rootEnv) => {
+  const apiBaseUrl = envValue(
+    localEnv.VITE_API_BASE_URL,
+    rootEnv.VITE_API_BASE_URL,
+  )
+
+  if (apiBaseUrl) {
+    process.env.VITE_API_BASE_URL = apiBaseUrl
+  }
+}
+
 export default defineConfig(({ mode }) => {
   const localEnv = loadEnv(mode, frontendDir, '')
   const rootEnv = loadEnv(mode, laravelDir, '')
+  applyApiClientEnv(localEnv, rootEnv)
   applyReverbClientEnv(localEnv, rootEnv)
   const apiProxyTarget =
     localEnv.VITE_API_PROXY_TARGET || rootEnv.APP_URL || DEFAULT_API_ORIGIN

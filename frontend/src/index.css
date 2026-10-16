@@ -24,6 +24,10 @@
   --color-footer-bg: var(--color-white);
   --color-footer-fg: var(--color-black);
   --color-footer-accent: var(--color-brand);
+  --safe-area-top: env(safe-area-inset-top, 0px);
+  --safe-area-right: env(safe-area-inset-right, 0px);
+  --safe-area-bottom: env(safe-area-inset-bottom, 0px);
+  --safe-area-left: env(safe-area-inset-left, 0px);
 
   /* Typography */
   --font-family-sans: 'Switzer', system-ui, -apple-system, sans-serif;
@@ -128,6 +132,20 @@ body {
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+html.native-app body {
+  padding-right: var(--safe-area-right);
+  padding-left: var(--safe-area-left);
+}
+
+html.native-app #root {
+  min-height: 100dvh;
+  padding-bottom: var(--safe-area-bottom);
+}
+
+html.native-keyboard-open #root {
+  padding-bottom: 0;
 }
 
 *,
