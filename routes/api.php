@@ -1,7 +1,12 @@
 <?php
 
 use App\Http\Controllers\Api\StoreOpenProjectFeedbackController;
+use Illuminate\Broadcasting\BroadcastController;
 use Illuminate\Support\Facades\Route;
+
+Route::post('/broadcasting/auth', [BroadcastController::class, 'authenticate'])
+    ->middleware('auth:sanctum')
+    ->name('broadcasting.auth');
 
 Route::post('/feedback', StoreOpenProjectFeedbackController::class)
     ->middleware(['auth:sanctum', 'account.verified'])

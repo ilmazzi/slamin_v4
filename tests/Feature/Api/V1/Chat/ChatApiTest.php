@@ -656,24 +656,24 @@ it('authorizes private chat channels for members only', function () {
 
     $this->getJson("/api/v1/chat/threads/{$threadId}")->assertOk();
 
-    $this->postJson('/broadcasting/auth', [
+    $this->postJson('/api/broadcasting/auth', [
         'socket_id' => '1234.5678',
         'channel_name' => 'private-chat.'.$threadId,
     ])->assertOk()->assertJsonStructure(['auth']);
 
-    $this->postJson('/broadcasting/auth', [
+    $this->postJson('/api/broadcasting/auth', [
         'socket_id' => '1234.5678',
         'channel_name' => 'private-chat.user.'.$firstUser->id,
     ])->assertOk()->assertJsonStructure(['auth']);
 
     Sanctum::actingAs($outsider);
 
-    $this->postJson('/broadcasting/auth', [
+    $this->postJson('/api/broadcasting/auth', [
         'socket_id' => '1234.5678',
         'channel_name' => 'private-chat.'.$threadId,
     ])->assertForbidden();
 
-    $this->postJson('/broadcasting/auth', [
+    $this->postJson('/api/broadcasting/auth', [
         'socket_id' => '1234.5678',
         'channel_name' => 'private-chat.user.'.$firstUser->id,
     ])->assertForbidden();

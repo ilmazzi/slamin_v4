@@ -21,7 +21,7 @@ export function createEcho(token, config) {
     wssPort: Number(config.port ?? 443),
     forceTLS: (config.scheme ?? 'https') === 'https',
     enabledTransports: ['ws', 'wss'],
-    authEndpoint: getApiUrl('/broadcasting/auth'),
+    authEndpoint: getApiUrl('/api/broadcasting/auth'),
     bearerToken: token,
     auth: {
       headers: {
