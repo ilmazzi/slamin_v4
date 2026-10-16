@@ -61,10 +61,16 @@ class PeerTubeService
             $videoPath,
             isset($videoData['filename']) ? (string) $videoData['filename'] : null,
         );
+        $uploadMimeType = (string) ($videoData['mimeType'] ?? 'application/octet-stream');
+        if (! preg_match('#^[a-z0-9.+-]+/[a-z0-9.+-]+$#i', $uploadMimeType)) {
+            $uploadMimeType = 'application/octet-stream';
+        }
 
         $request = $this->baseRequest((int) config('services.peertube.upload_timeout', 900))
             ->withToken($token)
-            ->attach('videofile', fopen($videoPath, 'r'), $uploadFilename)
+            ->attach('videofile', fopen($videoPath, 'r'), $uploadFilename, [
+                'Content-Type' => $uploadMimeType,
+            ])
             ->asMultipart();
 
         $payload = [

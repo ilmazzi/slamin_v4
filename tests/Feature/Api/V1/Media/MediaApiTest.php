@@ -407,6 +407,7 @@ it('uploads a video media item through peertube using admin settings', function 
 
     Http::assertSent(fn ($request): bool => $request->url() === 'https://video.example.test/api/v1/videos/upload'
         && $request->hasFile('videofile', null, 'video.mkv')
+        && str_contains($request->body(), 'Content-Type: video/x-matroska')
         && ! array_key_exists('description', $request->data()));
 });
 
