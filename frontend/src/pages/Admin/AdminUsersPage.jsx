@@ -136,79 +136,102 @@ export default function AdminUsersPage() {
         {isLoading ? <p>Caricamento...</p> : null}
 
         {!isLoading ? (
-          <div className={styles.list}>
-            {users.map((item) => {
-              const draft = editing[item.id] || editableUser(item)
-              const isSelf = String(sessionUser?.id) === String(item.id)
-                || (sessionUser?.public_id && sessionUser.public_id === item.public_id)
-              return (
-                <article className={styles.card} key={item.id}>
-                  <div className={styles.identity}>
-                    <div>
-                      <h2>{item.profile?.display_name || item.profile?.nickname || item.email}</h2>
-                      <p>{item.email}{isSelf ? ' · il tuo account' : ''}</p>
-                    </div>
-                    <span className={styles.created}>
-                      Registrato {item.created_at ? new Date(item.created_at).toLocaleDateString('it-IT') : '—'}
-                    </span>
-                  </div>
+          <div className={styles.tableWrap}>
+            <table className={styles.table}>
+              <thead>
+                <tr>
+                  <th scope="col">Utente</th>
+                  <th scope="col">Registrato</th>
+                  <th scope="col">Stato</th>
+                  <th scope="col">Tipo account</th>
+                  <th scope="col" className={styles.centered}>Verificata</th>
+                  <th scope="col">Ruoli</th>
+                  <th scope="col"><span className={styles.srOnly}>Azioni</span></th>
+                </tr>
+              </thead>
+              <tbody>
+                {users.map((item) => {
+                  const draft = editing[item.id] || editableUser(item)
+                  const isSelf = String(sessionUser?.id) === String(item.id)
+                    || (sessionUser?.public_id && sessionUser.public_id === item.public_id)
+                  const displayName = item.profile?.display_name || item.profile?.nickname || item.email
 
-                  <div className={styles.controls}>
-                    <label>
-                      <span>Stato</span>
-                      <select
-                        value={draft.status}
-                        disabled={isSelf}
-                        onChange={(event) => updateDraft(item.id, 'status', event.target.value)}
-                      >
-                        <option value="active">Attivo</option>
-                        <option value="suspended">Sospeso</option>
-                        <option value="banned">Bannato</option>
-                      </select>
-                    </label>
-                    <label>
-                      <span>Tipo account</span>
-                      <select value={draft.account_type} onChange={(event) => updateDraft(item.id, 'account_type', event.target.value)}>
-                        <option value="audience">Audience</option>
-                        <option value="poet_organizer">Poeta/organizzatore</option>
-                      </select>
-                    </label>
-                    <label className={styles.checkbox}>
-                      <input
-                        type="checkbox"
-                        checked={draft.email_verified}
-                        disabled={isSelf}
-                        onChange={(event) => updateDraft(item.id, 'email_verified', event.target.checked)}
-                      />
-                      <span>Email verificata</span>
-                    </label>
-                  </div>
-
-                  <fieldset className={styles.roles}>
-                    <legend>Ruoli</legend>
-                    {roles.map((role) => (
-                      <label key={role.name}>
-                        <input
-                          type="checkbox"
-                          checked={draft.roles.includes(role.name)}
-                          disabled={isSelf && role.name === 'admin'}
-                          onChange={() => toggleRole(item.id, role.name)}
-                        />
-                        <span>{role.label || role.name}</span>
-                      </label>
-                    ))}
-                    {roles.length === 0 ? <span>Nessun ruolo configurato.</span> : null}
-                  </fieldset>
-
-                  <div className={styles.actions}>
-                    <button type="button" disabled={savingId === item.id} onClick={() => save(item.id)}>
-                      {savingId === item.id ? 'Salvataggio...' : 'Salva'}
-                    </button>
-                  </div>
-                </article>
-              )
-            })}
-            {users.length === 0 ? <p>Nessun utente trovato.</p> : null}
+                  return (
+                    <tr key={item.id}>
+                      <th scope="row" className={styles.identity}>
+                        <strong>{displayName}</strong>
+                        <span>{item.email}</span>
+                        {isSelf ? <small>Il tuo account</small> : null}
+                      </th>
+                      <td className={styles.created}>
+                        {item.created_at ? new Date(item.created_at).toLocaleDateString('it-IT') : '—'}
+                      </td>
+                      <td>
+                        <label className={styles.srOnly} htmlFor={`status-${item.id}`}>Stato di {displayName}</label>
+                        <select
+                          id={`status-${item.id}`}
+                          value={draft.status}
+                          disabled={isSelf}
+                          onChange={(event) => updateDraft(item.id, 'status', event.target.value)}
+                        >
+                          <option value="active">Attivo</option>
+                          <option value="suspended">Sospeso</option>
+                          <option value="banned">Bannato</option>
+                        </select>
+                      </td>
+                      <td>
+                        <label className={styles.srOnly} htmlFor={`account-type-${item.id}`}>Tipo account di {displayName}</label>
+                        <select
+                          id={`account-type-${item.id}`}
+                          value={draft.account_type}
+                          onChange={(event) => updateDraft(item.id, 'account_type', event.target.value)}
+                        >
+                          <option value="audience">Audience</option>
+                          <option value="poet_organizer">Poeta/organizzatore</option>
+                        </select>
+                      </td>
+                      <td className={styles.centered}>
+                        <label className={styles.checkbox} title="Email verificata">
+                          <input
+                            type="checkbox"
+                            checked={draft.email_verified}
+                            disabled={isSelf}
+                            onChange={(event) => updateDraft(item.id, 'email_verified', event.target.checked)}
+                          />
+                          <span className={styles.srOnly}>Email verificata per {displayName}</span>
+                        </label>
+                      </td>
+                      <td>
+                        <div className={styles.roles} aria-label={`Ruoli di ${displayName}`}>
+                          {roles.map((role) => (
+                            <label key={role.name}>
+                              <input
+                                type="checkbox"
+                                checked={draft.roles.includes(role.name)}
+                                disabled={isSelf && role.name === 'admin'}
+                                onChange={() => toggleRole(item.id, role.name)}
+                              />
+                              <span>{role.label || role.name}</span>
+                            </label>
+                          ))}
+                          {roles.length === 0 ? <span>—</span> : null}
+                        </div>
+                      </td>
+                      <td className={styles.actions}>
+                        <button type="button" disabled={savingId === item.id} onClick={() => save(item.id)}>
+                          {savingId === item.id ? 'Salvataggio...' : 'Salva'}
+                        </button>
+                      </td>
+                    </tr>
+                  )
+                })}
+                {users.length === 0 ? (
+                  <tr>
+                    <td colSpan="7" className={styles.empty}>Nessun utente trovato.</td>
+                  </tr>
+                ) : null}
+              </tbody>
+            </table>
           </div>
         ) : null}
 
