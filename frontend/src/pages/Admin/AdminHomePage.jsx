@@ -68,6 +68,13 @@ export default function AdminHomePage() {
       description: t('admin.hub.email_tests_description'),
       ready: true,
     } : null,
+    canManageSettings ? {
+      id: 'newsletter',
+      href: '/admin/newsletter',
+      title: t('admin.hub.newsletter_title'),
+      description: t('admin.hub.newsletter_description'),
+      ready: true,
+    } : null,
   ].filter(Boolean)
 
   return (

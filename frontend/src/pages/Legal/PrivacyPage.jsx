@@ -70,6 +70,7 @@ export default function PrivacyPage() {
           <ul>
             <li><strong>un indirizzo di posta valido e attivo:</strong> necessario per la creazione dell&apos;account sulla piattaforma. L&apos;indirizzo sarà necessario per il recupero di dati e password, per questo motivo viene archiviato e gestito da slamin.it, solamente per uso interno e gestionale;</li>
             <li><strong>una password:</strong> necessaria per identificare e certificare l&apos;utenza, così che possa accedere alla piattaforma e utilizzarla.</li>
+            <li><strong>l’indirizzo email fornito volontariamente per la newsletter:</strong> viene utilizzato esclusivamente per inviare le comunicazioni confermate tramite double opt-in. Non inseriamo pixel di tracciamento e l’iscrizione può essere revocata in qualsiasi momento dal link presente in ogni email.</li>
           </ul>
           <p>Qualsiasi ulteriore dato, compresi quelli di pagamento, che un&apos;utenza sceglie d&apos;inserire e/o condividere sulla piattaforma, sono opzionali, consensuali e non vengono utilizzati per profilazione o altro fine (leggi oltre per qualsiasi chiarimento su questo aspetto)</p>
         </section>

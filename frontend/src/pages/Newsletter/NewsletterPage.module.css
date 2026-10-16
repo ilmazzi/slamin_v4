@@ -1,0 +1,111 @@
+.page {
+  display: grid;
+  min-height: 65vh;
+  padding: clamp(40px, 8vw, 120px) clamp(18px, 6vw, 96px);
+  place-items: center;
+}
+
+.card {
+  box-sizing: border-box;
+  width: min(760px, 100%);
+  padding: clamp(28px, 5vw, 64px);
+  border: 2px solid var(--color-red);
+  border-radius: clamp(28px, 4vw, 52px);
+  background: var(--color-white);
+}
+
+.eyebrow {
+  margin: 0 0 12px;
+  color: var(--color-red);
+  font-size: 14px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.card h1 {
+  margin: 0;
+  font-size: clamp(42px, 7vw, 82px);
+  line-height: 0.95;
+}
+
+.lead {
+  max-width: 620px;
+  margin: 24px 0 34px;
+  font-size: clamp(18px, 2.2vw, 26px);
+  line-height: 1.3;
+}
+
+.form {
+  display: grid;
+  gap: 9px;
+}
+
+.form label {
+  font-size: 14px;
+  font-weight: 750;
+}
+
+.inputRow {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 10px;
+}
+
+.inputRow input {
+  min-width: 0;
+  min-height: 54px;
+  padding: 0 18px;
+  border: 1px solid var(--color-black);
+  border-radius: 999px;
+  background: var(--color-white);
+  font: inherit;
+}
+
+.inputRow button {
+  min-height: 54px;
+  padding: 0 26px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--color-red);
+  color: var(--color-white);
+  font: inherit;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.inputRow button:disabled {
+  cursor: wait;
+  opacity: 0.6;
+}
+
+.privacy {
+  margin: 14px 0 0;
+  color: var(--color-text-muted);
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.success,
+.error {
+  margin: 22px 0 0;
+  padding: 13px 16px;
+  border-radius: 12px;
+  font-weight: 650;
+}
+
+.success {
+  background: #eaf8ef;
+  color: #166534;
+}
+
+.error {
+  background: #fff0f0;
+  color: #8f1f1f;
+}
+
+@media (max-width: 620px) {
+  .inputRow {
+    grid-template-columns: 1fr;
+  }
+}

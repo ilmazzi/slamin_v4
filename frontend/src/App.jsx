@@ -54,6 +54,8 @@ const HelpAdminPage = lazy(() => import('./pages/Admin/HelpAdminPage.jsx'))
 const AdminUsersPage = lazy(() => import('./pages/Admin/AdminUsersPage.jsx'))
 const EventCategoriesAdminPage = lazy(() => import('./pages/Admin/EventCategoriesAdminPage.jsx'))
 const AdminEmailTestsPage = lazy(() => import('./pages/Admin/AdminEmailTestsPage.jsx'))
+const AdminNewsletterPage = lazy(() => import('./pages/Admin/AdminNewsletterPage.jsx'))
+const NewsletterPage = lazy(() => import('./pages/Newsletter/NewsletterPage.jsx'))
 const HelpPage = lazy(() => import('./pages/Help/HelpPage.jsx'))
 const TermsPage = lazy(() => import('./pages/Legal/TermsPage.jsx'))
 const PrivacyPage = lazy(() => import('./pages/Legal/PrivacyPage.jsx'))
@@ -334,15 +336,7 @@ export default function App() {
           <Route path="/terms" element={<TermsPage />} />
           <Route path="/privacy" element={<PrivacyPage />} />
           <Route path="/cookies" element={<CookiePolicyPage />} />
-          <Route
-            path="/newsletter"
-            element={
-              <PlaceholderPage
-                titleKey="common.coming_soon.newsletter_title"
-                descriptionKey="common.coming_soon.newsletter_description"
-              />
-            }
-          />
+          <Route path="/newsletter" element={<NewsletterPage />} />
           <Route
             path="/moderation/dashboard"
             element={
@@ -444,6 +438,14 @@ export default function App() {
             element={
               <ProtectedRoute roles={['admin']}>
                 <AdminEmailTestsPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/newsletter"
+            element={
+              <ProtectedRoute roles={['admin']}>
+                <AdminNewsletterPage />
               </ProtectedRoute>
             }
           />

@@ -24,6 +24,8 @@ return [
         'event_categories_description' => 'Crea, ordina e attiva le categorie disponibili nel modulo eventi.',
         'email_tests_title' => 'Test email notifiche',
         'email_tests_description' => 'Invia agli utenti che scegli una prova di ogni email di notifica e del riassunto settimanale.',
+        'newsletter_title' => 'Newsletter',
+        'newsletter_description' => 'Gestisci gli iscritti e invia la newsletter settimanale senza tracciamento.',
     ],
     'event_categories' => [
         'title' => 'Categorie eventi',
