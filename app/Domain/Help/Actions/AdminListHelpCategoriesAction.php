@@ -10,11 +10,12 @@ class AdminListHelpCategoriesAction
     /**
      * @return Collection<int, HelpCategory>
      */
-    public function execute(): Collection
+    public function execute(string $section = 'help'): Collection
     {
         return HelpCategory::query()
             ->with('translations')
             ->withCount('articles')
+            ->where('section', $section)
             ->orderBy('sort_order')
             ->orderBy('slug')
             ->get();

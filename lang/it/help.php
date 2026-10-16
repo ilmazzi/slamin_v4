@@ -7,6 +7,8 @@ return [
     'ui' => [
         'title' => 'Guida e aiuto',
         'subtitle' => 'Tutte le informazioni di cui hai bisogno per utilizzare la piattaforma',
+        'faq_title' => 'Domande frequenti',
+        'faq_subtitle' => 'Risposte rapide alle domande più comuni',
         'search' => 'Cerca',
         'search_placeholder' => 'Cerca nella guida',
         'category' => 'Categoria',

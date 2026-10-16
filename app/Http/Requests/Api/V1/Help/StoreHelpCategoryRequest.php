@@ -17,6 +17,7 @@ class StoreHelpCategoryRequest extends FormRequest
     {
         return [
             'slug' => ['required', 'string', 'max:120', 'alpha_dash', Rule::unique('help_categories', 'slug')],
+            'section' => ['nullable', Rule::in(['help', 'faq'])],
             'is_active' => ['nullable', 'boolean'],
             'sort_order' => ['nullable', 'integer', 'min:0', 'max:9999'],
             'translations' => ['required', 'array', 'min:1'],

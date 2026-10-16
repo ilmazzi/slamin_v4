@@ -10,8 +10,9 @@ function asArray(value) {
   return []
 }
 
-export async function listHelp({ signal, q = '', category = '' } = {}) {
+export async function listHelp({ signal, q = '', category = '', section = 'help' } = {}) {
   const params = new URLSearchParams()
+  params.set('section', section)
   if (q) {
     params.set('q', q)
   }
@@ -30,8 +31,8 @@ export async function listHelp({ signal, q = '', category = '' } = {}) {
   }
 }
 
-export async function adminListHelpCategories({ token, signal } = {}) {
-  const { data } = await authApiGet('/api/v1/admin/help/categories', {
+export async function adminListHelpCategories({ token, signal, section = 'help' } = {}) {
+  const { data } = await authApiGet(`/api/v1/admin/help/categories?section=${encodeURIComponent(section)}`, {
     token,
     signal,
     fallbackMessage: 'Unable to load help categories',
@@ -69,8 +70,8 @@ export async function adminDeleteHelpCategory(id, { token } = {}) {
   })
 }
 
-export async function adminListHelpArticles({ token, signal } = {}) {
-  const { data } = await authApiGet('/api/v1/admin/help/articles', {
+export async function adminListHelpArticles({ token, signal, section = 'help' } = {}) {
+  const { data } = await authApiGet(`/api/v1/admin/help/articles?section=${encodeURIComponent(section)}`, {
     token,
     signal,
     fallbackMessage: 'Unable to load help articles',

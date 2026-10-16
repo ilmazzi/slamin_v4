@@ -82,7 +82,7 @@ function articleFromItem(item, languages) {
   }
 }
 
-function categoryPayload(form, languages) {
+function categoryPayload(form, languages, section) {
   const translations = languages
     .map((language) => ({
       locale: language.code,
@@ -94,6 +94,7 @@ function categoryPayload(form, languages) {
 
   return {
     slug: form.slug.trim() || slugify(slugSource),
+    section,
     is_active: Boolean(form.is_active),
     sort_order: Number(form.sort_order) || 0,
     translations,
@@ -120,7 +121,7 @@ function articlePayload(form, languages) {
   }
 }
 
-export default function HelpAdminPage() {
+export default function HelpAdminPage({ section = 'help' }) {
   const { t } = useI18n()
   const { token } = useAuth()
   const [categories, setCategories] = useState([])
@@ -136,14 +137,14 @@ export default function HelpAdminPage() {
 
   const load = useCallback(async ({ signal } = {}) => {
     const [nextCategories, nextArticles, nextLanguages] = await Promise.all([
-      adminListHelpCategories({ token, signal }),
-      adminListHelpArticles({ token, signal }),
+      adminListHelpCategories({ token, signal, section }),
+      adminListHelpArticles({ token, signal, section }),
       listI18nLanguages(token, { signal }),
     ])
     setCategories(nextCategories)
     setArticles(nextArticles)
     setLanguages(nextLanguages)
-  }, [token])
+  }, [token, section])
 
   useEffect(() => {
     if (!token) {
@@ -179,7 +180,7 @@ export default function HelpAdminPage() {
 
   const handleSaveCategory = async (event) => {
     event.preventDefault()
-    const payload = categoryPayload(categoryForm, languages)
+    const payload = categoryPayload(categoryForm, languages, section)
     if (!payload.slug || payload.translations.length === 0) {
       setError(t('admin.help.save_error'))
       return
@@ -272,8 +273,12 @@ export default function HelpAdminPage() {
           <p className={styles.back}>
             <Link to="/admin">{t('admin.help.back')}</Link>
           </p>
-          <h1 className={styles.title}>{t('admin.help.title')}</h1>
-          <p className={styles.subtitle}>{t('admin.help.subtitle')}</p>
+          <h1 className={styles.title}>
+            {t(section === 'faq' ? 'admin.help.faq_title' : 'admin.help.title')}
+          </h1>
+          <p className={styles.subtitle}>
+            {t(section === 'faq' ? 'admin.help.faq_subtitle' : 'admin.help.subtitle')}
+          </p>
         </header>
 
         {isLoading ? <p className={styles.status}>{t('admin.help.loading')}</p> : null}
@@ -366,8 +371,12 @@ export default function HelpAdminPage() {
           </section>
 
           <section className={styles.card}>
-            <h2>{t('admin.help.articles')}</h2>
-            {articles.length === 0 ? <p className={styles.status}>{t('admin.help.empty_articles')}</p> : (
+            <h2>{t(section === 'faq' ? 'admin.help.faq_articles' : 'admin.help.articles')}</h2>
+            {articles.length === 0 ? (
+              <p className={styles.status}>
+                {t(section === 'faq' ? 'admin.help.empty_faqs' : 'admin.help.empty_articles')}
+              </p>
+            ) : (
               <ul className={styles.list}>
                 {articles.map((item) => (
                   <li key={item.id}>
@@ -389,7 +398,11 @@ export default function HelpAdminPage() {
             )}
 
             <form className={styles.form} onSubmit={handleSaveArticle}>
-              <h3>{articleForm.id ? t('admin.help.edit_article') : t('admin.help.new_article')}</h3>
+              <h3>
+                {articleForm.id
+                  ? t(section === 'faq' ? 'admin.help.edit_faq' : 'admin.help.edit_article')
+                  : t(section === 'faq' ? 'admin.help.new_faq' : 'admin.help.new_article')}
+              </h3>
               <label>
                 <span>{t('admin.help.category')}</span>
                 <select

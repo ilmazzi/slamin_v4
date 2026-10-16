@@ -14,6 +14,7 @@ class AdminHelpCategoryResource extends JsonResource
         return [
             'id' => $this->id,
             'slug' => $this->slug,
+            'section' => $this->section,
             'name' => $this->translatedName(),
             'is_active' => $this->is_active,
             'sort_order' => $this->sort_order,

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api\V1\Help;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Api\V1\Help\ListHelpRequest;
 use App\Http\Resources\Api\V1\Help\AdminHelpCategoryResource;
 use App\Support\Responses\ApiResponse;
 use Domain\Help\Actions\AdminListHelpCategoriesAction;
@@ -14,10 +15,12 @@ class AdminListHelpCategoriesController extends Controller
         private readonly AdminListHelpCategoriesAction $action,
     ) {}
 
-    public function __invoke(): JsonResponse
+    public function __invoke(ListHelpRequest $request): JsonResponse
     {
         return ApiResponse::success([
-            'categories' => AdminHelpCategoryResource::collection($this->action->execute())->resolve(),
+            'categories' => AdminHelpCategoryResource::collection(
+                $this->action->execute($request->validated('section', 'help'))
+            )->resolve(),
         ]);
     }
 }

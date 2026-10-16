@@ -26,10 +26,11 @@ function helpMemberUser(): User
     return User::factory()->create();
 }
 
-function makeHelpCategory(string $slug = 'account'): HelpCategory
+function makeHelpCategory(string $slug = 'account', string $section = 'help'): HelpCategory
 {
     $category = HelpCategory::query()->create([
         'slug' => $slug,
+        'section' => $section,
         'is_active' => true,
         'sort_order' => 1,
     ]);
@@ -112,6 +113,47 @@ it('filters public help articles by category and search', function () {
         ->assertOk()
         ->assertJsonCount(1, 'data.articles')
         ->assertJsonPath('data.articles.0.slug', 'come-creare-un-account');
+});
+
+it('keeps faq content separate from help content', function () {
+    $help = makeHelpCategory('account');
+    $faq = makeHelpCategory('faq', 'faq');
+
+    foreach ([[$help, 'guida-account'], [$faq, 'domanda-account']] as [$category, $slug]) {
+        HelpArticle::query()->create([
+            'help_category_id' => $category->id,
+            'slug' => $slug,
+            'is_published' => true,
+            'sort_order' => 1,
+        ])->translations()->create([
+            'locale' => 'it',
+            'title' => $slug,
+            'body' => 'Contenuto.',
+        ]);
+    }
+
+    $this->getJson('/api/v1/help')
+        ->assertOk()
+        ->assertJsonCount(1, 'data.articles')
+        ->assertJsonPath('data.articles.0.slug', 'guida-account');
+
+    $this->getJson('/api/v1/help?section=faq')
+        ->assertOk()
+        ->assertJsonCount(1, 'data.categories')
+        ->assertJsonCount(1, 'data.articles')
+        ->assertJsonPath('data.articles.0.slug', 'domanda-account');
+
+    Sanctum::actingAs(helpAdminUser());
+
+    $this->getJson('/api/v1/admin/help/articles')
+        ->assertOk()
+        ->assertJsonCount(1, 'data.articles')
+        ->assertJsonPath('data.articles.0.slug', 'guida-account');
+
+    $this->getJson('/api/v1/admin/help/articles?section=faq')
+        ->assertOk()
+        ->assertJsonCount(1, 'data.articles')
+        ->assertJsonPath('data.articles.0.slug', 'domanda-account');
 });
 
 it('allows an admin to create update and delete help content', function () {

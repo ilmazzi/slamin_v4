@@ -12,6 +12,7 @@ class AdminUpdateHelpCategoryAction
         return DB::transaction(function () use ($category, $data, $userId) {
             $oldValues = [
                 'slug' => $category->slug,
+                'section' => $category->section,
                 'is_active' => $category->is_active,
                 'sort_order' => $category->sort_order,
                 'translations' => $category->translations()
@@ -25,6 +26,7 @@ class AdminUpdateHelpCategoryAction
 
             $category->update([
                 'slug' => $data['slug'],
+                'section' => $data['section'] ?? $category->section,
                 'is_active' => $data['is_active'] ?? true,
                 'sort_order' => $data['sort_order'] ?? 0,
             ]);
@@ -46,6 +48,7 @@ class AdminUpdateHelpCategoryAction
                 oldValues: $oldValues,
                 newValues: [
                     'slug' => $category->slug,
+                    'section' => $category->section,
                     'is_active' => $category->is_active,
                     'sort_order' => $category->sort_order,
                     'translations' => $data['translations'],

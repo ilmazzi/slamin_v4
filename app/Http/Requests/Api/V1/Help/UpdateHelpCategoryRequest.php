@@ -27,6 +27,7 @@ class UpdateHelpCategoryRequest extends FormRequest
                 'alpha_dash',
                 Rule::unique('help_categories', 'slug')->ignore($helpCategory->id),
             ],
+            'section' => ['nullable', Rule::in(['help', 'faq'])],
             'is_active' => ['nullable', 'boolean'],
             'sort_order' => ['nullable', 'integer', 'min:0', 'max:9999'],
             'translations' => ['required', 'array', 'min:1'],

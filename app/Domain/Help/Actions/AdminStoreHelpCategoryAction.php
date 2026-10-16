@@ -12,6 +12,7 @@ class AdminStoreHelpCategoryAction
         return DB::transaction(function () use ($data, $userId) {
             $category = HelpCategory::query()->create([
                 'slug' => $data['slug'],
+                'section' => $data['section'] ?? 'help',
                 'is_active' => $data['is_active'] ?? true,
                 'sort_order' => $data['sort_order'] ?? 0,
             ]);
@@ -24,6 +25,7 @@ class AdminStoreHelpCategoryAction
                 auditable: $category,
                 newValues: [
                     'slug' => $category->slug,
+                    'section' => $category->section,
                     'is_active' => $category->is_active,
                     'sort_order' => $category->sort_order,
                     'translations' => $data['translations'],

@@ -5,7 +5,7 @@ import { useI18n } from '../../app/hooks/useI18n.js'
 import MainLayout from '../../components/layout/MainLayout.jsx'
 import styles from './HelpPage.module.css'
 
-export default function HelpPage() {
+export default function HelpPage({ section = 'help' }) {
   const { t } = useI18n()
   const [searchParams, setSearchParams] = useSearchParams()
   const [categories, setCategories] = useState([])
@@ -33,6 +33,7 @@ export default function HelpPage() {
           signal: controller.signal,
           q: query,
           category,
+          section,
         })
         setCategories(result.categories)
         setArticles(result.articles)
@@ -52,7 +53,7 @@ export default function HelpPage() {
 
     load()
     return () => controller.abort()
-  }, [query, category, t])
+  }, [query, category, section, t])
 
   const updateParams = (next) => {
     const params = new URLSearchParams(searchParams)
@@ -81,8 +82,12 @@ export default function HelpPage() {
     <MainLayout>
       <section className={styles.page}>
         <header className={styles.header}>
-          <h1 className={styles.title}>{t('help.ui.title')}</h1>
-          <p className={styles.subtitle}>{t('help.ui.subtitle')}</p>
+          <h1 className={styles.title}>
+            {t(section === 'faq' ? 'help.ui.faq_title' : 'help.ui.title')}
+          </h1>
+          <p className={styles.subtitle}>
+            {t(section === 'faq' ? 'help.ui.faq_subtitle' : 'help.ui.subtitle')}
+          </p>
         </header>
 
         <form

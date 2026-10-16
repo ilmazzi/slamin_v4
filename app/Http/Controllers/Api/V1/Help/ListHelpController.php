@@ -21,6 +21,7 @@ class ListHelpController extends Controller
         $result = $this->action->execute(
             $request->validated('q'),
             $request->validated('category'),
+            $request->validated('section', 'help'),
         );
 
         return ApiResponse::success([

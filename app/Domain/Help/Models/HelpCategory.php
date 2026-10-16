@@ -9,6 +9,7 @@ class HelpCategory extends Model
 {
     protected $fillable = [
         'slug',
+        'section',
         'is_active',
         'sort_order',
     ];

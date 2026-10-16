@@ -11,7 +11,7 @@ class ListHelpAction
     /**
      * @return array{categories: Collection<int, HelpCategory>, articles: Collection<int, HelpArticle>}
      */
-    public function execute(?string $query = null, ?string $categorySlug = null): array
+    public function execute(?string $query = null, ?string $categorySlug = null, string $section = 'help'): array
     {
         $search = trim((string) $query);
         $like = $search !== '' ? '%'.addcslashes($search, '%_\\').'%' : null;
@@ -19,6 +19,7 @@ class ListHelpAction
         $categories = HelpCategory::query()
             ->with('translations')
             ->where('is_active', true)
+            ->where('section', $section)
             ->orderBy('sort_order')
             ->orderBy('slug')
             ->get();
@@ -26,7 +27,9 @@ class ListHelpAction
         $articles = HelpArticle::query()
             ->with(['translations', 'category.translations'])
             ->where('is_published', true)
-            ->whereHas('category', fn ($category) => $category->where('is_active', true))
+            ->whereHas('category', fn ($category) => $category
+                ->where('is_active', true)
+                ->where('section', $section))
             ->when($categorySlug, function ($builder) use ($categorySlug) {
                 $builder->whereHas('category', fn ($category) => $category->where('slug', $categorySlug));
             })

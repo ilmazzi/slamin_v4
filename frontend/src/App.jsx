@@ -279,15 +279,7 @@ export default function App() {
               />
             }
           />
-          <Route
-            path="/faq"
-            element={
-              <PlaceholderPage
-                titleKey="common.coming_soon.faq_title"
-                descriptionKey="common.coming_soon.faq_description"
-              />
-            }
-          />
+          <Route path="/faq" element={<HelpPage section="faq" />} />
           <Route path="/help" element={<HelpPage />} />
           <Route
             path="/support"
@@ -425,6 +417,14 @@ export default function App() {
             element={
               <ProtectedRoute roles={['admin']}>
                 <HelpAdminPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/faq"
+            element={
+              <ProtectedRoute roles={['admin']}>
+                <HelpAdminPage section="faq" />
               </ProtectedRoute>
             }
           />

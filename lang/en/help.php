@@ -7,6 +7,8 @@ return [
     'ui' => [
         'title' => 'Guide and help',
         'subtitle' => 'Everything you need to use the platform',
+        'faq_title' => 'Frequently asked questions',
+        'faq_subtitle' => 'Quick answers to the most common questions',
         'search' => 'Search',
         'search_placeholder' => 'Search the guide',
         'category' => 'Category',

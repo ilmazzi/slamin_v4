@@ -48,6 +48,13 @@ export default function AdminHomePage() {
       ready: true,
     } : null,
     canManageSettings ? {
+      id: 'faq',
+      href: '/admin/faq',
+      title: t('admin.hub.faq_title'),
+      description: t('admin.hub.faq_description'),
+      ready: true,
+    } : null,
+    canManageSettings ? {
       id: 'event-categories',
       href: '/admin/event-categories',
       title: t('admin.hub.event_categories_title'),
