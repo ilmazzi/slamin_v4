@@ -67,6 +67,31 @@ it('prevents an administrator from locking their own account', function () {
     ])->assertUnprocessable();
 });
 
+it('soft deletes a user and revokes their sessions', function () {
+    $admin = adminUserForManagement();
+    $target = User::factory()->create();
+    $target->createToken('existing-session');
+    $profile = $target->profile;
+
+    Sanctum::actingAs($admin);
+
+    $this->deleteJson('/api/v1/admin/users/'.$target->id)->assertOk();
+
+    $this->assertSoftDeleted('users', ['id' => $target->id]);
+    $this->assertSoftDeleted('profiles', ['id' => $profile->id]);
+    expect($target->tokens()->count())->toBe(0);
+});
+
+it('prevents an administrator from deleting their own account', function () {
+    $admin = adminUserForManagement();
+
+    Sanctum::actingAs($admin);
+
+    $this->deleteJson('/api/v1/admin/users/'.$admin->id)->assertUnprocessable();
+
+    $this->assertNotSoftDeleted('users', ['id' => $admin->id]);
+});
+
 it('requires the admin role', function () {
     $user = User::factory()->create();
     Sanctum::actingAs($user);

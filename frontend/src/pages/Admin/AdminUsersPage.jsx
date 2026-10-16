@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { listAdminUsers, updateAdminUser } from '../../app/api/admin.js'
+import { deleteAdminUser, listAdminUsers, updateAdminUser } from '../../app/api/admin.js'
 import { useAuth } from '../../app/hooks/useAuth.js'
 import MainLayout from '../../components/layout/MainLayout.jsx'
 import styles from './AdminUsersPage.module.css'
@@ -32,6 +32,7 @@ export default function AdminUsersPage() {
   const [editing, setEditing] = useState({})
   const [isLoading, setIsLoading] = useState(true)
   const [savingId, setSavingId] = useState(null)
+  const [deletingId, setDeletingId] = useState(null)
   const [error, setError] = useState('')
   const [message, setMessage] = useState('')
 
@@ -82,6 +83,29 @@ export default function AdminUsersPage() {
       setError(saveError?.message || 'Impossibile aggiornare l’utente.')
     } finally {
       setSavingId(null)
+    }
+  }
+
+  const remove = async (item) => {
+    const name = item.profile?.display_name || item.profile?.nickname || item.email
+    if (!window.confirm(`Eliminare ${name}? L’accesso verrà revocato e il profilo non sarà più visibile.`)) {
+      return
+    }
+
+    setDeletingId(item.id)
+    setError('')
+    setMessage('')
+    try {
+      await deleteAdminUser(item.id, { token })
+      setMessage(`Utente ${item.email} eliminato.`)
+      const nextPage = users.length === 1 && meta.current_page > 1
+        ? meta.current_page - 1
+        : meta.current_page
+      await load(nextPage)
+    } catch (deleteError) {
+      setError(deleteError?.message || 'Impossibile eliminare l’utente.')
+    } finally {
+      setDeletingId(null)
     }
   }
 
@@ -218,8 +242,21 @@ export default function AdminUsersPage() {
                         </div>
                       </td>
                       <td className={styles.actions}>
-                        <button type="button" disabled={savingId === item.id} onClick={() => save(item.id)}>
+                        <button
+                          type="button"
+                          disabled={savingId === item.id || deletingId === item.id}
+                          onClick={() => save(item.id)}
+                        >
                           {savingId === item.id ? 'Salvataggio...' : 'Salva'}
+                        </button>
+                        <button
+                          type="button"
+                          className={styles.deleteButton}
+                          disabled={isSelf || deletingId === item.id || savingId === item.id}
+                          title={isSelf ? 'Non puoi eliminare il tuo account' : `Elimina ${displayName}`}
+                          onClick={() => remove(item)}
+                        >
+                          {deletingId === item.id ? 'Eliminazione...' : 'Elimina'}
                         </button>
                       </td>
                     </tr>

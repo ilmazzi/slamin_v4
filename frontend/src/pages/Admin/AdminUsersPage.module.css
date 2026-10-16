@@ -229,6 +229,21 @@
   font-weight: 700;
 }
 
+.actions button + button {
+  margin-left: 6px;
+}
+
+.actions .deleteButton {
+  border: 1px solid #9f2424;
+  background: transparent;
+  color: #9f2424;
+}
+
+.actions .deleteButton:hover:not(:disabled) {
+  background: #9f2424;
+  color: var(--color-white);
+}
+
 .empty {
   padding: 32px !important;
   color: var(--color-text-muted);

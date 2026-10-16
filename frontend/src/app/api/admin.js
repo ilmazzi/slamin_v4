@@ -1,4 +1,4 @@
-import { authApiGet, authApiPatch, authApiPost } from './client.js'
+import { authApiDelete, authApiGet, authApiPatch, authApiPost } from './client.js'
 
 export async function getMailSettings({ token, signal } = {}) {
   const { data } = await authApiGet('/api/v1/admin/mail-settings', {
@@ -93,4 +93,12 @@ export async function updateAdminUser(userId, payload, { token, signal } = {}) {
   })
 
   return data?.user ?? null
+}
+
+export async function deleteAdminUser(userId, { token, signal } = {}) {
+  await authApiDelete(`/api/v1/admin/users/${encodeURIComponent(userId)}`, {
+    token,
+    signal,
+    fallbackMessage: 'Impossibile eliminare l’utente',
+  })
 }
