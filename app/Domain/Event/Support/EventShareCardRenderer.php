@@ -17,8 +17,6 @@ class EventShareCardRenderer
 
     private const INK = [17, 17, 17];
 
-    private const IMAGE_HEIGHT = 700;
-
     private const LANDSCAPE_TEXT_RATIO = 0.55;
 
     public function render(Event $event, ShareCardFormat $format = ShareCardFormat::Square): string
@@ -79,6 +77,11 @@ class EventShareCardRenderer
         $placeLine = $this->placeLine($event);
         $bubble = $this->measureMark($semibold, $regular, $organizer, $placeLine, $width, $height);
         $logoLimit = ShareCardLogo::destY($height) - ShareCardLogo::TEXT_GAP;
+        $category = $this->categoryLine($event);
+        $details = $this->detailLines($event);
+        $detailSize = $width > $height ? 19 : 22;
+        $detailLineHeight = (int) round($detailSize * 1.38);
+        $detailsHeight = count($details) * $detailLineHeight + ($details === [] ? 0 : 18);
 
         if ($width > $height) {
             $textRight = $width - 80;
@@ -88,22 +91,30 @@ class EventShareCardRenderer
                 $textRight = $panelX - 48;
             }
 
-            $titleTop = 64;
+            $contentTop = 58;
             $titleMaxWidth = $textRight - 80;
-            $titleMaxBottom = $bubble['x'] < $textRight ? min($bubble['y'] - 36, $logoLimit) : $logoLimit;
+            $contentBottom = $bubble['x'] < $textRight ? min($bubble['y'] - 36, $logoLimit) : $logoLimit;
         } else {
             $coverBox = $cover instanceof GdImage
-                ? $this->drawCover($image, $cover, 0, 0, $width, self::IMAGE_HEIGHT)
+                ? $this->drawCover($image, $cover, 0, 0, $width, $this->coverHeight($height))
                 : null;
 
             $hasCover = $coverBox !== null && $coverBox['height'] > 0;
-            $titleTop = $hasCover ? $coverBox['y'] + $coverBox['height'] + 48 : 96;
-            $titleMaxBottom = min($bubble['y'] - 36, $logoLimit);
+            $contentTop = $hasCover ? $coverBox['y'] + $coverBox['height'] + 40 : 80;
+            $contentBottom = min($bubble['y'] - 36, $logoLimit);
             $titleMaxWidth = $hasCover
                 ? max(420, $width - 136 - $bubble['width'])
                 : $width - 160;
         }
 
+        $titleTop = $contentTop;
+        if ($category !== '') {
+            $categoryBox = $this->textMetrics($semibold, 21, $category);
+            imagettftext($image, 21, 0, 80, $contentTop + $categoryBox['ascent'], $ink, $semibold, $category);
+            $titleTop += 38;
+        }
+
+        $titleMaxBottom = max($titleTop + 40, $contentBottom - $detailsHeight);
         $title = trim((string) $event->title) ?: __('events.event_title');
         [$titleSize, $titleLines] = $this->fitLines($semibold, $title, $titleMaxWidth, $titleMaxBottom, $titleTop, 52, 32);
 
@@ -115,11 +126,14 @@ class EventShareCardRenderer
             $y += $titleLineHeight;
         }
 
-        $meta = $this->metaLine($event);
-        if ($meta !== '') {
-            $y += 12;
-            $metaBox = $this->textMetrics($medium, 24, $meta);
-            imagettftext($image, 24, 0, 80, $y + $metaBox['ascent'], $ink, $medium, $meta);
+        if ($details !== []) {
+            $y += 14;
+            foreach ($details as $detail) {
+                $detail = $this->truncateToWidth($medium, $detailSize, $detail, $titleMaxWidth);
+                $detailBox = $this->textMetrics($medium, $detailSize, $detail);
+                imagettftext($image, $detailSize, 0, 80, $y + $detailBox['ascent'], $ink, $medium, $detail);
+                $y += $detailLineHeight;
+            }
         }
 
         SlaminShareMark::fill(
@@ -380,7 +394,39 @@ class EventShareCardRenderer
         ];
     }
 
-    private function metaLine(Event $event): string
+    private function coverHeight(int $canvasHeight): int
+    {
+        if ($canvasHeight <= 1080) {
+            return 540;
+        }
+
+        if ($canvasHeight <= 1350) {
+            return 650;
+        }
+
+        return 800;
+    }
+
+    private function categoryLine(Event $event): string
+    {
+        $name = trim((string) $event->category?->translatedName());
+
+        return $name === '' ? '' : mb_strtoupper($name);
+    }
+
+    /**
+     * @return list<string>
+     */
+    private function detailLines(Event $event): array
+    {
+        return array_values(array_filter([
+            $this->dateTimeLine($event),
+            $this->locationLine($event),
+            $this->costLine($event),
+        ]));
+    }
+
+    private function dateTimeLine(Event $event): string
     {
         $occurrence = $event->occurrences->firstWhere('is_primary', true) ?? $event->occurrences->first();
         $startsAt = $occurrence?->starts_at;
@@ -390,8 +436,41 @@ class EventShareCardRenderer
 
         $timezone = $occurrence->timezone ?: 'UTC';
         $locale = app()->getLocale();
+        $localStart = $startsAt->timezone($timezone)->locale($locale);
 
-        return $startsAt->timezone($timezone)->locale($locale)->translatedFormat('j F Y');
+        return $localStart->translatedFormat('j F Y').' · '.$localStart->format('H:i');
+    }
+
+    private function locationLine(Event $event): string
+    {
+        if ($event->delivery_mode === EventDeliveryMode::Online) {
+            return __('events.share_card.online_label');
+        }
+
+        $place = trim((string) ($event->venueDetail?->place_name ?? ''));
+        $city = trim((string) ($event->venueDetail?->city ?? ''));
+        $parts = array_values(array_unique(array_filter([$place, $city])));
+
+        return $parts === [] ? __('events.share_card.place_tbd') : implode(' · ', $parts);
+    }
+
+    private function costLine(Event $event): string
+    {
+        if (! $event->has_cost) {
+            return __('events.share_card.free');
+        }
+
+        if ($event->price === null || (string) $event->price === '') {
+            return __('events.share_card.paid');
+        }
+
+        $locale = app()->getLocale();
+        $decimalSeparator = $locale === 'it' ? ',' : '.';
+        $thousandsSeparator = $locale === 'it' ? '.' : ',';
+        $amount = number_format((float) $event->price, 2, $decimalSeparator, $thousandsSeparator);
+        $currency = trim((string) ($event->currency ?: 'EUR'));
+
+        return "{$amount} {$currency}";
     }
 
     private function organizerFirstName(Event $event): string

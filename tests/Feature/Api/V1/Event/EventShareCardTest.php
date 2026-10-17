@@ -200,6 +200,42 @@ it('renders every post format at the expected dimensions', function (string $for
     'story' => ['story', 1080, 1920],
 ]);
 
+it('renders the event category, time, location and cost details', function () {
+    $author = eventShareAuthor();
+    $freeEvent = publishedShareEvent($author, ['slug' => 'evento-gratuito-con-dettagli']);
+    $paidEvent = publishedShareEvent($author, [
+        'slug' => 'evento-a-pagamento-con-dettagli',
+        'has_cost' => true,
+        'price' => 18.50,
+        'currency' => 'EUR',
+    ]);
+    $differentTime = publishedShareEvent($author, ['slug' => 'evento-orario-diverso']);
+    $differentTime->occurrences()->update(['starts_at' => now()->addMonth()->setTime(21, 30)]);
+    $differentPlace = publishedShareEvent($author, ['slug' => 'evento-luogo-diverso']);
+    $differentPlace->venueDetail()->update(['place_name' => 'Teatro Nuovo', 'city' => 'Milano']);
+
+    $differentCategory = EventCategory::query()->create([
+        'slug' => 'festival-share-details',
+        'is_active' => true,
+        'sort_order' => 2,
+    ]);
+    $differentCategory->translations()->create(['locale' => 'it', 'name' => 'Festival']);
+    $categoryEvent = publishedShareEvent($author, [
+        'slug' => 'evento-categoria-diversa',
+        'event_category_id' => $differentCategory->id,
+    ]);
+
+    $baseHash = hash(
+        'sha256',
+        $this->get("/api/v1/events/{$freeEvent->slug}/share-card")->assertOk()->getContent(),
+    );
+
+    foreach ([$paidEvent, $differentTime, $differentPlace, $categoryEvent] as $event) {
+        $card = $this->get("/api/v1/events/{$event->slug}/share-card")->assertOk()->getContent();
+        expect(hash('sha256', $card))->not->toBe($baseHash);
+    }
+});
+
 it('does not render share cards for draft events even for the owner', function () {
     $author = eventShareAuthor();
     $event = publishedShareEvent($author, [

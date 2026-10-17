@@ -17,7 +17,7 @@ class RenderEventShareCardAction
     public function execute(string $slug, ShareCardFormat $format = ShareCardFormat::Square): string
     {
         $event = Event::query()
-            ->with(['user.profile', 'occurrences', 'venueDetail'])
+            ->with(['user.profile', 'category.translations', 'occurrences', 'venueDetail'])
             ->where('slug', $slug)
             ->where('status', EventStatus::Published)
             ->where('is_public', true)
@@ -29,10 +29,11 @@ class RenderEventShareCardAction
         $primary = $event->occurrences->firstWhere('is_primary', true) ?? $event->occurrences->first();
 
         $cacheKey = sprintf(
-            'event-share-card:v5:%d:%s:%s:%s:%s:%s:%s',
+            'event-share-card:v6:%d:%s:%s:%s:%s:%s:%s:%s',
             $event->id,
             $event->updated_at?->timestamp ?? 0,
             $event->user?->profile?->updated_at?->timestamp ?? 0,
+            md5((string) $event->category?->translatedName($locale)),
             $event->cover_image_path ?? '',
             $primary?->updated_at?->timestamp ?? 0,
             $locale,
