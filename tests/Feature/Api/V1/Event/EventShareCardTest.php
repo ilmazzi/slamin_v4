@@ -183,6 +183,23 @@ it('exposes the same png on the public api share-card route', function () {
         ->assertHeader('Content-Type', 'image/png');
 });
 
+it('renders every post format at the expected dimensions', function (string $format, int $width, int $height) {
+    $event = publishedShareEvent(eventShareAuthor());
+
+    $response = $this->get("/api/v1/events/{$event->slug}/share-card?format={$format}");
+    $response->assertOk()->assertHeader('Content-Type', 'image/png');
+
+    $rendered = imagecreatefromstring($response->getContent());
+    expect($rendered)->toBeInstanceOf(GdImage::class)
+        ->and(imagesx($rendered))->toBe($width)
+        ->and(imagesy($rendered))->toBe($height);
+    imagedestroy($rendered);
+})->with([
+    'square' => ['square', 1080, 1080],
+    'portrait' => ['portrait', 1080, 1350],
+    'story' => ['story', 1080, 1920],
+]);
+
 it('does not render share cards for draft events even for the owner', function () {
     $author = eventShareAuthor();
     $event = publishedShareEvent($author, [

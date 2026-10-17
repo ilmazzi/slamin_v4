@@ -117,8 +117,8 @@ async function shareWithFallback(shareTitle, shareUrl, file = null) {
 const SHARE_PAGE_TYPES = {
   poem: { plural: 'poems', key: 'slug', hasCard: true },
   event: { plural: 'events', key: 'slug', hasCard: true },
-  article: { plural: 'articles', key: 'slug', hasCard: false },
-  media: { plural: 'media', key: 'id', hasCard: false },
+  article: { plural: 'articles', key: 'slug', hasCard: true },
+  media: { plural: 'media', key: 'id', hasCard: true },
 }
 
 function resolveSharePageType(contentType) {
@@ -136,14 +136,16 @@ function resolveShareUrl(target, contentType, publicBasePath) {
   return `${window.location.origin}/share/${shareType.plural}/${encodeURIComponent(String(key))}`
 }
 
-async function fetchShareCard(target, contentType) {
+async function fetchShareCard(target, contentType, format = 'square') {
   const shareType = resolveSharePageType(contentType)
-  if (!shareType?.hasCard || !target?.slug) {
+  const key = shareType ? target?.[shareType.key] : null
+  if (!shareType?.hasCard || key === null || key === undefined || key === '') {
     return null
   }
 
-  const slug = encodeURIComponent(String(target.slug))
-  const response = await fetch(getApiUrl(`/api/v1/${shareType.plural}/${slug}/share-card`), {
+  const encodedKey = encodeURIComponent(String(key))
+  const params = new URLSearchParams({ format })
+  const response = await fetch(getApiUrl(`/api/v1/${shareType.plural}/${encodedKey}/share-card?${params}`), {
     headers: { Accept: 'image/png' },
   })
   if (!response.ok) {
@@ -154,18 +156,16 @@ async function fetchShareCard(target, contentType) {
   return blob?.size > 0 ? blob : null
 }
 
-function prefersNativeShare() {
-  return typeof navigator.share === 'function' && window.matchMedia('(pointer: coarse)').matches
-}
-
-async function nativeShare(target, { contentType, publicBasePath }) {
+async function nativeShare(target, { contentType, publicBasePath, format = 'square' }) {
   const shareUrl = resolveShareUrl(target, contentType, publicBasePath)
   const shareTitle = target?.title ?? ''
+  const shareType = resolveSharePageType(contentType)
+  const key = shareType ? target?.[shareType.key] : 'slamin'
 
   let file = null
   try {
-    const blob = await fetchShareCard(target, contentType)
-    file = blob ? new File([blob], `${target.slug}-share.png`, { type: 'image/png' }) : null
+    const blob = await fetchShareCard(target, contentType, format)
+    file = blob ? new File([blob], `${key}-${format}.png`, { type: 'image/png' }) : null
   } catch {
     file = null
   }
@@ -251,7 +251,13 @@ export default function SocialActions({
   const [isBookmarked, setIsBookmarked] = useState(Boolean(target?.is_bookmarked))
   const [isSharePanelOpen, setIsSharePanelOpen] = useState(false)
   const closeSharePanel = useCallback(() => setIsSharePanelOpen(false), [])
-  const canDownloadShareCard = Boolean(resolveSharePageType(contentType)?.hasCard && target?.slug)
+  const sharePageType = resolveSharePageType(contentType)
+  const canDownloadShareCard = Boolean(
+    sharePageType?.hasCard
+    && target?.[sharePageType.key] !== null
+    && target?.[sharePageType.key] !== undefined
+    && target?.[sharePageType.key] !== '',
+  )
 
   const likesValue = likesOverride !== null
     ? likesOverride
@@ -423,21 +429,7 @@ export default function SocialActions({
         return
       }
 
-      if (!prefersNativeShare()) {
-        setIsSharePanelOpen(true)
-        return
-      }
-
-      await nativeShare(target, { contentType, publicBasePath })
-      window.dispatchEvent(
-        new CustomEvent(buildContentEventName(contentType, 'share-success'), {
-          detail: {
-            target: target ?? null,
-            contentType,
-            mode: navigator.share ? 'native' : 'clipboard',
-          },
-        }),
-      )
+      setIsSharePanelOpen(true)
     } catch {
       window.dispatchEvent(
         new CustomEvent(buildContentEventName(contentType, 'share-error'), {
@@ -574,7 +566,10 @@ export default function SocialActions({
           title={target?.title ?? ''}
           url={resolveShareUrl(target, contentType, publicBasePath)}
           imageName={`${target?.slug ?? 'slamin'}-share.png`}
-          loadImage={canDownloadShareCard ? () => fetchShareCard(target, contentType) : null}
+          loadImage={canDownloadShareCard ? (format) => fetchShareCard(target, contentType, format) : null}
+          onNativeShare={canDownloadShareCard
+            ? (format) => nativeShare(target, { contentType, publicBasePath, format })
+            : null}
           onClose={closeSharePanel}
         />
       ) : null}

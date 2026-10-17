@@ -16,7 +16,10 @@ class ShowEventShareCardController extends Controller
 
     public function __invoke(Request $request, string $slug): Response
     {
-        $format = ShareCardFormat::from((string) $request->route('format', ShareCardFormat::Square->value));
+        $format = ShareCardFormat::tryFrom((string) $request->query(
+            'format',
+            $request->route('format', ShareCardFormat::Square->value),
+        )) ?? ShareCardFormat::Square;
         $png = $this->renderEventShareCardAction->execute($slug, $format);
 
         return response($png, 200, [

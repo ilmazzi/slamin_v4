@@ -1,8 +1,10 @@
 <?php
 
+use App\Http\Controllers\Share\ShowArticleShareCardController;
 use App\Http\Controllers\Share\ShowArticleSharePageController;
 use App\Http\Controllers\Share\ShowEventShareCardController;
 use App\Http\Controllers\Share\ShowEventSharePageController;
+use App\Http\Controllers\Share\ShowMediaShareCardController;
 use App\Http\Controllers\Share\ShowMediaSharePageController;
 use App\Http\Controllers\Share\ShowPoemShareCardController;
 use App\Http\Controllers\Share\ShowPoemSharePageController;
@@ -27,7 +29,19 @@ Route::get('/share/events/{slug}', ShowEventSharePageController::class)
 
 Route::get('/share/articles/{slug}', ShowArticleSharePageController::class)
     ->name('share.articles.show');
+Route::get('/share/articles/{slug}/card.png', ShowArticleShareCardController::class)
+    ->name('share.articles.card');
+Route::get('/share/articles/{slug}/preview.png', ShowArticleShareCardController::class)
+    ->defaults('format', ShareCardFormat::Landscape->value)
+    ->name('share.articles.preview');
 
 Route::get('/share/media/{id}', ShowMediaSharePageController::class)
     ->whereNumber('id')
     ->name('share.media.show');
+Route::get('/share/media/{id}/card.png', ShowMediaShareCardController::class)
+    ->whereNumber('id')
+    ->name('share.media.card');
+Route::get('/share/media/{id}/preview.png', ShowMediaShareCardController::class)
+    ->whereNumber('id')
+    ->defaults('format', ShareCardFormat::Landscape->value)
+    ->name('share.media.preview');

@@ -106,5 +106,15 @@ return [
         'download_image' => 'Scarica immagine',
         'download_hint' => 'Per Instagram e le storie',
         'download_failed' => 'Impossibile scaricare l\'immagine',
+        'choose_format' => 'Scegli il formato',
+        'preview_alt' => 'Anteprima del post Slam In',
+        'preview_failed' => 'Anteprima non disponibile',
+        'share_now' => 'Condividi ora',
+        'share_link' => 'Condividi il link',
+        'formats' => [
+            'square' => 'Post quadrato',
+            'portrait' => 'Post verticale',
+            'story' => 'Story',
+        ],
     ],
 ];

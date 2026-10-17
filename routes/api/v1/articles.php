@@ -20,6 +20,7 @@ use App\Http\Controllers\Api\V1\Article\StoreArticleController;
 use App\Http\Controllers\Api\V1\Article\UnlikeArticleController;
 use App\Http\Controllers\Api\V1\Article\UpdateArticleController;
 use App\Http\Controllers\Api\V1\Article\UpsertArticleTranslationController;
+use App\Http\Controllers\Share\ShowArticleShareCardController;
 use Domain\ContentTranslation\Models\ContentTranslation;
 use Illuminate\Support\Facades\Route;
 
@@ -63,6 +64,7 @@ Route::middleware([
 });
 
 Route::get('/articles', ListArticleController::class)->name('articles.index');
+Route::get('/articles/{slug}/share-card', ShowArticleShareCardController::class)->name('articles.share-card');
 Route::get('/articles/{slug}', ShowArticleController::class)->name('articles.show');
 Route::get('/articles/{slug}/translations/{locale}', ShowArticleTranslationController::class)
     ->where('locale', ContentTranslation::LOCALE_PATTERN)

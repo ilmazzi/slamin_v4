@@ -10,7 +10,6 @@ use Domain\Share\Support\SharePublicUrl;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
-use Illuminate\Support\Facades\Storage;
 
 class ShowArticleSharePageController extends Controller
 {
@@ -34,7 +33,7 @@ class ShowArticleSharePageController extends Controller
             'title' => $article->title ?: __('articles.all.no_title'),
             'description' => $excerpt !== '' ? $excerpt : __('articles.all.no_excerpt'),
             'canonicalUrl' => route('share.articles.show', ['slug' => $article->slug]),
-            'imageUrl' => $article->cover_image_path ? Storage::disk('public')->url($article->cover_image_path) : null,
+            'imageUrl' => route('share.articles.preview', ['slug' => $article->slug]),
             'frontendUrl' => $frontendUrl,
         ]);
     }

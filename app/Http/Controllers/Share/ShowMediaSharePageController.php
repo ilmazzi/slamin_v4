@@ -4,7 +4,6 @@ namespace App\Http\Controllers\Share;
 
 use App\Http\Controllers\Controller;
 use Domain\Media\Enums\MediaStatus;
-use Domain\Media\Enums\MediaType;
 use Domain\Media\Enums\MediaVisibility;
 use Domain\Media\Models\MediaItem;
 use Domain\Share\Support\SharePage;
@@ -33,7 +32,7 @@ class ShowMediaSharePageController extends Controller
             'title' => $media->title ?: __('media.ui.untitled'),
             'description' => SharePage::excerpt($media->description),
             'canonicalUrl' => route('share.media.show', ['id' => $media->id]),
-            'imageUrl' => $media->type === MediaType::Photo ? $media->resolvedFileUrl() : $media->resolvedThumbnailUrl(),
+            'imageUrl' => route('share.media.preview', ['id' => $media->id]),
             'frontendUrl' => $frontendUrl,
         ]);
     }

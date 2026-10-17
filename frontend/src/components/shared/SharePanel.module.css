@@ -11,8 +11,8 @@
 }
 
 .panel {
-  width: min(460px, 100%);
-  max-height: 100%;
+  width: min(920px, 100%);
+  max-height: calc(100dvh - 48px);
   overflow-y: auto;
   box-sizing: border-box;
   display: flex;
@@ -67,6 +67,113 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.composer {
+  display: grid;
+  grid-template-columns: minmax(260px, 0.9fr) minmax(280px, 1.1fr);
+  gap: 28px;
+  align-items: start;
+  padding: 18px;
+  border-radius: 18px;
+  background: #f4f4f4;
+}
+
+.previewColumn {
+  display: flex;
+  justify-content: center;
+  min-width: 0;
+}
+
+.preview {
+  position: relative;
+  width: 100%;
+  max-width: 340px;
+  max-height: 54dvh;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #dedede;
+  box-shadow: 0 10px 28px rgb(0 0 0 / 0.14);
+  transition: aspect-ratio 0.2s ease;
+}
+
+.preview img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.previewState {
+  padding: 20px;
+  font-size: 14px;
+  text-align: center;
+  color: rgb(0 0 0 / 0.65);
+}
+
+.composerControls {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.formatFieldset {
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.formatFieldset legend {
+  margin-bottom: 10px;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.formatOptions {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.formatButton {
+  min-width: 0;
+  min-height: 86px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  padding: 9px 6px;
+  border: 1px solid #c9c9c9;
+  border-radius: 12px;
+  background: #fff;
+  color: #000;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 650;
+  cursor: pointer;
+}
+
+.formatButton[data-selected='true'] {
+  border-color: #000;
+  background: #000;
+  color: #fff;
+}
+
+.formatShape {
+  display: block;
+  height: 38px;
+  max-width: 34px;
+  border: 2px solid currentColor;
+  border-radius: 2px;
+}
+
+.sectionTitle {
+  margin: 0;
+  font-size: 15px;
+  line-height: 1.2;
 }
 
 .targets {
@@ -162,7 +269,8 @@
 }
 
 .copyButton,
-.downloadButton {
+.downloadButton,
+.nativeShareButton {
   display: inline-flex;
   align-items: center;
   gap: 8px;
@@ -182,7 +290,8 @@
 }
 
 .copyButton svg,
-.downloadButton svg {
+.downloadButton svg,
+.nativeShareButton svg {
   width: 18px;
   height: 18px;
   flex: 0 0 auto;
@@ -198,7 +307,18 @@
   text-align: left;
 }
 
-.downloadButton:disabled {
+.nativeShareButton {
+  justify-content: center;
+  width: 100%;
+  padding: 13px 16px;
+  border-radius: 999px;
+  background: #000;
+  color: #fff;
+  font-weight: 700;
+}
+
+.downloadButton:disabled,
+.nativeShareButton:disabled {
   cursor: wait;
   opacity: 0.7;
 }
@@ -220,9 +340,15 @@
 }
 
 @media (max-width: 480px) {
+  .overlay {
+    align-items: flex-end;
+    padding: 0;
+  }
+
   .panel {
+    max-height: 92dvh;
     padding: 22px;
-    border-radius: 16px;
+    border-radius: 18px 18px 0 0;
   }
 
   .linkRow {
@@ -231,5 +357,16 @@
 
   .copyButton {
     justify-content: center;
+  }
+}
+
+@media (max-width: 720px) {
+  .composer {
+    grid-template-columns: 1fr;
+  }
+
+  .preview {
+    width: min(280px, 100%);
+    max-height: 42dvh;
   }
 }

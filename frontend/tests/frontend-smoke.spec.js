@@ -65,6 +65,17 @@ async function resolveMediaId(request) {
   return rows[0]?.id ?? null
 }
 
+async function resolveEventPathValue(request) {
+  const response = await request.get('/api/v1/events?per_page=10&page=1')
+  expect(response.ok()).toBeTruthy()
+  const payload = await response.json()
+  const rows = Array.isArray(payload?.data) ? payload.data : []
+  const first = rows[0]
+  const value = first?.slug || first?.id
+  expect(value).toBeTruthy()
+  return value
+}
+
 test('public routes load without server errors', async ({ page }) => {
   for (const route of publicRoutes) {
     const response = await page.goto(route, { waitUntil: 'domcontentloaded' })
@@ -76,6 +87,24 @@ test('public routes load without server errors', async ({ page }) => {
 test('unauthenticated users are redirected from protected route', async ({ page }) => {
   await page.goto('/dashboard', { waitUntil: 'networkidle' })
   await expect(page).toHaveURL(/\/login$/)
+})
+
+test('event share composer switches branded image formats without mobile overflow', async ({ page, request }) => {
+  const eventPathValue = await resolveEventPathValue(request)
+  await page.setViewportSize({ width: 390, height: 844 })
+  await page.goto(`/events/${eventPathValue}`, { waitUntil: 'networkidle' })
+
+  await page.getByRole('button', { name: /condividi evento|share event/i }).filter({ visible: true }).first().click()
+
+  const dialog = page.getByRole('dialog')
+  const preview = dialog.locator('img')
+  await expect(dialog).toBeVisible()
+  await expect(preview).toBeVisible()
+  await expect.poll(() => preview.evaluate((image) => [image.naturalWidth, image.naturalHeight])).toEqual([1080, 1080])
+
+  await dialog.getByRole('button', { name: /post verticale|portrait post/i }).click()
+  await expect.poll(() => preview.evaluate((image) => [image.naturalWidth, image.naturalHeight])).toEqual([1080, 1350])
+  await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth)).toBe(390)
 })
 
 test('login flow and authenticated routes', async ({ page }) => {
