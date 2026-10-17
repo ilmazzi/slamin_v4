@@ -5,8 +5,8 @@ namespace Domain\Event\Actions;
 use Domain\Event\Enums\EventStatus;
 use Domain\Event\Models\Event;
 use Domain\Event\Support\EventShareCardRenderer;
+use Domain\Share\Support\ShareCardCache;
 use Domain\Share\Support\ShareCardFormat;
-use Illuminate\Support\Facades\Cache;
 
 class RenderEventShareCardAction
 {
@@ -29,7 +29,7 @@ class RenderEventShareCardAction
         $primary = $event->occurrences->firstWhere('is_primary', true) ?? $event->occurrences->first();
 
         $cacheKey = sprintf(
-            'event-share-card:v4:%d:%s:%s:%s:%s:%s:%s',
+            'event-share-card:v5:%d:%s:%s:%s:%s:%s:%s',
             $event->id,
             $event->updated_at?->timestamp ?? 0,
             $event->user?->profile?->updated_at?->timestamp ?? 0,
@@ -39,6 +39,6 @@ class RenderEventShareCardAction
             $format->value,
         );
 
-        return Cache::remember($cacheKey, now()->addDay(), fn () => $this->renderer->render($event, $format));
+        return ShareCardCache::remember($cacheKey, fn () => $this->renderer->render($event, $format));
     }
 }

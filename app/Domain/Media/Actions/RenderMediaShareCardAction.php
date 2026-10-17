@@ -7,8 +7,8 @@ use Domain\Media\Enums\MediaType;
 use Domain\Media\Enums\MediaVisibility;
 use Domain\Media\Models\MediaItem;
 use Domain\Share\Support\GenericShareCardRenderer;
+use Domain\Share\Support\ShareCardCache;
 use Domain\Share\Support\ShareCardFormat;
-use Illuminate\Support\Facades\Cache;
 
 class RenderMediaShareCardAction
 {
@@ -26,14 +26,14 @@ class RenderMediaShareCardAction
             ->firstOrFail();
 
         $cacheKey = sprintf(
-            'media-share-card:v1:%d:%s:%s:%s',
+            'media-share-card:v2:%d:%s:%s:%s',
             $media->id,
             $media->updated_at?->timestamp ?? 0,
             $media->user?->profile?->updated_at?->timestamp ?? 0,
             $format->value,
         );
 
-        return Cache::remember($cacheKey, now()->addDay(), fn () => $this->renderer->render([
+        return ShareCardCache::remember($cacheKey, fn () => $this->renderer->render([
             'title' => $media->title ?: __('media.ui.untitled'),
             'subtitle' => $media->description,
             'author' => $media->user?->profile?->display_name,
