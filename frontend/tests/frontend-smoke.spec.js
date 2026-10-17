@@ -103,6 +103,7 @@ test('event share composer switches branded image formats without mobile overflo
           hasFile: Array.isArray(payload?.files) && payload.files.length === 1,
           fileName: payload?.files?.[0]?.name ?? '',
           hasUrl: Boolean(payload?.url),
+          text: payload?.text ?? '',
         }
       },
     })
@@ -125,6 +126,7 @@ test('event share composer switches branded image formats without mobile overflo
     hasFile: true,
     fileName: expect.stringContaining('-portrait.png'),
     hasUrl: false,
+    text: expect.stringContaining('/share/events/'),
   })
   await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth)).toBe(390)
 })
