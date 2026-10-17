@@ -21,6 +21,7 @@ return [
     'cost' => 'Cost',
     'time' => 'Time',
     'book' => 'Book',
+    'view_event' => 'Go to event',
     'upcoming' => 'upcoming',
     'events' => 'events',
     'card_alt' => 'Event preview',

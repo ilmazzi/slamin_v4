@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import L from 'leaflet'
 import { MapContainer, Marker, useMapEvents } from 'react-leaflet'
+import { Link } from 'react-router-dom'
 import OsmTileLayer from '../../app/maps/OsmTileLayer.jsx'
 import {
   DEFAULT_EVENT_MAP_CENTER,
@@ -494,10 +495,13 @@ export default function EventMap({ events: allEvents = [], isLoading = false, er
         <p><strong>{t('events.time')}</strong><span>{formatEventTime(selectedEvent.start_datetime)}</span></p>
       </div>
 
-      <button type="button" className={styles.eventBookButton}>
-        <span>{t('events.book')}</span>
+      <Link
+        to={`/events/${encodeURIComponent(selectedEvent.slug || selectedEvent.id)}`}
+        className={styles.eventBookButton}
+      >
+        <span>{t('events.view_event')}</span>
         <span className={styles.eventBookPlus}>+</span>
-      </button>
+      </Link>
     </aside>
   </section>
 ) : null}
