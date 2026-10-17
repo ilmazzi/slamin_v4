@@ -794,6 +794,19 @@ overflow: hidden;
 
 }
 
+@media (max-width: 420px) {
+  .guestActions .languageSwitcher,
+  .guestActions .registerButton {
+    display: none;
+  }
+
+  .guestActions,
+  .authActionsHost {
+    min-width: 0;
+    max-width: 100%;
+  }
+}
+
 @media (hover: none) and (pointer: coarse) {
   .guestActions {
     flex-wrap: nowrap;
