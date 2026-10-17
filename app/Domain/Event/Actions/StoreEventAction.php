@@ -19,6 +19,7 @@ class StoreEventAction
         private readonly UpsertRecentEventPlaceAction $upsertRecentEventPlaceAction,
         private readonly BuildEventInviteNotificationsAction $buildEventInviteNotificationsAction,
         private readonly NotifyEventInvitesAction $notifyEventInvitesAction,
+        private readonly SyncEventOccurrencesAction $syncEventOccurrencesAction,
     ) {}
 
     public function execute(StoreEventData $data): Event
@@ -93,14 +94,11 @@ class StoreEventAction
 
     private function syncRelatedData(Event $event, StoreEventData $data): void
     {
-        if ($data->occurrence) {
-            $event->occurrences()->create([
-                'starts_at' => $data->occurrence['starts_at'],
-                'ends_at' => $data->occurrence['ends_at'] ?? null,
-                'timezone' => $data->occurrence['timezone'],
-                'is_primary' => true,
-            ]);
-        }
+        $this->syncEventOccurrencesAction->execute(
+            $event,
+            $data->occurrence,
+            $data->scheduleMode === EventScheduleMode::Recurring ? $data->recurrence : null,
+        );
 
         if ($data->scheduleMode === EventScheduleMode::Recurring && $data->recurrence) {
             $event->recurrence()->create($data->recurrence);

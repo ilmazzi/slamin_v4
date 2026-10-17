@@ -253,7 +253,7 @@ export default function EventCreateForm({ eventSlug = null }) {
     status: 'published',
     is_public: true,
     occurrence: { starts_at: isEdit ? '' : prefilledStartsAt(searchParams.get('date')), ends_at: '', timezone: 'Europe/Rome' },
-    recurrence: { frequency: 'weekly', interval: 1, occurrences_count: 1 },
+    recurrence: { frequency: 'weekly', interval: 1, occurrences_count: 2 },
     availability_poll: { response_deadline: '', instructions: '' },
     availability_options: [emptyAvailability],
     venue: {
@@ -595,6 +595,9 @@ export default function EventCreateForm({ eventSlug = null }) {
     setV((prev) => ({
       ...prev,
       schedule_mode: checked ? 'recurring' : 'fixed',
+      recurrence: checked && Number(prev.recurrence.occurrences_count) < 2
+        ? { ...prev.recurrence, occurrences_count: 2 }
+        : prev.recurrence,
     }))
   }
 

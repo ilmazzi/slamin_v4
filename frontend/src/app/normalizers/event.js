@@ -10,7 +10,7 @@ function primaryStartIso(apiEvent) {
 /**
  * Adapts `EventResource` to the flatter UI shape used by maps, cards and calendars.
  */
-export function normalizeEventForUi(apiEvent) {
+export function normalizeEventForUi(apiEvent, occurrenceOverride = null) {
   if (!apiEvent) {
     return null
   }
@@ -18,7 +18,11 @@ export function normalizeEventForUi(apiEvent) {
   const venue = apiEvent.venue
   const latitude = venue?.latitude != null ? Number(venue.latitude) : null
   const longitude = venue?.longitude != null ? Number(venue.longitude) : null
-  const startDatetime = primaryStartIso(apiEvent)
+  const primaryOccurrence = Array.isArray(apiEvent?.occurrences)
+    ? (apiEvent.occurrences.find((occurrence) => occurrence?.is_primary) || apiEvent.occurrences[0] || null)
+    : null
+  const occurrence = occurrenceOverride || primaryOccurrence
+  const startDatetime = occurrence?.starts_at ?? primaryStartIso(apiEvent)
   const category = apiEvent.category
   const categoryLabel = (category && (category.name || category.slug)) || ''
   const hasCost = Boolean(apiEvent.has_cost)
@@ -26,6 +30,8 @@ export function normalizeEventForUi(apiEvent) {
 
   return {
     id: apiEvent.id,
+    occurrence_id: occurrence?.id ?? null,
+    instance_id: occurrence?.id != null ? `${apiEvent.id}:${occurrence.id}` : String(apiEvent.id),
     slug: apiEvent.slug,
     title: apiEvent.title,
     subtitle: apiEvent.subtitle,
@@ -57,7 +63,22 @@ export function normalizeEventsForUi(list) {
     return []
   }
 
-  return list.map((item) => normalizeEventForUi(item)).filter(Boolean)
+  return list.flatMap((item) => {
+    const occurrences = Array.isArray(item?.occurrences)
+      ? [...item.occurrences]
+          .filter((occurrence) => occurrence?.starts_at)
+          .sort((left, right) => Date.parse(left.starts_at) - Date.parse(right.starts_at))
+      : []
+
+    if (occurrences.length === 0) {
+      const normalized = normalizeEventForUi(item)
+      return normalized ? [normalized] : []
+    }
+
+    return occurrences
+      .map((occurrence) => normalizeEventForUi(item, occurrence))
+      .filter(Boolean)
+  })
 }
 
 /**

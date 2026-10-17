@@ -72,6 +72,51 @@ it('stores an event with fixed online schedule', function () {
         ->assertJsonPath('errors', null);
 });
 
+it('generates every occurrence for a recurring event', function () {
+    $user = eventCrudAuthor();
+    Sanctum::actingAs($user);
+    $category = eventCrudCategory();
+    $payload = eventCrudPayload($category->id);
+    $payload['schedule_mode'] = 'recurring';
+    $payload['occurrence'] = [
+        'starts_at' => '2026-11-01T18:00:00+01:00',
+        'ends_at' => '2026-11-01T20:00:00+01:00',
+        'timezone' => 'Europe/Rome',
+    ];
+    $payload['recurrence'] = [
+        'frequency' => 'weekly',
+        'interval' => 1,
+        'occurrences_count' => 3,
+    ];
+
+    $response = $this->postJson('/api/v1/events', $payload);
+
+    $response
+        ->assertOk()
+        ->assertJsonCount(3, 'data.event.occurrences');
+
+    $event = Event::query()->where('title', 'Evento Test')->firstOrFail();
+    $occurrences = $event->occurrences()
+        ->orderBy('starts_at')
+        ->get();
+
+    expect($occurrences->map(
+        fn ($occurrence) => $occurrence->starts_at
+            ->setTimezone('Europe/Rome')
+            ->format('Y-m-d H:i')
+    )->all())->toBe([
+        '2026-11-01 18:00',
+        '2026-11-08 18:00',
+        '2026-11-15 18:00',
+    ]);
+    expect($occurrences->pluck('is_primary')->all())->toBe([true, false, false]);
+    expect($occurrences->map(
+        fn ($occurrence) => $occurrence->ends_at
+            ->setTimezone('Europe/Rome')
+            ->format('H:i')
+    )->all())->toBe(['20:00', '20:00', '20:00']);
+});
+
 it('updates an event without venue data', function () {
     $user = eventCrudAuthor();
     Sanctum::actingAs($user);

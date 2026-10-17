@@ -102,7 +102,10 @@ export default function UpcomingEventSlider({
   }, [maxSlideStart])
 
   const mappedEvents = useMemo(
-    () => events.map((item) => ({ id: item.id, props: eventSlideCardProps(item, { t, locale }) })),
+    () => events.map((item) => ({
+      id: item.instance_id ?? String(item.id),
+      props: eventSlideCardProps(item, { t, locale }),
+    })),
     [events, locale, t],
   )
 

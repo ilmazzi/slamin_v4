@@ -13,6 +13,7 @@ import { useI18n } from '../../app/hooks/useI18n.js'
 import { EventLocationIcon } from '../icons/ActionIcons.jsx'
 
 const DEFAULT_CENTER = DEFAULT_EVENT_MAP_CENTER
+const eventInstanceId = (event) => event?.instance_id ?? String(event?.id ?? '')
 
 const DESKTOP_MARKER = {
   normal: { w: 38, h: 54 },
@@ -230,7 +231,7 @@ export default function EventMap({ events: allEvents = [], isLoading = false, er
 
 
   const selectedEvent = useMemo(
-    () => mapEvents.find((event) => event.id === selectedId) ?? null,
+    () => mapEvents.find((event) => eventInstanceId(event) === selectedId) ?? null,
     [mapEvents, selectedId],
   )
   const formatEventDate = (value) => {
@@ -273,7 +274,7 @@ export default function EventMap({ events: allEvents = [], isLoading = false, er
     const lng = Number(eventItem.longitude)
 
     setHoveredId(null)
-    setSelectedId(eventItem.id)
+    setSelectedId(eventInstanceId(eventItem))
     setIsDetailOpen(false)
 
     if (mapRef.current && Number.isFinite(lat) && Number.isFinite(lng)) {
@@ -350,8 +351,9 @@ export default function EventMap({ events: allEvents = [], isLoading = false, er
           <MapWheelZoomGuard />
 
           {mapEvents.map((eventItem) => {
-           const isSelected = selectedId === eventItem.id
-           const isHovered = hoveredId === eventItem.id
+           const instanceId = eventInstanceId(eventItem)
+           const isSelected = selectedId === instanceId
+           const isHovered = hoveredId === instanceId
            const isExpanded = isHovered
            const lat = Number(eventItem.latitude)
            const lng = Number(eventItem.longitude)
@@ -360,7 +362,7 @@ export default function EventMap({ events: allEvents = [], isLoading = false, er
            return (
              <Marker
              zIndexOffset={isSelected ? 5200 : isHovered ? 4800 : 0}
-               key={eventItem.id}
+               key={instanceId}
                position={[lat, lng]}
                icon={buildMarkerIcon({
                  selected: isExpanded,
@@ -374,12 +376,12 @@ export default function EventMap({ events: allEvents = [], isLoading = false, er
                eventHandlers={{
                  mouseover: () => {
                    if (!isMobile) {
-                     setHoveredId(eventItem.id)
+                    setHoveredId(instanceId)
                    }
                  },
                  mouseout: () => {
                    if (!isMobile) {
-                     setHoveredId((current) => (current === eventItem.id ? null : current))
+                    setHoveredId((current) => (current === instanceId ? null : current))
                    }
                  },
                 click: (event) => {

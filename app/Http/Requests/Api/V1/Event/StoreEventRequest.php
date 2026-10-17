@@ -195,7 +195,7 @@ class StoreEventRequest extends FormRequest
 
             'recurrence.frequency' => ['nullable', Rule::in(array_column(EventRecurrenceFrequency::cases(), 'value'))],
             'recurrence.interval' => ['nullable', 'integer', 'min:1'],
-            'recurrence.occurrences_count' => ['nullable', 'integer', 'min:1'],
+            'recurrence.occurrences_count' => ['nullable', 'integer', 'min:1', 'max:365'],
             'recurrence.ends_at' => ['nullable', 'date'],
 
             'availability_poll.response_deadline' => ['nullable', 'date'],

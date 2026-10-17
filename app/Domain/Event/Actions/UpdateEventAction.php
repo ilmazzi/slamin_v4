@@ -22,6 +22,7 @@ class UpdateEventAction
         private readonly BuildEventInviteNotificationsAction $buildEventInviteNotificationsAction,
         private readonly NotifyEventInvitesAction $notifyEventInvitesAction,
         private readonly NotifyEventUpdatedAction $notifyEventUpdatedAction,
+        private readonly SyncEventOccurrencesAction $syncEventOccurrencesAction,
     ) {}
 
     public function execute(Event $event, UpdateEventData $data): Event
@@ -182,7 +183,6 @@ class UpdateEventAction
 
     private function resyncRelatedData(Event $event, UpdateEventData $data): void
     {
-        $event->occurrences()->delete();
         $event->recurrence()?->delete();
         $event->availabilityPoll()?->delete();
         $event->availabilityOptions()->delete();
@@ -192,14 +192,11 @@ class UpdateEventAction
         $event->participantInvites()->delete();
         $event->audienceInvites()->delete();
 
-        if ($data->occurrence) {
-            $event->occurrences()->create([
-                'starts_at' => $data->occurrence['starts_at'],
-                'ends_at' => $data->occurrence['ends_at'] ?? null,
-                'timezone' => $data->occurrence['timezone'],
-                'is_primary' => true,
-            ]);
-        }
+        $this->syncEventOccurrencesAction->execute(
+            $event,
+            $data->occurrence,
+            $data->scheduleMode === EventScheduleMode::Recurring ? $data->recurrence : null,
+        );
 
         if ($data->scheduleMode === EventScheduleMode::Recurring && $data->recurrence) {
             $event->recurrence()->create($data->recurrence);
