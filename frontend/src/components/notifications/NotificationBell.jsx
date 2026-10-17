@@ -26,8 +26,8 @@ export default function NotificationBell({ open, onToggle, onClose, buttonClassN
     }
   }, [loadList, open])
 
-  const handleSelect = (notification) => {
-    markRead(notification)
+  const handleSelect = async (notification) => {
+    await markRead(notification)
     const link = notificationLink(notification)
     if (link) {
       onClose?.()
