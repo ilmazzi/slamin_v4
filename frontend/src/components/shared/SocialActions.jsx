@@ -89,16 +89,6 @@ function canSharePayload(payload) {
 
 async function shareWithFallback(shareTitle, shareUrl, file = null) {
   if (file && navigator.share) {
-    const imageWithCaption = {
-      title: shareTitle,
-      text: [shareTitle, shareUrl].filter(Boolean).join('\n'),
-      files: [file],
-    }
-    if (canSharePayload(imageWithCaption)) {
-      await navigator.share(imageWithCaption)
-      return
-    }
-
     if (canSharePayload({ files: [file] })) {
       await navigator.share({ title: shareTitle, files: [file] })
       return
