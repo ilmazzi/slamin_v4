@@ -109,7 +109,7 @@ return [
         'choose_format' => 'Scegli il formato',
         'preview_alt' => 'Anteprima del post Slam In',
         'preview_failed' => 'Anteprima non disponibile',
-        'share_now' => 'Condividi ora',
+        'share_now' => 'Condividi immagine',
         'share_link' => 'Condividi il link',
         'formats' => [
             'square' => 'Post quadrato',

@@ -91,6 +91,22 @@ test('unauthenticated users are redirected from protected route', async ({ page 
 
 test('event share composer switches branded image formats without mobile overflow', async ({ page, request }) => {
   const eventPathValue = await resolveEventPathValue(request)
+  await page.addInitScript(() => {
+    Object.defineProperty(navigator, 'canShare', {
+      configurable: true,
+      value: (payload) => Array.isArray(payload?.files) && payload.files.length > 0,
+    })
+    Object.defineProperty(navigator, 'share', {
+      configurable: true,
+      value: async (payload) => {
+        window.__lastSharePayload = {
+          hasFile: Array.isArray(payload?.files) && payload.files.length === 1,
+          fileName: payload?.files?.[0]?.name ?? '',
+          hasUrl: Boolean(payload?.url),
+        }
+      },
+    })
+  })
   await page.setViewportSize({ width: 390, height: 844 })
   await page.goto(`/events/${eventPathValue}`, { waitUntil: 'networkidle' })
 
@@ -104,6 +120,12 @@ test('event share composer switches branded image formats without mobile overflo
 
   await dialog.getByRole('button', { name: /post verticale|portrait post/i }).click()
   await expect.poll(() => preview.evaluate((image) => [image.naturalWidth, image.naturalHeight])).toEqual([1080, 1350])
+  await dialog.getByRole('button', { name: /condividi immagine|share image/i }).click()
+  await expect.poll(() => page.evaluate(() => window.__lastSharePayload)).toEqual({
+    hasFile: true,
+    fileName: expect.stringContaining('-portrait.png'),
+    hasUrl: false,
+  })
   await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth)).toBe(390)
 })
 

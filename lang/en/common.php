@@ -109,7 +109,7 @@ return [
         'choose_format' => 'Choose a format',
         'preview_alt' => 'Slam In post preview',
         'preview_failed' => 'Preview unavailable',
-        'share_now' => 'Share now',
+        'share_now' => 'Share image',
         'share_link' => 'Share the link',
         'formats' => [
             'square' => 'Square post',
