@@ -100,6 +100,7 @@ return [
         'cancel' => 'Cancel',
         'delete' => 'Delete',
         'edit' => 'Edit',
+        'share' => 'Share gig',
         'confirm_delete' => 'Do you really want to delete this item?',
         'not_set' => 'Not specified',
         'yes' => 'Yes',

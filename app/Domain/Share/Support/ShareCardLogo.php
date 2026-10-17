@@ -41,18 +41,29 @@ final class ShareCardLogo
 
     public static function stamp(GdImage $canvas): void
     {
+        self::stampAt($canvas, self::destX(), self::destY(imagesy($canvas)));
+    }
+
+    public static function stampCentered(GdImage $canvas): void
+    {
+        $x = (int) round((imagesx($canvas) - self::DISPLAY_WIDTH) / 2);
+        $y = (int) round((imagesy($canvas) - self::displayHeight()) / 2);
+
+        self::stampAt($canvas, $x, $y);
+    }
+
+    public static function stampAt(GdImage $canvas, int $x, int $y): void
+    {
         $logo = self::load();
         $destW = self::DISPLAY_WIDTH;
         $destH = self::displayHeight();
-        $destX = self::destX();
-        $destY = self::destY(imagesy($canvas));
 
         imagealphablending($canvas, true);
         imagecopyresampled(
             $canvas,
             $logo,
-            $destX,
-            $destY,
+            $x,
+            $y,
             0,
             0,
             $destW,

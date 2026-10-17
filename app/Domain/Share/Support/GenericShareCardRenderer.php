@@ -9,10 +9,13 @@ use RuntimeException;
 class GenericShareCardRenderer
 {
     /**
-     * @param  array{title:string, subtitle?:string|null, author?:string|null, image_path?:string|null, background:array{int,int,int}}  $data
+     * @param  array{title:string, subtitle?:string|null, author?:string|null, eyebrow?:string|null, image_path?:string|null, background:array{int,int,int}}  $data
      */
-    public function render(array $data, ShareCardFormat $format): string
-    {
+    public function render(
+        array $data,
+        ShareCardFormat $format,
+        ShareCardTemplate $template = ShareCardTemplate::Poster,
+    ): string {
         if (! function_exists('imagecreatetruecolor') || ! function_exists('imagettftext')) {
             throw new RuntimeException('GD with FreeType is required to render share cards.');
         }
@@ -40,7 +43,9 @@ class GenericShareCardRenderer
                 trim($data['title']) ?: 'Slam In',
                 trim((string) ($data['subtitle'] ?? '')),
                 trim((string) ($data['author'] ?? '')),
+                trim((string) ($data['eyebrow'] ?? '')),
                 $format,
+                $template,
                 $white,
             );
 
@@ -67,19 +72,39 @@ class GenericShareCardRenderer
         string $title,
         string $subtitle,
         string $author,
+        string $eyebrow,
         ShareCardFormat $format,
+        ShareCardTemplate $template,
         int $white,
     ): void {
         $width = imagesx($canvas);
         $height = imagesy($canvas);
         $regular = $this->fontPath('Switzer-Regular.otf');
         $semibold = $this->fontPath('Switzer-Semibold.otf');
-        $padding = $format === ShareCardFormat::Landscape ? 64 : 80;
+        $safeArea = ShareCardSafeArea::for($format);
+        $padding = $safeArea['left'];
         $textX = $padding;
-        $textY = $format === ShareCardFormat::Landscape ? 72 : 104;
-        $textWidth = $width - ($padding * 2);
+        $textY = $safeArea['top'];
+        $textWidth = $width - $safeArea['left'] - $safeArea['right'];
 
-        if ($cover instanceof GdImage) {
+        if ($template === ShareCardTemplate::Brand) {
+            ShareCardLogo::stampCentered($canvas);
+
+            return;
+        }
+
+        if (in_array($template, [ShareCardTemplate::PhotoClean, ShareCardTemplate::PhotoLogo], true)) {
+            if ($cover instanceof GdImage) {
+                $this->drawImageContain($canvas, $cover, 0, 0, $width, $height);
+            }
+            if ($template === ShareCardTemplate::PhotoLogo || ! $cover instanceof GdImage) {
+                ShareCardLogo::stampCentered($canvas);
+            }
+
+            return;
+        }
+
+        if ($cover instanceof GdImage && $template !== ShareCardTemplate::Typographic) {
             if ($format === ShareCardFormat::Landscape) {
                 $coverX = (int) round($width * 0.58);
                 $this->drawImageContain($canvas, $cover, $coverX, 0, $width - $coverX, $height);
@@ -110,6 +135,12 @@ class GenericShareCardRenderer
 
         $lineHeight = (int) round($titleSize * 1.16);
         $cursorY = $textY;
+        if ($eyebrow !== '') {
+            $eyebrow = mb_strtoupper($eyebrow);
+            $eyebrowMetrics = $this->textMetrics($semibold, 22, $eyebrow);
+            imagettftext($canvas, 22, 0, $textX, $cursorY + $eyebrowMetrics['ascent'], $white, $semibold, $eyebrow);
+            $cursorY += 42;
+        }
         foreach ($titleLines as $line) {
             $metrics = $this->textMetrics($semibold, $titleSize, $line);
             imagettftext($canvas, $titleSize, 0, $textX, $cursorY + $metrics['ascent'], $white, $semibold, $line);

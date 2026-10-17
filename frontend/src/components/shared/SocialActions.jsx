@@ -16,6 +16,7 @@ import { useI18n } from '../../app/hooks/useI18n.js'
 import { scheduleScrollToComments } from '../../app/utils/scrollToComments.js'
 import { CalendarIcon } from '../icons/ActionIcons.jsx'
 import SharePanel from './SharePanel.jsx'
+import { defaultTemplateFor, templatesFor } from './shareCardConfig.js'
 import styles from './SocialActions.module.css'
 
 function pluralizeContentType(contentType) {
@@ -90,7 +91,7 @@ function canSharePayload(payload) {
 async function shareWithFallback(shareTitle, shareUrl, file = null) {
   if (file && navigator.share) {
     if (canSharePayload({ files: [file] })) {
-      await navigator.share({ title: shareTitle, files: [file] })
+      await navigator.share({ files: [file] })
       return
     }
   }
@@ -113,6 +114,7 @@ const SHARE_PAGE_TYPES = {
   event: { plural: 'events', key: 'slug', hasCard: true },
   article: { plural: 'articles', key: 'slug', hasCard: true },
   media: { plural: 'media', key: 'id', hasCard: true },
+  gig: { plural: 'gigs', key: 'id', hasCard: true },
 }
 
 function resolveSharePageType(contentType) {
@@ -130,7 +132,7 @@ function resolveShareUrl(target, contentType, publicBasePath) {
   return `${window.location.origin}/share/${shareType.plural}/${encodeURIComponent(String(key))}`
 }
 
-async function fetchShareCard(target, contentType, format = 'square') {
+async function fetchShareCard(target, contentType, format = 'square', template) {
   const shareType = resolveSharePageType(contentType)
   const key = shareType ? target?.[shareType.key] : null
   if (!shareType?.hasCard || key === null || key === undefined || key === '') {
@@ -139,6 +141,9 @@ async function fetchShareCard(target, contentType, format = 'square') {
 
   const encodedKey = encodeURIComponent(String(key))
   const params = new URLSearchParams({ format })
+  if (template) {
+    params.set('template', template)
+  }
   const response = await fetch(getApiUrl(`/api/v1/${shareType.plural}/${encodedKey}/share-card?${params}`), {
     headers: { Accept: 'image/png' },
   })
@@ -150,7 +155,7 @@ async function fetchShareCard(target, contentType, format = 'square') {
   return blob?.size > 0 ? blob : null
 }
 
-async function nativeShare(target, { contentType, publicBasePath, format = 'square' }) {
+async function nativeShare(target, { contentType, publicBasePath, format = 'square', template }) {
   const shareUrl = resolveShareUrl(target, contentType, publicBasePath)
   const shareTitle = target?.title ?? ''
   const shareType = resolveSharePageType(contentType)
@@ -158,8 +163,8 @@ async function nativeShare(target, { contentType, publicBasePath, format = 'squa
 
   let file = null
   try {
-    const blob = await fetchShareCard(target, contentType, format)
-    file = blob ? new File([blob], `${key}-${format}.png`, { type: 'image/png' }) : null
+    const blob = await fetchShareCard(target, contentType, format, template)
+    file = blob ? new File([blob], `${key}-${format}-${template || 'default'}.png`, { type: 'image/png' }) : null
   } catch {
     file = null
   }
@@ -227,6 +232,7 @@ export default function SocialActions({
   onComments,
   onShare,
   onReport,
+  showReport = true,
 }) {
   const auth = useAuth()
   const { t } = useI18n()
@@ -540,13 +546,15 @@ export default function SocialActions({
           className={[styles.icon, iconClassName, shareIconClassName].filter(Boolean).join(' ')}
         />
       </button>
-      <button type="button" aria-label={reportLabel} onClick={handleReport} className={styles.actionButton}>
-        <img
-          src={reportIcon}
-          alt=""
-          className={[styles.icon, iconClassName, reportIconClassName].filter(Boolean).join(' ')}
-        />
-      </button>
+      {showReport ? (
+        <button type="button" aria-label={reportLabel} onClick={handleReport} className={styles.actionButton}>
+          <img
+            src={reportIcon}
+            alt=""
+            className={[styles.icon, iconClassName, reportIconClassName].filter(Boolean).join(' ')}
+          />
+        </button>
+      ) : null}
     </div>
   ) : null
 
@@ -559,10 +567,14 @@ export default function SocialActions({
           isOpen
           title={target?.title ?? ''}
           url={resolveShareUrl(target, contentType, publicBasePath)}
-          imageName={`${target?.slug ?? 'slamin'}-share.png`}
-          loadImage={canDownloadShareCard ? (format) => fetchShareCard(target, contentType, format) : null}
+          imageName={`${target?.slug ?? target?.id ?? 'slamin'}-share.png`}
+          templates={templatesFor(contentType, target)}
+          defaultTemplate={defaultTemplateFor(contentType, target)}
+          loadImage={canDownloadShareCard
+            ? (format, template) => fetchShareCard(target, contentType, format, template)
+            : null}
           onNativeShare={canDownloadShareCard
-            ? (format) => nativeShare(target, { contentType, publicBasePath, format })
+            ? (format, template) => nativeShare(target, { contentType, publicBasePath, format, template })
             : null}
           onClose={closeSharePanel}
         />

@@ -107,6 +107,7 @@ return [
         'download_hint' => 'Per Instagram e le storie',
         'download_failed' => 'Impossibile scaricare l\'immagine',
         'choose_format' => 'Scegli il formato',
+        'choose_template' => 'Scegli il template',
         'preview_alt' => 'Anteprima del post Slam In',
         'preview_failed' => 'Anteprima non disponibile',
         'share_now' => 'Condividi immagine',
@@ -115,6 +116,15 @@ return [
             'square' => 'Post quadrato',
             'portrait' => 'Post verticale',
             'story' => 'Story',
+        ],
+        'templates' => [
+            'poster' => 'Locandina',
+            'typographic' => 'Tipografico',
+            'brand' => 'Logo',
+            'verse' => 'Testo e autore',
+            'promo' => 'Promo',
+            'photo_clean' => 'Foto pulita',
+            'photo_logo' => 'Foto con logo',
         ],
     ],
 ];

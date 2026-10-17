@@ -73,6 +73,24 @@ it('stamps the official white and red logo in the bottom left', function () {
         ->and($mark & 0xFF)->toBeLessThan(40);
 });
 
+it('renders distinct poem templates on the same purple palette', function () {
+    $poem = publishedSharePoem(shareCardAuthor());
+
+    $verse = $this->get("/api/v1/poems/{$poem->slug}/share-card?template=verse")->assertOk()->getContent();
+    $typographic = $this->get("/api/v1/poems/{$poem->slug}/share-card?template=typographic")->assertOk()->getContent();
+    $brand = $this->get("/api/v1/poems/{$poem->slug}/share-card?template=brand")->assertOk()->getContent();
+
+    expect(hash('sha256', $verse))->not->toBe(hash('sha256', $brand));
+
+    $image = imagecreatefromstring($typographic);
+    $pixel = imagecolorat($image, 40, 40);
+    imagedestroy($image);
+
+    expect(($pixel >> 16) & 0xFF)->toBe(165)
+        ->and(($pixel >> 8) & 0xFF)->toBe(83)
+        ->and($pixel & 0xFF)->toBe(221);
+});
+
 it('exposes the same png on the public api share-card route', function () {
     $poem = publishedSharePoem(shareCardAuthor());
 

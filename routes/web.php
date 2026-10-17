@@ -4,6 +4,8 @@ use App\Http\Controllers\Share\ShowArticleShareCardController;
 use App\Http\Controllers\Share\ShowArticleSharePageController;
 use App\Http\Controllers\Share\ShowEventShareCardController;
 use App\Http\Controllers\Share\ShowEventSharePageController;
+use App\Http\Controllers\Share\ShowGigShareCardController;
+use App\Http\Controllers\Share\ShowGigSharePageController;
 use App\Http\Controllers\Share\ShowMediaShareCardController;
 use App\Http\Controllers\Share\ShowMediaSharePageController;
 use App\Http\Controllers\Share\ShowPoemShareCardController;
@@ -45,3 +47,14 @@ Route::get('/share/media/{id}/preview.png', ShowMediaShareCardController::class)
     ->whereNumber('id')
     ->defaults('format', ShareCardFormat::Landscape->value)
     ->name('share.media.preview');
+
+Route::get('/share/gigs/{id}', ShowGigSharePageController::class)
+    ->whereNumber('id')
+    ->name('share.gigs.show');
+Route::get('/share/gigs/{id}/card.png', ShowGigShareCardController::class)
+    ->whereNumber('id')
+    ->name('share.gigs.card');
+Route::get('/share/gigs/{id}/preview.png', ShowGigShareCardController::class)
+    ->whereNumber('id')
+    ->defaults('format', ShareCardFormat::Landscape->value)
+    ->name('share.gigs.preview');

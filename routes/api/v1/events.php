@@ -62,6 +62,7 @@ use App\Http\Controllers\Api\V1\PoetrySlam\UpdatePoetrySlamRoundController;
 use App\Http\Controllers\Api\V1\PoetrySlam\UpsertPoetrySlamEntryScoresController;
 use App\Http\Controllers\Api\V1\PoetrySlam\UpsertPoetrySlamRoundAdvancementDecisionController;
 use App\Http\Controllers\Share\ShowEventShareCardController;
+use App\Http\Controllers\Share\ShowGigShareCardController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware([
@@ -161,5 +162,8 @@ Route::middleware([
 Route::get('/events', ListEventController::class)->name('events.index');
 Route::get('/events/{event}/gigs/confirmed', ListEventConfirmedGigsController::class)->name('api.v1.events.gigs.confirmed');
 Route::get('/events/{slug}/share-card', ShowEventShareCardController::class)->name('events.share-card');
+Route::get('/gigs/{id}/share-card', ShowGigShareCardController::class)
+    ->whereNumber('id')
+    ->name('gigs.share-card');
 Route::get('/events/{slug}', ShowEventController::class)->name('events.show');
 Route::get('/event-categories', ListEventCategoriesController::class)->name('event-categories.index');

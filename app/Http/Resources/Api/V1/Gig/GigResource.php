@@ -5,6 +5,7 @@ namespace App\Http\Resources\Api\V1\Gig;
 use Domain\Event\Models\Event;
 use Domain\Gig\Models\Gig;
 use Domain\Poetry\Models\Poem;
+use Domain\Share\Support\SharePublicUrl;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 use Illuminate\Support\Facades\Storage;
@@ -65,6 +66,14 @@ class GigResource extends JsonResource
                 ),
             ),
             'parent' => $this->whenLoaded('giggable', fn (): ?array => $this->parentPayload()),
+            'share_url' => $this->when(
+                $this->relationLoaded('giggable') && $this->resource->isListed(),
+                fn (): string => SharePublicUrl::for('gigs', (string) $this->id),
+            ),
+            'share_card_url' => $this->when(
+                $this->relationLoaded('giggable') && $this->resource->isListed(),
+                fn (): string => route('share.gigs.card', ['id' => $this->id]),
+            ),
         ];
     }
 

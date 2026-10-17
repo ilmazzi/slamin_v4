@@ -6,6 +6,9 @@ use Domain\Event\Enums\EventDeliveryMode;
 use Domain\Event\Models\Event;
 use Domain\Share\Support\ShareCardFormat;
 use Domain\Share\Support\ShareCardLogo;
+use Domain\Share\Support\ShareCardPalette;
+use Domain\Share\Support\ShareCardSafeArea;
+use Domain\Share\Support\ShareCardTemplate;
 use Domain\Share\Support\SlaminShareMark;
 use GdImage;
 use Illuminate\Support\Facades\Storage;
@@ -13,14 +16,15 @@ use RuntimeException;
 
 class EventShareCardRenderer
 {
-    private const BACKGROUND = [132, 218, 180];
-
     private const INK = [17, 17, 17];
 
     private const LANDSCAPE_TEXT_RATIO = 0.55;
 
-    public function render(Event $event, ShareCardFormat $format = ShareCardFormat::Square): string
-    {
+    public function render(
+        Event $event,
+        ShareCardFormat $format = ShareCardFormat::Square,
+        ShareCardTemplate $template = ShareCardTemplate::Poster,
+    ): string {
         if (! function_exists('imagecreatetruecolor') || ! function_exists('imagettftext')) {
             throw new RuntimeException('GD with FreeType is required to render event share cards.');
         }
@@ -38,7 +42,8 @@ class EventShareCardRenderer
             imageantialias($image, true);
         }
 
-        $mint = imagecolorallocate($image, self::BACKGROUND[0], self::BACKGROUND[1], self::BACKGROUND[2]);
+        [$red, $green, $blue] = ShareCardPalette::for('event');
+        $mint = imagecolorallocate($image, $red, $green, $blue);
         $white = imagecolorallocate($image, 255, 255, 255);
         $ink = imagecolorallocate($image, self::INK[0], self::INK[1], self::INK[2]);
         imagefilledrectangle($image, 0, 0, $format->width(), $format->height(), $mint);
@@ -47,10 +52,12 @@ class EventShareCardRenderer
         $locale = in_array($event->language, ['it', 'en'], true) ? $event->language : 'it';
         app()->setLocale($locale);
 
-        $cover = $this->loadCover($event->cover_image_path);
+        $cover = $template === ShareCardTemplate::Poster
+            ? $this->loadCover($event->cover_image_path)
+            : null;
 
         try {
-            return $this->paint($event, $image, $cover, $regular, $medium, $semibold, $mint, $white, $ink);
+            return $this->paint($event, $image, $cover, $regular, $medium, $semibold, $template, $mint, $white, $ink);
         } finally {
             app()->setLocale($previousLocale);
             if ($cover instanceof GdImage) {
@@ -67,12 +74,19 @@ class EventShareCardRenderer
         string $regular,
         string $medium,
         string $semibold,
+        ShareCardTemplate $template,
         int $mint,
         int $white,
         int $ink,
     ): string {
         $width = imagesx($image);
         $height = imagesy($image);
+        if ($template === ShareCardTemplate::Brand) {
+            ShareCardLogo::stampCentered($image);
+
+            return $this->encode($image);
+        }
+
         $organizer = $this->organizerFirstName($event);
         $placeLine = $this->placeLine($event);
         $bubble = $this->measureMark($semibold, $regular, $organizer, $placeLine, $width, $height);
@@ -100,7 +114,10 @@ class EventShareCardRenderer
                 : null;
 
             $hasCover = $coverBox !== null && $coverBox['height'] > 0;
-            $contentTop = $hasCover ? $coverBox['y'] + $coverBox['height'] + 40 : 80;
+            $safeArea = ShareCardSafeArea::for($height >= 1800
+                ? ShareCardFormat::Story
+                : ($height > 1080 ? ShareCardFormat::Portrait : ShareCardFormat::Square));
+            $contentTop = $hasCover ? $coverBox['y'] + $coverBox['height'] + 40 : $safeArea['top'];
             $contentBottom = min($bubble['y'] - 36, $logoLimit);
             $titleMaxWidth = $hasCover
                 ? max(420, $width - 136 - $bubble['width'])
@@ -167,6 +184,11 @@ class EventShareCardRenderer
 
         ShareCardLogo::stamp($image);
 
+        return $this->encode($image);
+    }
+
+    private function encode(GdImage $image): string
+    {
         ob_start();
         imagepng($image, null, 8);
         $png = (string) ob_get_clean();

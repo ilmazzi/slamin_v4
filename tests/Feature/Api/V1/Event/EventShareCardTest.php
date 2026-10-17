@@ -183,6 +183,39 @@ it('exposes the same png on the public api share-card route', function () {
         ->assertHeader('Content-Type', 'image/png');
 });
 
+it('renders distinct event templates without changing the mint palette', function () {
+    Storage::fake('public');
+
+    $canvas = imagecreatetruecolor(800, 500);
+    imagefilledrectangle($canvas, 0, 0, 800, 500, imagecolorallocate($canvas, 220, 40, 40));
+    ob_start();
+    imagejpeg($canvas, null, 90);
+    $jpeg = (string) ob_get_clean();
+    imagedestroy($canvas);
+    Storage::disk('public')->put('events/locandina-template.jpg', $jpeg);
+
+    $event = publishedShareEvent(eventShareAuthor(), [
+        'slug' => 'slam-template-palette',
+        'cover_image_path' => 'events/locandina-template.jpg',
+    ]);
+
+    $poster = $this->get("/api/v1/events/{$event->slug}/share-card?template=poster")->assertOk()->getContent();
+    $typographic = $this->get("/api/v1/events/{$event->slug}/share-card?template=typographic")->assertOk()->getContent();
+    $brand = $this->get("/api/v1/events/{$event->slug}/share-card?template=brand")->assertOk()->getContent();
+
+    expect(hash('sha256', $poster))
+        ->not->toBe(hash('sha256', $typographic))
+        ->and(hash('sha256', $typographic))->not->toBe(hash('sha256', $brand));
+
+    $image = imagecreatefromstring($brand);
+    $pixel = imagecolorat($image, 40, 40);
+    imagedestroy($image);
+
+    expect(($pixel >> 16) & 0xFF)->toBe(132)
+        ->and(($pixel >> 8) & 0xFF)->toBe(218)
+        ->and($pixel & 0xFF)->toBe(180);
+});
+
 it('renders every post format at the expected dimensions', function (string $format, int $width, int $height) {
     $event = publishedShareEvent(eventShareAuthor());
 
@@ -313,4 +346,13 @@ it('renders a landscape link preview with the cover on the right', function () {
         ->and(($cover >> 8) & 0xFF)->toBeLessThan(80);
 
     expect(($text >> 8) & 0xFF)->toBeGreaterThan(180);
+});
+
+it('keeps the open graph preview on the default template', function () {
+    $event = publishedShareEvent(eventShareAuthor(), ['slug' => 'slam-preview-template']);
+
+    $default = $this->get("/share/events/{$event->slug}/preview.png")->assertOk()->getContent();
+    $forcedBrand = $this->get("/share/events/{$event->slug}/preview.png?template=brand")->assertOk()->getContent();
+
+    expect(hash('sha256', $default))->toBe(hash('sha256', $forcedBrand));
 });

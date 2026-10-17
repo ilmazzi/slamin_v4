@@ -7,6 +7,7 @@ use Domain\Poetry\Models\Poem;
 use Domain\Poetry\Support\PoemShareCardRenderer;
 use Domain\Share\Support\ShareCardCache;
 use Domain\Share\Support\ShareCardFormat;
+use Domain\Share\Support\ShareCardTemplate;
 
 class RenderPoemShareCardAction
 {
@@ -14,8 +15,11 @@ class RenderPoemShareCardAction
         private readonly PoemShareCardRenderer $renderer,
     ) {}
 
-    public function execute(string $slug, ShareCardFormat $format = ShareCardFormat::Square): string
-    {
+    public function execute(
+        string $slug,
+        ShareCardFormat $format = ShareCardFormat::Square,
+        ShareCardTemplate $template = ShareCardTemplate::Verse,
+    ): string {
         $poem = Poem::query()
             ->with('user.profile')
             ->where('slug', $slug)
@@ -27,14 +31,15 @@ class RenderPoemShareCardAction
         app()->setLocale($locale);
 
         $cacheKey = sprintf(
-            'poem-share-card:v6:%d:%s:%s:%s:%s',
+            'poem-share-card:v7:%d:%s:%s:%s:%s:%s',
             $poem->id,
             $poem->updated_at?->timestamp ?? 0,
             $poem->user?->profile?->updated_at?->timestamp ?? 0,
             $locale,
             $format->value,
+            $template->value,
         );
 
-        return ShareCardCache::remember($cacheKey, fn () => $this->renderer->render($poem, $format));
+        return ShareCardCache::remember($cacheKey, fn () => $this->renderer->render($poem, $format, $template));
     }
 }

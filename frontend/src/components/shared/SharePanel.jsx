@@ -62,6 +62,8 @@ export default function SharePanel({
   url,
   imageName = 'slamin-share.png',
   loadImage,
+  templates = [],
+  defaultTemplate,
   onNativeShare,
   onClose,
 }) {
@@ -71,10 +73,13 @@ export default function SharePanel({
   const [isSharing, setIsSharing] = useState(false)
   const [downloadFailed, setDownloadFailed] = useState(false)
   const [selectedFormat, setSelectedFormat] = useState('square')
+  const [selectedTemplate, setSelectedTemplate] = useState(defaultTemplate || templates[0] || 'brand')
   const [previewUrl, setPreviewUrl] = useState('')
   const [previewStatus, setPreviewStatus] = useState('idle')
+  const [thumbnails, setThumbnails] = useState({})
   const inputRef = useRef(null)
   const closeRef = useRef(null)
+  const templateKey = templates.join('|')
 
   useEffect(() => {
     if (!isOpen) {
@@ -102,6 +107,17 @@ export default function SharePanel({
   }, [isCopied])
 
   useEffect(() => {
+    if (!isOpen) {
+      return
+    }
+
+    const next = defaultTemplate || templates[0] || 'brand'
+    setSelectedTemplate((current) => (
+      templates.includes(current) ? current : next
+    ))
+  }, [defaultTemplate, isOpen, templateKey, templates])
+
+  useEffect(() => {
     if (!isOpen || !loadImage) {
       setPreviewUrl('')
       setPreviewStatus('idle')
@@ -112,7 +128,7 @@ export default function SharePanel({
     let objectUrl = ''
     setPreviewStatus('loading')
 
-    loadImage(selectedFormat)
+    loadImage(selectedFormat, selectedTemplate)
       .then((blob) => {
         if (!active || !blob) {
           if (active) setPreviewStatus('error')
@@ -130,7 +146,40 @@ export default function SharePanel({
       active = false
       if (objectUrl) URL.revokeObjectURL(objectUrl)
     }
-  }, [isOpen, loadImage, selectedFormat])
+  }, [isOpen, loadImage, selectedFormat, selectedTemplate])
+
+  useEffect(() => {
+    if (!isOpen || !loadImage || templates.length < 2) {
+      setThumbnails({})
+      return undefined
+    }
+
+    let active = true
+    const objectUrls = []
+
+    Promise.all(templates.map(async (template) => {
+      try {
+        const blob = await loadImage('square', template)
+        if (!blob) {
+          return [template, '']
+        }
+        const objectUrl = URL.createObjectURL(blob)
+        objectUrls.push(objectUrl)
+        return [template, objectUrl]
+      } catch {
+        return [template, '']
+      }
+    })).then((entries) => {
+      if (active) {
+        setThumbnails(Object.fromEntries(entries))
+      }
+    })
+
+    return () => {
+      active = false
+      objectUrls.forEach((objectUrl) => URL.revokeObjectURL(objectUrl))
+    }
+  }, [isOpen, loadImage, templateKey, templates])
 
   if (!isOpen || !url) {
     return null
@@ -149,14 +198,14 @@ export default function SharePanel({
     setIsDownloading(true)
     setDownloadFailed(false)
     try {
-      const blob = await loadImage(selectedFormat)
+      const blob = await loadImage(selectedFormat, selectedTemplate)
       if (!blob) {
         throw new Error('missing image')
       }
       const objectUrl = URL.createObjectURL(blob)
       const anchor = document.createElement('a')
       anchor.href = objectUrl
-      anchor.download = imageName.replace(/\.png$/i, `-${selectedFormat}.png`)
+      anchor.download = imageName.replace(/\.png$/i, `-${selectedFormat}-${selectedTemplate}.png`)
       anchor.click()
       URL.revokeObjectURL(objectUrl)
     } catch {
@@ -170,7 +219,7 @@ export default function SharePanel({
     if (!onNativeShare) return
     setIsSharing(true)
     try {
-      await onNativeShare(selectedFormat)
+      await onNativeShare(selectedFormat, selectedTemplate)
     } finally {
       setIsSharing(false)
     }
@@ -231,6 +280,31 @@ export default function SharePanel({
             </div>
 
             <div className={styles.composerControls}>
+              {templates.length > 1 ? (
+                <fieldset className={styles.formatFieldset}>
+                  <legend>{t('common.share_panel.choose_template')}</legend>
+                  <div className={styles.templateOptions}>
+                    {templates.map((template) => (
+                      <button
+                        key={template}
+                        type="button"
+                        className={styles.templateButton}
+                        data-selected={selectedTemplate === template ? 'true' : 'false'}
+                        aria-pressed={selectedTemplate === template}
+                        onClick={() => setSelectedTemplate(template)}
+                      >
+                        <span className={styles.templateThumb} aria-hidden="true">
+                          {thumbnails[template] ? (
+                            <img src={thumbnails[template]} alt="" />
+                          ) : null}
+                        </span>
+                        <span>{t(`common.share_panel.templates.${template}`)}</span>
+                      </button>
+                    ))}
+                  </div>
+                </fieldset>
+              ) : null}
+
               <fieldset className={styles.formatFieldset}>
                 <legend>{t('common.share_panel.choose_format')}</legend>
                 <div className={styles.formatOptions}>

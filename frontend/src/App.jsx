@@ -246,6 +246,7 @@ export default function App() {
               </ProtectedRoute>
             }
           />
+          <Route path="/share/gigs/:slug" element={<ShareContentRedirect toBase="/gigs" />} />
           <Route
             path="/gig-negotiations/:negotiationId"
             element={

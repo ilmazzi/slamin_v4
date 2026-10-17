@@ -107,6 +107,7 @@ return [
         'download_hint' => 'For Instagram and stories',
         'download_failed' => 'Unable to download the image',
         'choose_format' => 'Choose a format',
+        'choose_template' => 'Choose a template',
         'preview_alt' => 'Slam In post preview',
         'preview_failed' => 'Preview unavailable',
         'share_now' => 'Share image',
@@ -115,6 +116,15 @@ return [
             'square' => 'Square post',
             'portrait' => 'Portrait post',
             'story' => 'Story',
+        ],
+        'templates' => [
+            'poster' => 'Poster',
+            'typographic' => 'Typographic',
+            'brand' => 'Logo',
+            'verse' => 'Text and author',
+            'promo' => 'Promo',
+            'photo_clean' => 'Clean photo',
+            'photo_logo' => 'Photo with logo',
         ],
     ],
 ];

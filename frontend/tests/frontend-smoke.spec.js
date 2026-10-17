@@ -113,17 +113,19 @@ test('event share composer switches branded image formats without mobile overflo
   await page.getByRole('button', { name: /condividi evento|share event/i }).filter({ visible: true }).first().click()
 
   const dialog = page.getByRole('dialog')
-  const preview = dialog.locator('img')
+  const preview = dialog.getByRole('img', { name: /anteprima del post|post preview/i })
   await expect(dialog).toBeVisible()
   await expect(preview).toBeVisible()
   await expect.poll(() => preview.evaluate((image) => [image.naturalWidth, image.naturalHeight])).toEqual([1080, 1080])
 
+  await dialog.getByRole('button', { name: /tipografico|typographic/i }).click()
+  await expect(dialog.getByRole('button', { name: /tipografico|typographic/i })).toHaveAttribute('aria-pressed', 'true')
   await dialog.getByRole('button', { name: /post verticale|portrait post/i }).click()
   await expect.poll(() => preview.evaluate((image) => [image.naturalWidth, image.naturalHeight])).toEqual([1080, 1350])
   await dialog.getByRole('button', { name: /condividi immagine|share image/i }).click()
   await expect.poll(() => page.evaluate(() => window.__lastSharePayload)).toEqual({
     hasFile: true,
-    fileName: expect.stringContaining('-portrait.png'),
+    fileName: expect.stringContaining('-portrait-'),
     hasUrl: false,
   })
   await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth)).toBe(390)

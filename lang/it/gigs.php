@@ -100,6 +100,7 @@ return [
         'cancel' => 'Annulla',
         'delete' => 'Elimina',
         'edit' => 'Modifica',
+        'share' => 'Condividi ingaggio',
         'confirm_delete' => 'Vuoi davvero eliminare questo elemento?',
         'not_set' => 'Non indicato',
         'yes' => 'Sì',

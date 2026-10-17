@@ -5,6 +5,9 @@ namespace Domain\Poetry\Support;
 use Domain\Poetry\Models\Poem;
 use Domain\Share\Support\ShareCardFormat;
 use Domain\Share\Support\ShareCardLogo;
+use Domain\Share\Support\ShareCardPalette;
+use Domain\Share\Support\ShareCardSafeArea;
+use Domain\Share\Support\ShareCardTemplate;
 use Domain\Share\Support\SlaminShareMark;
 use Domain\Shared\Support\RichTextSanitizer;
 use GdImage;
@@ -12,14 +15,15 @@ use RuntimeException;
 
 class PoemShareCardRenderer
 {
-    private const BACKGROUND = [107, 33, 168];
-
     public function __construct(
         private readonly RichTextSanitizer $richTextSanitizer,
     ) {}
 
-    public function render(Poem $poem, ShareCardFormat $format = ShareCardFormat::Square): string
-    {
+    public function render(
+        Poem $poem,
+        ShareCardFormat $format = ShareCardFormat::Square,
+        ShareCardTemplate $template = ShareCardTemplate::Verse,
+    ): string {
         if (! function_exists('imagecreatetruecolor') || ! function_exists('imagettftext')) {
             throw new RuntimeException('GD with FreeType is required to render poem share cards.');
         }
@@ -37,7 +41,8 @@ class PoemShareCardRenderer
             imageantialias($image, true);
         }
 
-        $purple = imagecolorallocate($image, self::BACKGROUND[0], self::BACKGROUND[1], self::BACKGROUND[2]);
+        [$red, $green, $blue] = ShareCardPalette::for('poem');
+        $purple = imagecolorallocate($image, $red, $green, $blue);
         $white = imagecolorallocate($image, 255, 255, 255);
         imagefilledrectangle($image, 0, 0, $format->width(), $format->height(), $purple);
 
@@ -46,7 +51,7 @@ class PoemShareCardRenderer
         app()->setLocale($locale);
 
         try {
-            return $this->paint($poem, $image, $regular, $medium, $semibold, $purple, $white);
+            return $this->paint($poem, $image, $regular, $medium, $semibold, $template, $purple, $white);
         } finally {
             app()->setLocale($previousLocale);
             imagedestroy($image);
@@ -59,24 +64,38 @@ class PoemShareCardRenderer
         string $regular,
         string $medium,
         string $semibold,
+        ShareCardTemplate $template,
         int $purple,
         int $white,
     ): string {
+        if ($template === ShareCardTemplate::Brand) {
+            ShareCardLogo::stampCentered($image);
+
+            return $this->encode($image);
+        }
+
         $width = imagesx($image);
         $height = imagesy($image);
+        $safeArea = ShareCardSafeArea::for(
+            $height >= 1800
+                ? ShareCardFormat::Story
+                : ($height > 1080 ? ShareCardFormat::Portrait : ($width > $height ? ShareCardFormat::Landscape : ShareCardFormat::Square)),
+        );
         $authorName = $this->authorFirstName($poem);
         $placeLine = $this->placeLine($poem);
         $bubble = $this->measureBubble($semibold, $regular, $authorName, $placeLine, $width, $height);
 
-        $paddingX = 80;
-        $paddingTop = $height >= $width ? 96 : 64;
-        $textMaxWidth = $width - ($paddingX * 2);
+        $paddingX = $safeArea['left'];
+        $paddingTop = $safeArea['top'];
+        $textMaxWidth = $width - $safeArea['left'] - $safeArea['right'];
         $textMaxBottom = min($bubble['y'] - 48, ShareCardLogo::destY($height) - ShareCardLogo::TEXT_GAP);
+        $body = $template === ShareCardTemplate::Typographic
+            ? (trim((string) $poem->title) ?: $this->poemBody($poem))
+            : $this->poemBody($poem);
 
-        $poemText = $this->poemBody($poem);
         [$fontSize, $lines] = $this->fitPoemLines(
             font: $medium,
-            text: $poemText,
+            text: $body,
             maxWidth: $textMaxWidth,
             maxBottom: $textMaxBottom,
             startY: $paddingTop,
@@ -93,6 +112,11 @@ class PoemShareCardRenderer
         $this->drawSlaminMark($image, $white, $purple, $semibold, $regular, $authorName, $placeLine, $bubble);
         ShareCardLogo::stamp($image);
 
+        return $this->encode($image);
+    }
+
+    private function encode(GdImage $image): string
+    {
         ob_start();
         imagepng($image, null, 8);
         $png = (string) ob_get_clean();

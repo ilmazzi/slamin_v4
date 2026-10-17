@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Share;
 use App\Http\Controllers\Controller;
 use Domain\Media\Actions\RenderMediaShareCardAction;
 use Domain\Share\Support\ShareCardFormat;
+use Domain\Share\Support\ShareCardTemplate;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 
@@ -20,7 +21,12 @@ class ShowMediaShareCardController extends Controller
             'format',
             $request->route('format', ShareCardFormat::Square->value),
         )) ?? ShareCardFormat::Square;
-        $png = $this->renderMediaShareCardAction->execute($id, $format);
+        $template = ShareCardTemplate::fromRequest(
+            'media',
+            $request->query('template', ShareCardTemplate::defaultFor('media')->value),
+            $request->route()?->getName(),
+        );
+        $png = $this->renderMediaShareCardAction->execute($id, $format, $template);
 
         return response($png, 200, [
             'Content-Type' => 'image/png',

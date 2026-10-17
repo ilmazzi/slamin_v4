@@ -7,6 +7,7 @@ import GigApplicationsPanel from '../../components/gigs/GigApplicationsPanel.jsx
 import GigApplyPanel from '../../components/gigs/GigApplyPanel.jsx'
 import GigConfirmedPeople from '../../components/gigs/GigConfirmedPeople.jsx'
 import { formatGigDate, formatGigDeadline, formatGigDateTime, formatGigMoney, gigTitle } from '../../components/gigs/gigFormat.js'
+import SocialActions from '../../components/shared/SocialActions.jsx'
 import styles from './GigWorkspace.module.css'
 import { useI18n } from '../../app/hooks/useI18n.js'
 import { useAuth } from '../../app/hooks/useAuth.js'
@@ -130,6 +131,18 @@ export default function GigDetailPage() {
                 {parent?.starts_at ? <time className={styles.panelMeta}>{formatGigDate(parent.starts_at, locale)}</time> : null}
               </header>
               <div className={styles.panelBody}>
+                {gig.share_url ? (
+                  <SocialActions
+                    target={{ ...gig, title: gigTitle(gig, t) }}
+                    contentType="gig"
+                    apiBasePath="/gigs"
+                    publicBasePath="/gigs"
+                    showMetrics={false}
+                    showBookmark={false}
+                    showReport={false}
+                    shareLabel={t('gigs.common.share')}
+                  />
+                ) : null}
                 <div className={styles.listItemHead}>
                   <h2 className={[styles.sectionTitle, styles.grow].join(' ')}>{t(`gigs.types.${gig.type}`)}</h2>
                   <span className={[styles.badge, styles.badgeAccent].join(' ')}>{t(`gigs.statuses.${gig.status}`)}</span>
