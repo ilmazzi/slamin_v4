@@ -429,7 +429,7 @@
   }
 
   .detailContainer {
-    padding: 57px 30px 0;
+    padding: 40px 20px 0;
   }
 
   .upcomingSection {
@@ -444,33 +444,53 @@
     border-left-width: 6px;
     border-right-width: 6px;
     border-bottom-width: 6px;
-    padding: 0 35px 44px;
+    padding: 0 24px 40px;
     gap: 30px;
   }
 
   .top {
-    gap: 12px;
-    min-height: 208px;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 24px;
+    min-height: 0;
+  }
+
+  .posterWrap {
+    width: 100%;
+    min-height: 0;
+    background: transparent;
+  }
+
+  .poster {
+    width: 100%;
+    height: auto;
+    max-height: none;
+    object-fit: contain;
+  }
+
+  .topContent {
+    width: 100%;
   }
 
   .title {
-    font-size: 25px;
-    letter-spacing: -0.75px;
-    line-height: 0.8;
+    font-size: clamp(32px, 7vw, 48px);
+    line-height: 0.98;
+    overflow-wrap: anywhere;
   }
 
   .description {
-    margin-top: 8px;
-    font-size: 10px;
-    line-height: 1.28;
-    -webkit-line-clamp: 9;
+    display: block;
+    overflow: visible;
+    margin-top: 12px;
+    max-width: none;
+    font-size: 15px;
+    line-height: 1.45;
   }
 
   .bookButton {
-    width: 100% !important;
+    width: min(100%, 260px) !important;
     height: auto !important;
-    min-height: 30px;
-    padding: 4px 12px 4px 16px !important;
+    min-height: 44px;
+    padding: 8px 16px !important;
     gap: 10px !important;
   }
 
@@ -485,6 +505,68 @@
 }
 
 @media (max-width: 520px) {
+  .detailContainer {
+    padding: 32px 12px 0;
+  }
+
+  .frame {
+    padding: 0 16px 32px;
+    gap: 28px;
+  }
+
+  .topContent {
+    gap: 24px;
+  }
+
+  .title {
+    font-size: clamp(30px, 10vw, 42px);
+  }
+
+  .subtitle {
+    font-size: 16px;
+    line-height: 1.3;
+  }
+
+  .heroActions {
+    gap: 16px;
+  }
+
+  .social {
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 14px;
+  }
+
+  .socialMetrics {
+    gap: 12px;
+  }
+
+  .socialButtons {
+    gap: 14px;
+  }
+
+  .middle {
+    padding-top: 0;
+  }
+
+  .mapWrap {
+    height: clamp(220px, 68vw, 320px);
+  }
+
+  .metaGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .metaLabel,
+  .metaValue {
+    font-size: 15px;
+  }
+
+  .metaValue {
+    white-space: normal;
+    overflow-wrap: anywhere;
+  }
+
   .detailSectionBody {
     grid-template-columns: 1fr;
   }

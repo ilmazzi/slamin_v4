@@ -100,7 +100,15 @@ a.person:focus-visible {
 }
 
 @media (max-width: 600px) {
+  .row {
+    align-items: stretch;
+    flex-direction: column;
+    flex-wrap: nowrap;
+    gap: 16px;
+  }
+
   .person {
+    width: 100%;
     gap: 8px;
     padding: 0;
     border: 0;
@@ -124,8 +132,15 @@ a.person:focus-visible {
   }
 
   .writeButton {
-    min-height: 38px;
-    padding: 6px 14px;
+    align-self: flex-start;
+    box-sizing: border-box;
+    width: min(100%, 300px);
+    min-height: 44px;
+    justify-content: center;
+    padding: 8px 14px;
     font-size: 14px;
+    text-align: center;
+    white-space: normal;
+    overflow-wrap: anywhere;
   }
 }
