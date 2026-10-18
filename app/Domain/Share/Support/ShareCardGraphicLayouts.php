@@ -143,59 +143,52 @@ final class ShareCardGraphicLayouts
         $semibold = $this->font('Switzer-Semibold.otf');
         $medium = $this->font('Switzer-Medium.otf');
         $regular = $this->font('Switzer-Regular.otf');
-        $dark = $this->color($canvas, 17, 17, 17);
+        $ink = $this->paletteInk($canvas, $palette, $white);
         $box = $this->imageBox ?? ['x' => $innerX, 'y' => $innerY, 'width' => $innerW, 'height' => $innerH];
         $inset = max(28, (int) round(min($box['width'], $box['height']) * 0.045));
         $right = $box['x'] + $box['width'] - $inset;
         $y = $box['y'] + $inset;
         $maxWidth = max(160, (int) round($box['width'] * 0.62));
-        $textLeft = $right - $maxWidth;
-        $topLight = ShareCardContrast::isLightBehind(
-            $canvas,
-            $textLeft,
-            $y,
-            $maxWidth,
-            (int) round(280 * $scale),
-        );
-        $ink = $topLight ? $dark : $white;
-        $dateColor = $topLight ? $dark : $accent;
 
+        $topLines = [];
         $weekday = trim((string) ($graphic['weekday'] ?? ''));
         if ($weekday !== '') {
-            $y = $this->drawRightLine($canvas, $semibold, 42 * $scale, $right, $y, $weekday, $dateColor, $maxWidth);
-            $y += (int) round(6 * $scale);
+            $topLines[] = [$semibold, 42 * $scale, $weekday];
         }
         $date = trim((string) ($graphic['date'] ?? ''));
         if ($date !== '') {
-            $y = $this->drawRightLine($canvas, $semibold, 64 * $scale, $right, $y, $date, $ink, $maxWidth);
-            $y += (int) round(16 * $scale);
+            $topLines[] = [$semibold, 64 * $scale, $date];
         }
         $headline = trim((string) ($graphic['headline'] ?? ''));
         if ($headline !== '') {
             foreach ($this->wrap($medium, 48 * $scale, $headline, $maxWidth, 3) as $line) {
-                $y = $this->drawRightLine($canvas, $medium, 48 * $scale, $right, $y, $line, $ink, $maxWidth);
-                $y += (int) round(4 * $scale);
+                $topLines[] = [$medium, 48 * $scale, $line];
             }
         }
+        $this->drawOpaqueBlock($canvas, $topLines, $right, $y, 'right', $maxWidth, $accent, $ink, $scale);
 
-        $bottom = $box['y'] + $box['height'] - $inset;
         $place = trim((string) ($graphic['place'] ?? ''));
         $city = trim((string) ($graphic['city'] ?? ''));
-        $bottomLight = ShareCardContrast::isLightBehind(
-            $canvas,
-            $textLeft,
-            $bottom - (int) round(80 * $scale),
-            $maxWidth,
-            (int) round(120 * $scale),
-        );
-        $bottomInk = $bottomLight ? $dark : $white;
-        if ($place !== '') {
-            $bottom -= (int) round(34 * $scale);
-            $this->drawRightLine($canvas, $regular, 28 * $scale, $right, $bottom, $place, $bottomInk, $maxWidth);
-        }
+        $bottomLines = [];
         if ($city !== '') {
-            $bottom -= (int) round(40 * $scale);
-            $this->drawRightLine($canvas, $semibold, 32 * $scale, $right, $bottom, $city, $bottomInk, $maxWidth);
+            $bottomLines[] = [$semibold, 32 * $scale, $city];
+        }
+        if ($place !== '') {
+            $bottomLines[] = [$regular, 28 * $scale, $place];
+        }
+        if ($bottomLines !== []) {
+            $block = $this->measureOpaqueBlock($bottomLines, $maxWidth, $scale);
+            $this->drawOpaqueBlock(
+                $canvas,
+                $bottomLines,
+                $right,
+                $box['y'] + $box['height'] - $inset - $block['height'],
+                'right',
+                $maxWidth,
+                $accent,
+                $ink,
+                $scale,
+            );
         }
     }
 
@@ -214,7 +207,7 @@ final class ShareCardGraphicLayouts
             $this->imageBox = $box;
         }
 
-        $this->drawPhotoCopy($canvas, $graphic, $box);
+        $this->drawPhotoCopy($canvas, $graphic, $box, $palette);
     }
 
     /**
@@ -236,7 +229,7 @@ final class ShareCardGraphicLayouts
         }
         imagefilledrectangle($canvas, 0, $photoH, $width, $height, $accent);
 
-        $this->drawPhotoCopy($canvas, $graphic, $box);
+        $this->drawPhotoCopy($canvas, $graphic, $box, $palette);
     }
 
     /**
@@ -286,8 +279,9 @@ final class ShareCardGraphicLayouts
     /**
      * @param  array<string, mixed>  $graphic
      * @param  array{x:int,y:int,width:int,height:int}  $box
+     * @param  array{int,int,int}  $palette
      */
-    private function drawPhotoCopy(GdImage $canvas, array $graphic, array $box): void
+    private function drawPhotoCopy(GdImage $canvas, array $graphic, array $box, array $palette): void
     {
         $headline = trim((string) ($graphic['headline'] ?? ''));
         if ($headline === '') {
@@ -300,19 +294,22 @@ final class ShareCardGraphicLayouts
         $x = $box['x'] + $inset;
         $y = $box['y'] + $inset;
         $maxWidth = max(80, $box['width'] - ($inset * 2));
-        $color = ShareCardContrast::isLightBehind(
+        $lines = [];
+        foreach ($this->wrap($semibold, 42 * $scale, $headline, $maxWidth, 2) as $line) {
+            $lines[] = [$semibold, 42 * $scale, $line];
+        }
+        [$red, $green, $blue] = $palette;
+        $this->drawOpaqueBlock(
             $canvas,
+            $lines,
             $x,
             $y,
+            'left',
             $maxWidth,
-            (int) round(120 * $scale),
-        )
-            ? $this->color($canvas, 17, 17, 17)
-            : $this->color($canvas, 255, 255, 255);
-        foreach ($this->wrap($semibold, 42 * $scale, $headline, $maxWidth, 2) as $line) {
-            $y = $this->drawLine($canvas, $semibold, 42 * $scale, $x, $y, $line, $color);
-            $y += (int) round(4 * $scale);
-        }
+            $this->color($canvas, $red, $green, $blue),
+            $this->paletteInk($canvas, $palette, $this->color($canvas, 255, 255, 255)),
+            $scale,
+        );
     }
 
     private function stampLogo(GdImage $canvas, ShareCardTemplate $template): void
@@ -422,20 +419,82 @@ final class ShareCardGraphicLayouts
         return $y + (int) round($size * 1.12);
     }
 
-    private function drawRightLine(
-        GdImage $canvas,
-        string $font,
-        float $size,
-        int $right,
-        int $y,
-        string $text,
-        int $color,
-        int $maxWidth,
-    ): int {
-        $text = $this->truncate($font, $size, $text, $maxWidth);
-        $x = $right - $this->textWidth($font, $size, $text);
+    /**
+     * @param  array{int,int,int}  $palette
+     */
+    private function paletteInk(GdImage $canvas, array $palette, int $white): int
+    {
+        [$red, $green, $blue] = $palette;
 
-        return $this->drawLine($canvas, $font, $size, $x, $y, $text, $color);
+        return ShareCardContrast::isLightRgb($red, $green, $blue)
+            ? $this->color($canvas, 17, 17, 17)
+            : $white;
+    }
+
+    /**
+     * @param  list<array{0:string,1:float,2:string}>  $lines
+     * @return array{width:int,height:int,padX:int,padY:int,gap:int,lines:list<array{0:string,1:float,2:string,3:int,4:int}>}
+     */
+    private function measureOpaqueBlock(array $lines, int $maxWidth, float $scale): array
+    {
+        $padX = max(16, (int) round(22 * $scale));
+        $padY = max(12, (int) round(16 * $scale));
+        $gap = max(2, (int) round(4 * $scale));
+        $prepared = [];
+        $contentWidth = 0;
+        $contentHeight = 0;
+        foreach ($lines as $index => [$font, $size, $text]) {
+            $text = $this->truncate($font, $size, $text, $maxWidth);
+            $lineWidth = $this->textWidth($font, $size, $text);
+            $lineHeight = (int) round($size * 1.12);
+            $contentWidth = max($contentWidth, $lineWidth);
+            $contentHeight += $lineHeight + ($index > 0 ? $gap : 0);
+            $prepared[] = [$font, $size, $text, $lineWidth, $lineHeight];
+        }
+
+        return [
+            'width' => $contentWidth + ($padX * 2),
+            'height' => $contentHeight + ($padY * 2),
+            'padX' => $padX,
+            'padY' => $padY,
+            'gap' => $gap,
+            'lines' => $prepared,
+        ];
+    }
+
+    /**
+     * @param  list<array{0:string,1:float,2:string}>  $lines
+     */
+    private function drawOpaqueBlock(
+        GdImage $canvas,
+        array $lines,
+        int $anchorX,
+        int $anchorY,
+        string $align,
+        int $maxWidth,
+        int $fill,
+        int $ink,
+        float $scale,
+    ): int {
+        if ($lines === []) {
+            return $anchorY;
+        }
+
+        $block = $this->measureOpaqueBlock($lines, $maxWidth, $scale);
+        $x = $align === 'right' ? $anchorX - $block['width'] : $anchorX;
+        $y = $anchorY;
+        imagefilledrectangle($canvas, $x, $y, $x + $block['width'] - 1, $y + $block['height'] - 1, $fill);
+
+        $cursor = $y + $block['padY'];
+        foreach ($block['lines'] as [$font, $size, $text, $lineWidth, $lineHeight]) {
+            $textX = $align === 'right'
+                ? $x + $block['width'] - $block['padX'] - $lineWidth
+                : $x + $block['padX'];
+            $this->drawLine($canvas, $font, $size, $textX, $cursor, $text, $ink);
+            $cursor += $lineHeight + $block['gap'];
+        }
+
+        return $y + $block['height'];
     }
 
     /**

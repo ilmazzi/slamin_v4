@@ -305,7 +305,7 @@ it('fits graphic covers without cropping them', function () {
         ->and(($promoTop >> 8) & 0xFF)->toBeLessThan(80);
 });
 
-it('uses dark framed text on a light cover and white text on a dark cover', function () {
+it('paints framed copy on an opaque palette panel over light and dark covers', function () {
     Storage::fake('public');
 
     $light = imagecreatetruecolor(800, 800);
@@ -343,25 +343,35 @@ it('uses dark framed text on a light cover and white text on a dark cover', func
     expect($lightCard)->toBeInstanceOf(GdImage::class)
         ->and($darkCard)->toBeInstanceOf(GdImage::class);
 
-    $darkInk = 0;
-    $whiteInk = 0;
+    $mintOnLight = 0;
+    $inkOnLight = 0;
+    $mintOnDark = 0;
+    $inkOnDark = 0;
     for ($x = 720; $x < 980; $x += 4) {
         for ($y = 80; $y < 260; $y += 4) {
             $lightPixel = imagecolorsforindex($lightCard, imagecolorat($lightCard, $x, $y));
             $darkPixel = imagecolorsforindex($darkCard, imagecolorat($darkCard, $x, $y));
-            if ($lightPixel['red'] < 40 && $lightPixel['green'] < 40 && $lightPixel['blue'] < 40) {
-                $darkInk++;
+            if ($lightPixel['red'] === 132 && $lightPixel['green'] === 218 && $lightPixel['blue'] === 180) {
+                $mintOnLight++;
             }
-            if ($darkPixel['red'] > 230 && $darkPixel['green'] > 230 && $darkPixel['blue'] > 230) {
-                $whiteInk++;
+            if ($lightPixel['red'] < 40 && $lightPixel['green'] < 40 && $lightPixel['blue'] < 40) {
+                $inkOnLight++;
+            }
+            if ($darkPixel['red'] === 132 && $darkPixel['green'] === 218 && $darkPixel['blue'] === 180) {
+                $mintOnDark++;
+            }
+            if ($darkPixel['red'] < 40 && $darkPixel['green'] < 40 && $darkPixel['blue'] < 40) {
+                $inkOnDark++;
             }
         }
     }
     imagedestroy($lightCard);
     imagedestroy($darkCard);
 
-    expect($darkInk)->toBeGreaterThan(20)
-        ->and($whiteInk)->toBeGreaterThan(20);
+    expect($mintOnLight)->toBeGreaterThan(20)
+        ->and($inkOnLight)->toBeGreaterThan(10)
+        ->and($mintOnDark)->toBeGreaterThan(20)
+        ->and($inkOnDark)->toBeGreaterThan(10);
 });
 
 it('renders every post format at the expected dimensions', function (string $format, int $width, int $height) {

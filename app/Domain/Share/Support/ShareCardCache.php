@@ -8,7 +8,7 @@ use RuntimeException;
 
 final class ShareCardCache
 {
-    public const VERSION = 17;
+    public const VERSION = 18;
 
     public static function remember(string $key, Closure $render): string
     {

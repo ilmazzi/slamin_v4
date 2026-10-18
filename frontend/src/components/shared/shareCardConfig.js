@@ -1,4 +1,4 @@
-export const SHARE_CARD_VERSION = 17;
+export const SHARE_CARD_VERSION = 18;
 
 const SHARE_CARD_TEMPLATES = [
   'poster',
