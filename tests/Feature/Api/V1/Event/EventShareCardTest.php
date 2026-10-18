@@ -291,8 +291,9 @@ it('fits graphic covers without cropping them', function () {
         ->and(($top >> 8) & 0xFF)->toBeLessThan(80)
         ->and(($bottom >> 16) & 0xFF)->toBeGreaterThan(180)
         ->and(($bottom >> 8) & 0xFF)->toBeLessThan(80)
-        ->and(($gutter >> 16) & 0xFF)->toBeLessThan(40)
-        ->and(($gutter >> 8) & 0xFF)->toBeLessThan(40);
+        ->and(($gutter >> 16) & 0xFF)->toBeGreaterThan(240)
+        ->and(($gutter >> 8) & 0xFF)->toBeGreaterThan(240)
+        ->and($gutter & 0xFF)->toBeGreaterThan(240);
 
     $promo = imagecreatefromstring(
         $this->get("/api/v1/events/{$event->slug}/share-card?template=promo")->assertOk()->getContent(),
