@@ -47,12 +47,12 @@ final class ShareCardGraphicLayouts
         $semibold = $this->font('Switzer-Semibold.otf');
         $medium = $this->font('Switzer-Medium.otf');
         $regular = $this->font('Switzer-Regular.otf');
-        $ink = ($red + $green + $blue) < 90
-            ? $white
-            : $this->color($canvas, 17, 17, 17);
-        $muted = ($red + $green + $blue) < 90
-            ? $this->color($canvas, 210, 210, 210)
-            : $this->color($canvas, 55, 55, 55);
+        $ink = ShareCardContrast::isLightRgb($red, $green, $blue)
+            ? $this->color($canvas, 17, 17, 17)
+            : $white;
+        $muted = ShareCardContrast::isLightRgb($red, $green, $blue)
+            ? $this->color($canvas, 55, 55, 55)
+            : $this->color($canvas, 210, 210, 210);
         $scale = $width / 1080;
         $pad = max(36, (int) round($width * 0.045));
         $gap = (int) round($width * 0.046);
@@ -62,7 +62,7 @@ final class ShareCardGraphicLayouts
         if ($cover instanceof GdImage) {
             $posterW = (int) round($width * 0.34);
             $posterH = max(1, $bubble['bodyBottom'] - ($pad * 2));
-            $this->coverFill($canvas, $cover, $pad, $pad, $posterW, $posterH);
+            $this->coverContain($canvas, $cover, $pad, $pad, $posterW, $posterH);
             $x = $pad + $posterW + $gap;
             $maxWidth = max(160, $width - $pad - $x);
         }
@@ -131,20 +131,35 @@ final class ShareCardGraphicLayouts
         $innerY = $border;
         $innerW = $width - ($border * 2);
         $innerH = $height - ($border * 2);
+        imagefilledrectangle(
+            $canvas,
+            $innerX,
+            $innerY,
+            $innerX + $innerW,
+            $innerY + $innerH,
+            $cover instanceof GdImage ? $this->color($canvas, 17, 17, 17) : $white,
+        );
         if ($cover instanceof GdImage) {
-            $this->coverFill($canvas, $cover, $innerX, $innerY, $innerW, $innerH);
-        } else {
-            imagefilledrectangle($canvas, $innerX, $innerY, $innerX + $innerW, $innerY + $innerH, $white);
+            $this->coverContain($canvas, $cover, $innerX, $innerY, $innerW, $innerH);
         }
 
         $semibold = $this->font('Switzer-Semibold.otf');
         $medium = $this->font('Switzer-Medium.otf');
         $regular = $this->font('Switzer-Regular.otf');
-        $ink = $cover instanceof GdImage ? $white : $this->color($canvas, 17, 17, 17);
-        $dateColor = $cover instanceof GdImage ? $accent : $this->color($canvas, 17, 17, 17);
+        $dark = $this->color($canvas, 17, 17, 17);
         $right = $innerX + $innerW - max(36, $safe['right'] - $border);
         $y = $innerY + max(36, $safe['top'] - $border);
         $maxWidth = (int) round($innerW * 0.62);
+        $textLeft = $right - $maxWidth;
+        $topLight = ShareCardContrast::isLightBehind(
+            $canvas,
+            $textLeft,
+            $y,
+            $maxWidth,
+            (int) round(280 * $scale),
+        );
+        $ink = $topLight ? $dark : $white;
+        $dateColor = $topLight ? $dark : $accent;
 
         $weekday = trim((string) ($graphic['weekday'] ?? ''));
         if ($weekday !== '') {
@@ -167,13 +182,21 @@ final class ShareCardGraphicLayouts
         $bottom = $innerY + $innerH - max(36, $safe['bottom'] - $border);
         $place = trim((string) ($graphic['place'] ?? ''));
         $city = trim((string) ($graphic['city'] ?? ''));
+        $bottomLight = ShareCardContrast::isLightBehind(
+            $canvas,
+            $textLeft,
+            $bottom - (int) round(80 * $scale),
+            $maxWidth,
+            (int) round(120 * $scale),
+        );
+        $bottomInk = $bottomLight ? $dark : $white;
         if ($place !== '') {
             $bottom -= (int) round(34 * $scale);
-            $this->drawRightLine($canvas, $regular, 28 * $scale, $right, $bottom, $place, $ink, $maxWidth);
+            $this->drawRightLine($canvas, $regular, 28 * $scale, $right, $bottom, $place, $bottomInk, $maxWidth);
         }
         if ($city !== '') {
             $bottom -= (int) round(40 * $scale);
-            $this->drawRightLine($canvas, $semibold, 32 * $scale, $right, $bottom, $city, $ink, $maxWidth);
+            $this->drawRightLine($canvas, $semibold, 32 * $scale, $right, $bottom, $city, $bottomInk, $maxWidth);
         }
     }
 
@@ -186,13 +209,12 @@ final class ShareCardGraphicLayouts
         $width = imagesx($canvas);
         $height = imagesy($canvas);
         $dark = $this->color($canvas, 17, 17, 17);
-        $white = $this->color($canvas, 255, 255, 255);
         imagefilledrectangle($canvas, 0, 0, $width, $height, $dark);
         if ($cover instanceof GdImage) {
-            $this->coverFill($canvas, $cover, 0, 0, $width, $height);
+            $this->coverContain($canvas, $cover, 0, 0, $width, $height);
         }
 
-        $this->drawPhotoCopy($canvas, $graphic, $white, $width);
+        $this->drawPhotoCopy($canvas, $graphic, $width);
     }
 
     /**
@@ -210,12 +232,11 @@ final class ShareCardGraphicLayouts
         $accent = $this->color($canvas, $red, $green, $blue);
         imagefilledrectangle($canvas, 0, 0, $width, $photoH, $dark);
         if ($cover instanceof GdImage) {
-            $this->coverFill($canvas, $cover, 0, 0, $width, $photoH);
+            $this->coverContain($canvas, $cover, 0, 0, $width, $photoH);
         }
         imagefilledrectangle($canvas, 0, $photoH, $width, $height, $accent);
 
-        $white = $this->color($canvas, 255, 255, 255);
-        $this->drawPhotoCopy($canvas, $graphic, $white, $width);
+        $this->drawPhotoCopy($canvas, $graphic, $width);
     }
 
     /**
@@ -229,13 +250,13 @@ final class ShareCardGraphicLayouts
         [$red, $green, $blue] = $palette;
         $fill = $this->color($canvas, $red, $green, $blue);
         $white = $this->color($canvas, 255, 255, 255);
-        $ink = ($red + $green + $blue) < 90
-            ? $white
-            : $this->color($canvas, 17, 17, 17);
+        $ink = ShareCardContrast::isLightRgb($red, $green, $blue)
+            ? $this->color($canvas, 17, 17, 17)
+            : $white;
         imagefilledrectangle($canvas, 0, 0, $width, $height, $fill);
         if ($cover instanceof GdImage) {
             $band = (int) round($height * 0.42);
-            $this->coverFill($canvas, $cover, 0, 0, $width, $band);
+            $this->coverContain($canvas, $cover, 0, 0, $width, $band);
         }
 
         $semibold = $this->font('Switzer-Semibold.otf');
@@ -265,7 +286,7 @@ final class ShareCardGraphicLayouts
     /**
      * @param  array<string, mixed>  $graphic
      */
-    private function drawPhotoCopy(GdImage $canvas, array $graphic, int $color, int $width): void
+    private function drawPhotoCopy(GdImage $canvas, array $graphic, int $width): void
     {
         $headline = trim((string) ($graphic['headline'] ?? ''));
         if ($headline === '') {
@@ -277,6 +298,15 @@ final class ShareCardGraphicLayouts
         $x = max(48, (int) round($width * 0.06));
         $y = max(48, (int) round($width * 0.06));
         $maxWidth = $width - ($x * 2);
+        $color = ShareCardContrast::isLightBehind(
+            $canvas,
+            $x,
+            $y,
+            $maxWidth,
+            (int) round(120 * $scale),
+        )
+            ? $this->color($canvas, 17, 17, 17)
+            : $this->color($canvas, 255, 255, 255);
         foreach ($this->wrap($semibold, 42 * $scale, $headline, $maxWidth, 2) as $line) {
             $y = $this->drawLine($canvas, $semibold, 42 * $scale, $x, $y, $line, $color);
             $y += (int) round(4 * $scale);
@@ -457,7 +487,7 @@ final class ShareCardGraphicLayouts
         }
     }
 
-    private function coverFill(GdImage $dest, GdImage $src, int $x, int $y, int $width, int $height): void
+    private function coverContain(GdImage $dest, GdImage $src, int $x, int $y, int $width, int $height): void
     {
         $sourceWidth = imagesx($src);
         $sourceHeight = imagesy($src);
@@ -465,12 +495,12 @@ final class ShareCardGraphicLayouts
             return;
         }
 
-        $scale = max($width / $sourceWidth, $height / $sourceHeight);
-        $cropWidth = min($sourceWidth, max(1, (int) round($width / $scale)));
-        $cropHeight = min($sourceHeight, max(1, (int) round($height / $scale)));
-        $cropX = (int) round(($sourceWidth - $cropWidth) / 2);
-        $cropY = (int) round(($sourceHeight - $cropHeight) / 2);
-        imagecopyresampled($dest, $src, $x, $y, $cropX, $cropY, $width, $height, $cropWidth, $cropHeight);
+        $scale = min($width / $sourceWidth, $height / $sourceHeight);
+        $destWidth = max(1, (int) round($sourceWidth * $scale));
+        $destHeight = max(1, (int) round($sourceHeight * $scale));
+        $destX = $x + (int) round(($width - $destWidth) / 2);
+        $destY = $y + (int) round(($height - $destHeight) / 2);
+        imagecopyresampled($dest, $src, $destX, $destY, 0, 0, $destWidth, $destHeight, $sourceWidth, $sourceHeight);
     }
 
     /**

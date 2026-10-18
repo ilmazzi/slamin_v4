@@ -61,6 +61,7 @@ export default function SharePanel({
   title = '',
   url,
   imageName = 'slamin-share.png',
+  imageSrc,
   loadImage,
   templates = [],
   defaultTemplate,
@@ -75,11 +76,22 @@ export default function SharePanel({
   const [selectedFormat, setSelectedFormat] = useState('square')
   const [selectedTemplate, setSelectedTemplate] = useState(defaultTemplate || templates[0] || 'poster')
   const [previewUrl, setPreviewUrl] = useState('')
+  const [loadedPreviewSrc, setLoadedPreviewSrc] = useState('')
   const [previewStatus, setPreviewStatus] = useState('idle')
-  const [thumbnails, setThumbnails] = useState({})
+  const [thumbsEnabled, setThumbsEnabled] = useState(false)
   const inputRef = useRef(null)
   const closeRef = useRef(null)
   const templateKey = templates.join('|')
+  const canPreview = Boolean(imageSrc || loadImage)
+  const previewSrc = isOpen && imageSrc
+    ? imageSrc(selectedFormat, selectedTemplate)
+    : ''
+  const previewReady = Boolean(previewSrc) && loadedPreviewSrc === previewSrc
+  const previewFailed = Boolean(previewSrc) && loadedPreviewSrc === `error:${previewSrc}`
+  const shownPreviewUrl = previewSrc || previewUrl
+  const isPreviewReady = previewSrc ? previewReady : previewStatus === 'ready'
+  const isPreviewLoading = previewSrc ? !previewReady && !previewFailed : previewStatus === 'loading'
+  const isPreviewError = previewSrc ? previewFailed : previewStatus === 'error'
 
   useEffect(() => {
     if (!isOpen) {
@@ -118,7 +130,23 @@ export default function SharePanel({
   }, [defaultTemplate, isOpen, templateKey, templates])
 
   useEffect(() => {
-    if (!isOpen || !loadImage) {
+    if (!isOpen) {
+      setPreviewUrl('')
+      setLoadedPreviewSrc('')
+      setPreviewStatus('idle')
+      setThumbsEnabled(false)
+      return undefined
+    }
+
+    if (previewSrc) {
+      setPreviewStatus(previewReady ? 'ready' : (previewFailed ? 'error' : 'loading'))
+      if (previewReady) {
+        setThumbsEnabled(true)
+      }
+      return undefined
+    }
+
+    if (!loadImage) {
       setPreviewUrl('')
       setPreviewStatus('idle')
       return undefined
@@ -137,6 +165,7 @@ export default function SharePanel({
         objectUrl = URL.createObjectURL(blob)
         setPreviewUrl(objectUrl)
         setPreviewStatus('ready')
+        setThumbsEnabled(true)
       })
       .catch(() => {
         if (active) setPreviewStatus('error')
@@ -146,40 +175,7 @@ export default function SharePanel({
       active = false
       if (objectUrl) URL.revokeObjectURL(objectUrl)
     }
-  }, [isOpen, loadImage, selectedFormat, selectedTemplate])
-
-  useEffect(() => {
-    if (!isOpen || !loadImage || templates.length < 2) {
-      setThumbnails({})
-      return undefined
-    }
-
-    let active = true
-    const objectUrls = []
-
-    Promise.all(templates.map(async (template) => {
-      try {
-        const blob = await loadImage('square', template)
-        if (!blob) {
-          return [template, '']
-        }
-        const objectUrl = URL.createObjectURL(blob)
-        objectUrls.push(objectUrl)
-        return [template, objectUrl]
-      } catch {
-        return [template, '']
-      }
-    })).then((entries) => {
-      if (active) {
-        setThumbnails(Object.fromEntries(entries))
-      }
-    })
-
-    return () => {
-      active = false
-      objectUrls.forEach((objectUrl) => URL.revokeObjectURL(objectUrl))
-    }
-  }, [isOpen, loadImage, templateKey, templates])
+  }, [isOpen, loadImage, previewFailed, previewReady, previewSrc, selectedFormat, selectedTemplate])
 
   if (!isOpen || !url) {
     return null
@@ -258,22 +254,37 @@ export default function SharePanel({
 
         {title ? <p className={styles.subject}>{title}</p> : null}
 
-        {loadImage ? (
+        {canPreview ? (
           <div className={styles.composer}>
             <div className={styles.previewColumn}>
               <div
                 className={styles.preview}
                 style={{
-                  aspectRatio: SHARE_FORMATS.find((format) => format.id === selectedFormat)?.ratio,
+                  aspectRatio: isPreviewReady
+                    ? undefined
+                    : SHARE_FORMATS.find((format) => format.id === selectedFormat)?.ratio,
                 }}
               >
-                {previewStatus === 'ready' && previewUrl ? (
-                  <img src={previewUrl} alt={t('common.share_panel.preview_alt')} />
+                {shownPreviewUrl ? (
+                  <img
+                    src={shownPreviewUrl}
+                    alt={t('common.share_panel.preview_alt')}
+                    onLoad={() => {
+                      if (previewSrc) {
+                        setLoadedPreviewSrc(previewSrc)
+                      }
+                    }}
+                    onError={() => {
+                      if (previewSrc) {
+                        setLoadedPreviewSrc(`error:${previewSrc}`)
+                      }
+                    }}
+                  />
                 ) : null}
-                {previewStatus === 'loading' ? (
+                {isPreviewLoading ? (
                   <span className={styles.previewState}>{t('common.loading')}</span>
                 ) : null}
-                {previewStatus === 'error' ? (
+                {isPreviewError ? (
                   <span className={styles.previewState}>{t('common.share_panel.preview_failed')}</span>
                 ) : null}
               </div>
@@ -294,8 +305,8 @@ export default function SharePanel({
                         onClick={() => setSelectedTemplate(template)}
                       >
                         <span className={styles.templateThumb} aria-hidden="true">
-                          {thumbnails[template] ? (
-                            <img src={thumbnails[template]} alt="" />
+                          {thumbsEnabled && imageSrc ? (
+                            <img src={imageSrc('square', template)} alt="" />
                           ) : null}
                         </span>
                         <span>{t(`common.share_panel.templates.${template}`)}</span>
@@ -333,7 +344,7 @@ export default function SharePanel({
                   type="button"
                   className={styles.nativeShareButton}
                   onClick={handleNativeShare}
-                  disabled={isSharing || previewStatus === 'loading'}
+                  disabled={isSharing || isPreviewLoading}
                 >
                   <Share2 aria-hidden="true" />
                   <span>{isSharing ? t('common.loading') : t('common.share_panel.share_now')}</span>
@@ -344,7 +355,7 @@ export default function SharePanel({
                 type="button"
                 className={styles.downloadButton}
                 onClick={handleDownload}
-                disabled={isDownloading || previewStatus === 'loading'}
+                disabled={isDownloading || isPreviewLoading}
               >
                 <Download aria-hidden="true" />
                 <span className={styles.downloadText}>

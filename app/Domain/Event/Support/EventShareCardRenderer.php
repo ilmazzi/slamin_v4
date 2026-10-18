@@ -110,7 +110,7 @@ class EventShareCardRenderer
             $textRight = $width - 80;
             if ($cover instanceof GdImage) {
                 $panelX = (int) round($width * self::LANDSCAPE_TEXT_RATIO);
-                $this->drawCoverFill($image, $cover, $panelX, 0, $width - $panelX, $height);
+                $this->drawCover($image, $cover, $panelX, 0, $width - $panelX, $height);
                 $textRight = $panelX - 48;
             }
 
@@ -229,23 +229,6 @@ class EventShareCardRenderer
         imagecopyresampled($dest, $src, $dx, $dy, 0, 0, $dw, $dh, $sw, $sh);
 
         return ['x' => $dx, 'y' => $dy, 'width' => $dw, 'height' => $dh];
-    }
-
-    private function drawCoverFill(GdImage $dest, GdImage $src, int $boxX, int $boxY, int $boxW, int $boxH): void
-    {
-        $sw = imagesx($src);
-        $sh = imagesy($src);
-        if ($sw < 1 || $sh < 1 || $boxW < 1 || $boxH < 1) {
-            return;
-        }
-
-        $scale = max($boxW / $sw, $boxH / $sh);
-        $cropW = min($sw, max(1, (int) round($boxW / $scale)));
-        $cropH = min($sh, max(1, (int) round($boxH / $scale)));
-        $cropX = (int) round(($sw - $cropW) / 2);
-        $cropY = (int) round(($sh - $cropH) / 2);
-
-        imagecopyresampled($dest, $src, $boxX, $boxY, $cropX, $cropY, $boxW, $boxH, $cropW, $cropH);
     }
 
     private function loadCover(?string $path): ?GdImage

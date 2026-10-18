@@ -132,11 +132,13 @@ function resolveShareUrl(target, contentType, publicBasePath) {
   return `${window.location.origin}/share/${shareType.plural}/${encodeURIComponent(String(key))}`
 }
 
-async function fetchShareCard(target, contentType, format = 'square', template) {
+const shareCardBlobCache = new Map()
+
+function shareCardUrl(target, contentType, format = 'square', template) {
   const shareType = resolveSharePageType(contentType)
   const key = shareType ? target?.[shareType.key] : null
   if (!shareType?.hasCard || key === null || key === undefined || key === '') {
-    return null
+    return ''
   }
 
   const encodedKey = encodeURIComponent(String(key))
@@ -144,8 +146,21 @@ async function fetchShareCard(target, contentType, format = 'square', template) 
   if (template) {
     params.set('template', template)
   }
-  const response = await fetch(getApiUrl(`/api/v1/${shareType.plural}/${encodedKey}/share-card?${params}`), {
-    cache: 'no-store',
+
+  return getApiUrl(`/api/v1/${shareType.plural}/${encodedKey}/share-card?${params}`)
+}
+
+async function fetchShareCard(target, contentType, format = 'square', template) {
+  const url = shareCardUrl(target, contentType, format, template)
+  if (!url) {
+    return null
+  }
+
+  if (shareCardBlobCache.has(url)) {
+    return shareCardBlobCache.get(url)
+  }
+
+  const response = await fetch(url, {
     headers: { Accept: 'image/png' },
   })
   if (!response.ok) {
@@ -153,7 +168,12 @@ async function fetchShareCard(target, contentType, format = 'square', template) 
   }
 
   const blob = await response.blob()
-  return blob?.size > 0 ? blob : null
+  if (!blob?.size) {
+    return null
+  }
+
+  shareCardBlobCache.set(url, blob)
+  return blob
 }
 
 async function nativeShare(target, { contentType, publicBasePath, format = 'square', template }) {
@@ -571,6 +591,9 @@ export default function SocialActions({
           imageName={`${target?.slug ?? target?.id ?? 'slamin'}-share.png`}
           templates={templatesFor(contentType, target)}
           defaultTemplate={defaultTemplateFor(contentType, target)}
+          imageSrc={canDownloadShareCard
+            ? (format, template) => shareCardUrl(target, contentType, format, template)
+            : null}
           loadImage={canDownloadShareCard
             ? (format, template) => fetchShareCard(target, contentType, format, template)
             : null}

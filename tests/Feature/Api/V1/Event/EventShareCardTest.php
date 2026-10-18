@@ -258,6 +258,111 @@ it('renders the date and framed event templates', function () {
     expect([($frame >> 16) & 0xFF, ($frame >> 8) & 0xFF, $frame & 0xFF])->toBe([132, 218, 180]);
 });
 
+it('fits graphic covers without cropping them', function () {
+    Storage::fake('public');
+
+    $canvas = imagecreatetruecolor(400, 800);
+    $green = imagecolorallocate($canvas, 20, 180, 40);
+    $red = imagecolorallocate($canvas, 220, 40, 40);
+    imagefilledrectangle($canvas, 0, 0, 399, 799, $green);
+    imagefilledrectangle($canvas, 0, 0, 399, 80, $red);
+    imagefilledrectangle($canvas, 0, 720, 399, 799, $red);
+    ob_start();
+    imagejpeg($canvas, null, 90);
+    $jpeg = (string) ob_get_clean();
+    imagedestroy($canvas);
+    Storage::disk('public')->put('events/locandina-intera.jpg', $jpeg);
+
+    $event = publishedShareEvent(eventShareAuthor(), [
+        'slug' => 'slam-locandina-intera',
+        'cover_image_path' => 'events/locandina-intera.jpg',
+    ]);
+
+    $clean = imagecreatefromstring(
+        $this->get("/api/v1/events/{$event->slug}/share-card?template=photo_clean")->assertOk()->getContent(),
+    );
+    expect($clean)->toBeInstanceOf(GdImage::class);
+    $top = imagecolorat($clean, 540, 16);
+    $bottom = imagecolorat($clean, 540, 1064);
+    $gutter = imagecolorat($clean, 24, 540);
+    imagedestroy($clean);
+
+    expect(($top >> 16) & 0xFF)->toBeGreaterThan(180)
+        ->and(($top >> 8) & 0xFF)->toBeLessThan(80)
+        ->and(($bottom >> 16) & 0xFF)->toBeGreaterThan(180)
+        ->and(($bottom >> 8) & 0xFF)->toBeLessThan(80)
+        ->and(($gutter >> 16) & 0xFF)->toBeLessThan(40)
+        ->and(($gutter >> 8) & 0xFF)->toBeLessThan(40);
+
+    $promo = imagecreatefromstring(
+        $this->get("/api/v1/events/{$event->slug}/share-card?template=promo")->assertOk()->getContent(),
+    );
+    $promoTop = imagecolorat($promo, 540, 8);
+    imagedestroy($promo);
+
+    expect(($promoTop >> 16) & 0xFF)->toBeGreaterThan(180)
+        ->and(($promoTop >> 8) & 0xFF)->toBeLessThan(80);
+});
+
+it('uses dark framed text on a light cover and white text on a dark cover', function () {
+    Storage::fake('public');
+
+    $light = imagecreatetruecolor(800, 800);
+    imagefilledrectangle($light, 0, 0, 799, 799, imagecolorallocate($light, 245, 245, 245));
+    ob_start();
+    imagejpeg($light, null, 90);
+    $lightJpeg = (string) ob_get_clean();
+    imagedestroy($light);
+    Storage::disk('public')->put('events/locandina-chiara.jpg', $lightJpeg);
+
+    $dark = imagecreatetruecolor(800, 800);
+    imagefilledrectangle($dark, 0, 0, 799, 799, imagecolorallocate($dark, 20, 20, 20));
+    ob_start();
+    imagejpeg($dark, null, 90);
+    $darkJpeg = (string) ob_get_clean();
+    imagedestroy($dark);
+    Storage::disk('public')->put('events/locandina-scura.jpg', $darkJpeg);
+
+    $lightEvent = publishedShareEvent(eventShareAuthor(), [
+        'slug' => 'slam-testo-chiaro',
+        'cover_image_path' => 'events/locandina-chiara.jpg',
+    ]);
+    $darkEvent = publishedShareEvent(eventShareAuthor(), [
+        'slug' => 'slam-testo-scuro',
+        'title' => 'Slam al Buio',
+        'cover_image_path' => 'events/locandina-scura.jpg',
+    ]);
+
+    $lightCard = imagecreatefromstring(
+        $this->get("/api/v1/events/{$lightEvent->slug}/share-card?template=framed")->assertOk()->getContent(),
+    );
+    $darkCard = imagecreatefromstring(
+        $this->get("/api/v1/events/{$darkEvent->slug}/share-card?template=framed")->assertOk()->getContent(),
+    );
+    expect($lightCard)->toBeInstanceOf(GdImage::class)
+        ->and($darkCard)->toBeInstanceOf(GdImage::class);
+
+    $darkInk = 0;
+    $whiteInk = 0;
+    for ($x = 720; $x < 980; $x += 4) {
+        for ($y = 80; $y < 260; $y += 4) {
+            $lightPixel = imagecolorsforindex($lightCard, imagecolorat($lightCard, $x, $y));
+            $darkPixel = imagecolorsforindex($darkCard, imagecolorat($darkCard, $x, $y));
+            if ($lightPixel['red'] < 40 && $lightPixel['green'] < 40 && $lightPixel['blue'] < 40) {
+                $darkInk++;
+            }
+            if ($darkPixel['red'] > 230 && $darkPixel['green'] > 230 && $darkPixel['blue'] > 230) {
+                $whiteInk++;
+            }
+        }
+    }
+    imagedestroy($lightCard);
+    imagedestroy($darkCard);
+
+    expect($darkInk)->toBeGreaterThan(20)
+        ->and($whiteInk)->toBeGreaterThan(20);
+});
+
 it('renders every post format at the expected dimensions', function (string $format, int $width, int $height) {
     $event = publishedShareEvent(eventShareAuthor());
 

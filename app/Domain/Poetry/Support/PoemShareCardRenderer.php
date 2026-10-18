@@ -457,22 +457,6 @@ class PoemShareCardRenderer
         return $loaded instanceof GdImage ? $loaded : null;
     }
 
-    private function coverFill(GdImage $dest, GdImage $src, int $x, int $y, int $width, int $height): void
-    {
-        $sourceWidth = imagesx($src);
-        $sourceHeight = imagesy($src);
-        if ($sourceWidth < 1 || $sourceHeight < 1 || $width < 1 || $height < 1) {
-            return;
-        }
-
-        $scale = max($width / $sourceWidth, $height / $sourceHeight);
-        $cropWidth = min($sourceWidth, max(1, (int) round($width / $scale)));
-        $cropHeight = min($sourceHeight, max(1, (int) round($height / $scale)));
-        $cropX = (int) round(($sourceWidth - $cropWidth) / 2);
-        $cropY = (int) round(($sourceHeight - $cropHeight) / 2);
-        imagecopyresampled($dest, $src, $x, $y, $cropX, $cropY, $width, $height, $cropWidth, $cropHeight);
-    }
-
     private function fontPath(string $filename): string
     {
         $path = resource_path('fonts/'.$filename);

@@ -32,6 +32,9 @@ class GenericShareCardRenderer
         [$red, $green, $blue] = $data['background'];
         $background = imagecolorallocate($canvas, $red, $green, $blue);
         $white = imagecolorallocate($canvas, 255, 255, 255);
+        $ink = ShareCardContrast::isLightRgb($red, $green, $blue)
+            ? imagecolorallocate($canvas, 17, 17, 17)
+            : $white;
         imagefilledrectangle($canvas, 0, 0, $format->width(), $format->height(), $background);
 
         $cover = $this->loadImage($data['image_path'] ?? null);
@@ -46,7 +49,7 @@ class GenericShareCardRenderer
                 trim((string) ($data['eyebrow'] ?? '')),
                 $format,
                 $template,
-                $white,
+                $ink,
                 $data,
             );
 
@@ -76,7 +79,7 @@ class GenericShareCardRenderer
         string $eyebrow,
         ShareCardFormat $format,
         ShareCardTemplate $template,
-        int $white,
+        int $ink,
         array $data = [],
     ): void {
         if ($template->isGraphic()) {
@@ -148,12 +151,12 @@ class GenericShareCardRenderer
         if ($eyebrow !== '') {
             $eyebrow = mb_strtoupper($eyebrow);
             $eyebrowMetrics = $this->textMetrics($semibold, 22, $eyebrow);
-            imagettftext($canvas, 22, 0, $textX, $cursorY + $eyebrowMetrics['ascent'], $white, $semibold, $eyebrow);
+            imagettftext($canvas, 22, 0, $textX, $cursorY + $eyebrowMetrics['ascent'], $ink, $semibold, $eyebrow);
             $cursorY += 42;
         }
         foreach ($titleLines as $line) {
             $metrics = $this->textMetrics($semibold, $titleSize, $line);
-            imagettftext($canvas, $titleSize, 0, $textX, $cursorY + $metrics['ascent'], $white, $semibold, $line);
+            imagettftext($canvas, $titleSize, 0, $textX, $cursorY + $metrics['ascent'], $ink, $semibold, $line);
             $cursorY += $lineHeight;
         }
 
@@ -162,7 +165,7 @@ class GenericShareCardRenderer
             $subtitleLines = array_slice($this->wrapText($regular, 25, $subtitle, $textWidth), 0, 3);
             foreach ($subtitleLines as $line) {
                 $metrics = $this->textMetrics($regular, 25, $line);
-                imagettftext($canvas, 25, 0, $textX, $cursorY + $metrics['ascent'], $white, $regular, $line);
+                imagettftext($canvas, 25, 0, $textX, $cursorY + $metrics['ascent'], $ink, $regular, $line);
                 $cursorY += 34;
             }
         }
@@ -175,7 +178,7 @@ class GenericShareCardRenderer
                 0,
                 $textX,
                 $logoTop - 30 + $authorMetrics['ascent'],
-                $white,
+                $ink,
                 $semibold,
                 $author,
             );
