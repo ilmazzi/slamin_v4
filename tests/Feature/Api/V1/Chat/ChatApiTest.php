@@ -228,7 +228,9 @@ it('creates a free group chat thread independent from the group domain', functio
         ->assertCreated()
         ->assertJsonPath('data.thread.type', 'group')
         ->assertJsonPath('data.thread.title', 'Traduttori e organizer')
-        ->assertJsonPath('data.thread.is_group_attached', false);
+        ->assertJsonPath('data.thread.is_group_attached', false)
+        ->assertJsonPath('data.thread.created_by_user_id', $owner->id)
+        ->assertJsonPath('data.thread.can_manage_members', true);
 
     $threadId = $response->json('data.thread.id');
 
@@ -272,7 +274,8 @@ it('allows members of a free group chat to read and send messages', function () 
     $this->getJson("/api/v1/chat/threads/{$threadId}")
         ->assertOk()
         ->assertJsonPath('data.thread.title', 'Backstage')
-        ->assertJsonPath('data.thread.is_group_attached', false);
+        ->assertJsonPath('data.thread.is_group_attached', false)
+        ->assertJsonPath('data.thread.can_manage_members', false);
 
     $this->postJson("/api/v1/chat/threads/{$threadId}/messages", [
         'content' => 'Eccomi dentro la chat libera',

@@ -35,7 +35,9 @@ class ChatThreadResource extends JsonResource
             'id' => $this->id,
             'type' => $this->type?->value,
             'title' => $this->title ?? $this->group?->name,
+            'created_by_user_id' => $this->created_by_user_id,
             'is_group_attached' => $this->group !== null,
+            'can_manage_members' => $request->user()?->can('manageMembers', $this->resource) ?? false,
             'group' => $this->group ? [
                 'id' => $this->group->id,
                 'slug' => $this->group->slug,

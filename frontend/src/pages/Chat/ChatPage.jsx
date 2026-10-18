@@ -1,10 +1,13 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import {
+  addChatThreadMember,
   createDirectChatThread,
+  createGroupChatThread,
   listChatMessages,
   listChatThreads,
   markChatThreadRead,
+  removeChatThreadMember,
   searchChatUsers,
   sendChatMessage,
 } from '../../app/api/chat.js'
@@ -21,6 +24,22 @@ function threadTitle(thread, t) {
     return thread.other_user?.display_name || thread.other_user?.nickname || t('chat.ui.you')
   }
   return thread?.title || thread?.group?.name || t('chat.ui.group_fallback')
+}
+
+function memberLabel(member) {
+  return member?.display_name || member?.nickname || ''
+}
+
+function isFreeGroupThread(thread) {
+  return thread?.type === 'group' && !thread?.is_group_attached
+}
+
+function threadAvatarUrl(thread, currentUserId) {
+  if (thread?.type === 'direct') {
+    return resolvePublicUrl(thread.other_user?.avatar_url)
+  }
+  const other = (thread?.members || []).find((member) => Number(member.id) !== Number(currentUserId))
+  return resolvePublicUrl(other?.avatar_url)
 }
 
 function authorLabel(message, currentUserId, t) {
@@ -41,6 +60,45 @@ function upsertMessage(messages, incoming) {
   return messages.map((item, itemIndex) => (itemIndex === index ? incoming : item))
 }
 
+function UserResultList({ results, isSearching, onSelect, disabled, excludeIds = [], t }) {
+  const visible = results.filter((result) => !excludeIds.includes(Number(result.id)))
+
+  return (
+    <div className={styles.userSuggestions} role="listbox">
+      {isSearching ? (
+        <div className={styles.userSuggestionStatus}>{t('chat.ui.searching_users')}</div>
+      ) : visible.length ? (
+        visible.map((result) => {
+          const avatar = resolvePublicUrl(result.avatar_url)
+          return (
+            <button
+              type="button"
+              key={result.id}
+              className={styles.userSuggestion}
+              role="option"
+              onMouseDown={(event) => event.preventDefault()}
+              onClick={() => onSelect(result)}
+              disabled={disabled}
+            >
+              {avatar ? (
+                <img src={avatar} alt="" className={styles.suggestionAvatar} />
+              ) : (
+                <span className={styles.suggestionAvatar} aria-hidden="true" />
+              )}
+              <span className={styles.suggestionMeta}>
+                <span>{result.display_name || result.nickname}</span>
+                {result.nickname ? <small>@{result.nickname}</small> : null}
+              </span>
+            </button>
+          )
+        })
+      ) : (
+        <div className={styles.userSuggestionStatus}>{t('chat.ui.no_users_found')}</div>
+      )}
+    </div>
+  )
+}
+
 export default function ChatPage() {
   const { threadId } = useParams()
   const navigate = useNavigate()
@@ -49,10 +107,19 @@ export default function ChatPage() {
   const [threads, setThreads] = useState([])
   const [messages, setMessages] = useState([])
   const [draft, setDraft] = useState('')
+  const [composerMode, setComposerMode] = useState('direct')
+  const [groupTitle, setGroupTitle] = useState('')
+  const [groupMembers, setGroupMembers] = useState([])
   const [userQuery, setUserQuery] = useState('')
   const [userResults, setUserResults] = useState([])
   const [isSearchingUsers, setIsSearchingUsers] = useState(false)
   const [isSearchOpen, setIsSearchOpen] = useState(false)
+  const [isMembersOpen, setIsMembersOpen] = useState(false)
+  const [memberQuery, setMemberQuery] = useState('')
+  const [memberResults, setMemberResults] = useState([])
+  const [isSearchingMembers, setIsSearchingMembers] = useState(false)
+  const [isMemberSearchOpen, setIsMemberSearchOpen] = useState(false)
+  const [isManagingMember, setIsManagingMember] = useState(false)
   const [errorMessage, setErrorMessage] = useState('')
   const [isLoadingThreads, setIsLoadingThreads] = useState(true)
   const [isLoadingMessages, setIsLoadingMessages] = useState(false)
@@ -73,6 +140,21 @@ export default function ChatPage() {
     const nextThreads = await listChatThreads({ token, signal })
     setThreads(nextThreads)
   }, [token])
+
+  const replaceThread = useCallback((nextThread) => {
+    if (!nextThread?.id) {
+      return
+    }
+    setThreads((current) => {
+      const exists = current.some((thread) => Number(thread.id) === Number(nextThread.id))
+      if (!exists) {
+        return [nextThread, ...current]
+      }
+      return current.map((thread) => (
+        Number(thread.id) === Number(nextThread.id) ? { ...thread, ...nextThread } : thread
+      ))
+    })
+  }, [])
 
   useEffect(() => {
     const controller = new AbortController()
@@ -101,6 +183,9 @@ export default function ChatPage() {
     const controller = new AbortController()
     setIsLoadingMessages(true)
     setErrorMessage('')
+    setIsMembersOpen(false)
+    setMemberQuery('')
+    setMemberResults([])
 
     Promise.all([
       listChatMessages(selectedId, { token, signal: controller.signal }),
@@ -164,6 +249,35 @@ export default function ChatPage() {
   }, [token, userQuery])
 
   useEffect(() => {
+    const query = memberQuery.trim()
+    if (!token || query.length < 2) {
+      return undefined
+    }
+
+    const controller = new AbortController()
+    const timer = window.setTimeout(() => {
+      setIsSearchingMembers(true)
+      searchChatUsers(query, { token, signal: controller.signal })
+        .then(setMemberResults)
+        .catch((error) => {
+          if (error?.name !== 'AbortError') {
+            setMemberResults([])
+          }
+        })
+        .finally(() => {
+          if (!controller.signal.aborted) {
+            setIsSearchingMembers(false)
+          }
+        })
+    }, 300)
+
+    return () => {
+      window.clearTimeout(timer)
+      controller.abort()
+    }
+  }, [memberQuery, token])
+
+  useEffect(() => {
     if (!token || !user?.id || !isReverbConfigured(realtime)) {
       return undefined
     }
@@ -214,8 +328,29 @@ export default function ChatPage() {
     }
   }, [echoClient, selectedId])
 
+  function resetComposer() {
+    setComposerMode('direct')
+    setGroupTitle('')
+    setGroupMembers([])
+    setUserQuery('')
+    setUserResults([])
+    setIsSearchOpen(false)
+  }
+
   async function handleSelectUser(result) {
     if (!result?.id || isStarting) {
+      return
+    }
+
+    if (composerMode === 'group') {
+      setGroupMembers((current) => (
+        current.some((member) => Number(member.id) === Number(result.id))
+          ? current
+          : [...current, result]
+      ))
+      setUserQuery('')
+      setUserResults([])
+      setIsSearchOpen(false)
       return
     }
 
@@ -224,9 +359,7 @@ export default function ChatPage() {
     try {
       const thread = await createDirectChatThread({ user_id: result.id }, { token })
       if (thread?.id) {
-        setUserQuery('')
-        setUserResults([])
-        setIsSearchOpen(false)
+        resetComposer()
         setIsThreadListOpen(false)
         await loadThreads()
         navigate(`/chat/${thread.id}`)
@@ -235,6 +368,79 @@ export default function ChatPage() {
       setErrorMessage(error?.message || t('chat.ui.start_error'))
     } finally {
       setIsStarting(false)
+    }
+  }
+
+  async function handleCreateGroup(event) {
+    event.preventDefault()
+    const title = groupTitle.trim()
+    if (!title || groupMembers.length < 1 || isStarting) {
+      return
+    }
+
+    setIsStarting(true)
+    setErrorMessage('')
+    try {
+      const thread = await createGroupChatThread({
+        title,
+        user_ids: groupMembers.map((member) => member.id),
+      }, { token })
+      if (thread?.id) {
+        resetComposer()
+        setIsThreadListOpen(false)
+        await loadThreads()
+        navigate(`/chat/${thread.id}`)
+      }
+    } catch (error) {
+      setErrorMessage(error?.message || t('chat.ui.group_create_error'))
+    } finally {
+      setIsStarting(false)
+    }
+  }
+
+  async function handleAddMember(result) {
+    if (!result?.id || !selectedId || isManagingMember) {
+      return
+    }
+
+    setIsManagingMember(true)
+    setErrorMessage('')
+    try {
+      const thread = await addChatThreadMember(selectedId, result.id, { token })
+      if (thread) {
+        replaceThread(thread)
+      }
+      setMemberQuery('')
+      setMemberResults([])
+      setIsMemberSearchOpen(false)
+    } catch (error) {
+      setErrorMessage(error?.message || t('chat.ui.add_member_error'))
+    } finally {
+      setIsManagingMember(false)
+    }
+  }
+
+  async function handleRemoveMember(member) {
+    if (!member?.id || !selectedId || isManagingMember) {
+      return
+    }
+
+    const name = memberLabel(member) || member.nickname || ''
+    if (!window.confirm(t('chat.ui.remove_member_confirm', { name }))) {
+      return
+    }
+
+    setIsManagingMember(true)
+    setErrorMessage('')
+    try {
+      const thread = await removeChatThreadMember(selectedId, member.id, { token })
+      if (thread) {
+        replaceThread(thread)
+      }
+    } catch (error) {
+      setErrorMessage(error?.message || t('chat.ui.remove_member_error'))
+    } finally {
+      setIsManagingMember(false)
     }
   }
 
@@ -266,6 +472,11 @@ export default function ChatPage() {
     [selectedId, threads],
   )
   const isListOpen = isThreadListOpen
+  const selectedMembers = selectedThread?.members || []
+  const canManageMembers = Boolean(selectedThread?.can_manage_members)
+  const showMembersPanel = isFreeGroupThread(selectedThread)
+  const groupMemberIds = groupMembers.map((member) => Number(member.id))
+  const selectedMemberIds = selectedMembers.map((member) => Number(member.id))
 
   function closeThreadList() {
     setIsThreadListOpen(false)
@@ -294,6 +505,69 @@ export default function ChatPage() {
               ×
             </button>
           </div>
+          {composerMode === 'group' ? (
+            <form className={styles.groupComposer} onSubmit={handleCreateGroup}>
+              <input
+                className={styles.startInput}
+                value={groupTitle}
+                onChange={(event) => setGroupTitle(event.target.value)}
+                placeholder={t('chat.ui.group_title_placeholder')}
+                autoComplete="off"
+                maxLength={255}
+                disabled={isStarting}
+              />
+              {groupMembers.length > 0 ? (
+                <ul className={styles.chips}>
+                  {groupMembers.map((member) => (
+                    <li key={member.id} className={styles.chip}>
+                      <span>{memberLabel(member)}</span>
+                      <button
+                        type="button"
+                        className={styles.chipRemove}
+                        onClick={() => setGroupMembers((current) => current.filter((item) => item.id !== member.id))}
+                        disabled={isStarting}
+                        aria-label={t('chat.ui.remove_member')}
+                      >
+                        ×
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <p className={styles.status}>{t('chat.ui.group_members_hint')}</p>
+              )}
+              <div className={styles.groupActions}>
+                <button
+                  type="submit"
+                  className={styles.createGroup}
+                  disabled={isStarting || !groupTitle.trim() || groupMembers.length < 1}
+                >
+                  {isStarting ? t('common.loading') : t('chat.ui.create_group')}
+                </button>
+                <button
+                  type="button"
+                  className={styles.modeButton}
+                  onClick={resetComposer}
+                  disabled={isStarting}
+                >
+                  {t('chat.ui.cancel_group')}
+                </button>
+              </div>
+            </form>
+          ) : (
+            <button
+              type="button"
+              className={styles.modeButton}
+              onClick={() => {
+                setComposerMode('group')
+                setUserQuery('')
+                setUserResults([])
+                setIsSearchOpen(false)
+              }}
+            >
+              {t('chat.ui.new_group')}
+            </button>
+          )}
           <div className={styles.userCombobox}>
             <input
               className={styles.startInput}
@@ -319,38 +593,14 @@ export default function ChatPage() {
               disabled={isStarting}
             />
             {isSearchOpen && userQuery.trim().length >= 2 ? (
-              <div className={styles.userSuggestions} role="listbox">
-                {isSearchingUsers ? (
-                  <div className={styles.userSuggestionStatus}>{t('chat.ui.searching_users')}</div>
-                ) : userResults.length ? (
-                  userResults.map((result) => {
-                    const avatar = resolvePublicUrl(result.avatar_url)
-                    return (
-                      <button
-                        type="button"
-                        key={result.id}
-                        className={styles.userSuggestion}
-                        role="option"
-                        onMouseDown={(event) => event.preventDefault()}
-                        onClick={() => handleSelectUser(result)}
-                        disabled={isStarting}
-                      >
-                        {avatar ? (
-                          <img src={avatar} alt="" className={styles.suggestionAvatar} />
-                        ) : (
-                          <span className={styles.suggestionAvatar} aria-hidden="true" />
-                        )}
-                        <span className={styles.suggestionMeta}>
-                          <span>{result.display_name || result.nickname}</span>
-                          {result.nickname ? <small>@{result.nickname}</small> : null}
-                        </span>
-                      </button>
-                    )
-                  })
-                ) : (
-                  <div className={styles.userSuggestionStatus}>{t('chat.ui.no_users_found')}</div>
-                )}
-              </div>
+              <UserResultList
+                results={userResults}
+                isSearching={isSearchingUsers}
+                onSelect={handleSelectUser}
+                disabled={isStarting}
+                excludeIds={composerMode === 'group' ? groupMemberIds : []}
+                t={t}
+              />
             ) : null}
           </div>
           {realtime !== undefined && !isReverbConfigured(realtime) ? (
@@ -363,7 +613,7 @@ export default function ChatPage() {
           <ul className={styles.threadList}>
             {threads.map((thread) => {
               const unread = Number(thread.unread_count || 0)
-              const avatar = resolvePublicUrl(thread.other_user?.avatar_url)
+              const avatar = threadAvatarUrl(thread, user?.id)
               return (
                 <li key={thread.id}>
                   <button
@@ -417,8 +667,95 @@ export default function ChatPage() {
                 >
                   {t('chat.ui.open_list')}
                 </button>
-                <h2>{selectedThread ? threadTitle(selectedThread, t) : t('chat.ui.title')}</h2>
+                <div className={styles.conversationTitle}>
+                  <h2>{selectedThread ? threadTitle(selectedThread, t) : t('chat.ui.title')}</h2>
+                  {showMembersPanel ? (
+                    <p className={styles.membersCount}>
+                      {t('chat.ui.members_count', { count: selectedMembers.length || 0 })}
+                    </p>
+                  ) : null}
+                </div>
+                {showMembersPanel ? (
+                  <button
+                    type="button"
+                    className={styles.membersToggle}
+                    onClick={() => setIsMembersOpen((open) => !open)}
+                    aria-expanded={isMembersOpen}
+                  >
+                    {isMembersOpen ? t('chat.ui.close_members') : t('chat.ui.open_members')}
+                  </button>
+                ) : null}
               </header>
+              {showMembersPanel && isMembersOpen ? (
+                <section className={styles.membersPanel} aria-label={t('chat.ui.members')}>
+                  {canManageMembers ? (
+                    <div className={styles.userCombobox}>
+                      <input
+                        className={styles.startInput}
+                        value={memberQuery}
+                        onChange={(event) => {
+                          const value = event.target.value
+                          setMemberQuery(value)
+                          setIsMemberSearchOpen(true)
+                          if (value.trim().length >= 2) {
+                            setIsSearchingMembers(true)
+                          }
+                        }}
+                        onFocus={() => setIsMemberSearchOpen(true)}
+                        onBlur={() => {
+                          window.setTimeout(() => setIsMemberSearchOpen(false), 120)
+                        }}
+                        placeholder={t('chat.ui.add_member_placeholder')}
+                        autoComplete="off"
+                        maxLength={100}
+                        role="combobox"
+                        aria-expanded={isMemberSearchOpen && memberQuery.trim().length >= 2}
+                        aria-autocomplete="list"
+                        disabled={isManagingMember}
+                      />
+                      {isMemberSearchOpen && memberQuery.trim().length >= 2 ? (
+                        <UserResultList
+                          results={memberResults}
+                          isSearching={isSearchingMembers}
+                          onSelect={handleAddMember}
+                          disabled={isManagingMember}
+                          excludeIds={selectedMemberIds}
+                          t={t}
+                        />
+                      ) : null}
+                    </div>
+                  ) : null}
+                  <ul className={styles.memberList}>
+                    {selectedMembers.map((member) => {
+                      const avatar = resolvePublicUrl(member.avatar_url)
+                      const isCreator = Number(member.id) === Number(selectedThread?.created_by_user_id)
+                      return (
+                        <li key={member.id} className={styles.memberRow}>
+                          {avatar ? (
+                            <img src={avatar} alt="" className={styles.suggestionAvatar} />
+                          ) : (
+                            <span className={styles.suggestionAvatar} aria-hidden="true" />
+                          )}
+                          <span className={styles.suggestionMeta}>
+                            <span>{memberLabel(member) || t('chat.ui.you')}</span>
+                            {isCreator ? <small>{t('chat.ui.creator')}</small> : null}
+                          </span>
+                          {canManageMembers && !isCreator ? (
+                            <button
+                              type="button"
+                              className={styles.memberRemove}
+                              onClick={() => handleRemoveMember(member)}
+                              disabled={isManagingMember}
+                            >
+                              {t('chat.ui.remove_member')}
+                            </button>
+                          ) : null}
+                        </li>
+                      )
+                    })}
+                  </ul>
+                </section>
+              ) : null}
               <div className={styles.messages} ref={messagesPaneRef}>
                 {isLoadingMessages ? <p className={styles.status}>{t('common.loading')}</p> : null}
                 {!isLoadingMessages && messages.length === 0 ? (

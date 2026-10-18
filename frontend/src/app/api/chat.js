@@ -1,4 +1,4 @@
-import { authApiGet, authApiPost, authApiRequest } from './client.js'
+import { authApiDelete, authApiGet, authApiPost, authApiRequest } from './client.js'
 
 export async function searchChatUsers(query, { token, signal } = {}) {
   const params = new URLSearchParams({ q: String(query ?? '').trim() })
@@ -61,6 +61,32 @@ export async function createDirectChatThread(payload, { token, signal } = {}) {
     signal,
     fallbackMessage: 'Unable to open chat',
   })
+  return data?.thread ?? null
+}
+
+export async function createGroupChatThread(payload, { token, signal } = {}) {
+  const { data } = await authApiPost('/api/v1/chat/group-threads', payload, {
+    token,
+    signal,
+    fallbackMessage: 'Unable to create group chat',
+  })
+  return data?.thread ?? null
+}
+
+export async function addChatThreadMember(threadId, userId, { token, signal } = {}) {
+  const { data } = await authApiPost(
+    `/api/v1/chat/threads/${encodeURIComponent(threadId)}/members`,
+    { user_id: userId },
+    { token, signal, fallbackMessage: 'Unable to add member' },
+  )
+  return data?.thread ?? null
+}
+
+export async function removeChatThreadMember(threadId, userId, { token, signal } = {}) {
+  const { data } = await authApiDelete(
+    `/api/v1/chat/threads/${encodeURIComponent(threadId)}/members/${encodeURIComponent(userId)}`,
+    { token, signal, fallbackMessage: 'Unable to remove member' },
+  )
   return data?.thread ?? null
 }
 

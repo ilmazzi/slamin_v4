@@ -52,6 +52,89 @@
   font-weight: 800;
 }
 
+.groupComposer {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.groupActions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.modeButton,
+.createGroup,
+.membersToggle,
+.memberRemove {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 36px;
+  padding: 0 12px;
+  border: 1px solid #000;
+  border-radius: 999px;
+  background: #fff;
+  color: #000;
+  font: inherit;
+  font-size: 0.88rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.createGroup {
+  background: #000;
+  color: #fff;
+}
+
+.modeButton:disabled,
+.createGroup:disabled,
+.membersToggle:disabled,
+.memberRemove:disabled {
+  opacity: 0.5;
+  cursor: wait;
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  max-width: 100%;
+  padding: 4px 6px 4px 10px;
+  border: 1px solid #d4d4d4;
+  border-radius: 999px;
+  background: #fff;
+  font-size: 0.85rem;
+}
+
+.chip span {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.chipRemove {
+  width: 22px;
+  height: 22px;
+  border: 0;
+  border-radius: 999px;
+  background: #f0f0f0;
+  color: #111;
+  font-size: 1rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
 .userCombobox {
   position: relative;
 }
@@ -253,6 +336,11 @@
   border-bottom: 1px solid #e5e4e7;
 }
 
+.conversationTitle {
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
 .conversationHead h2 {
   margin: 0;
   min-width: 0;
@@ -260,6 +348,47 @@
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
+}
+
+.membersCount {
+  margin: 2px 0 0;
+  font-size: 0.82rem;
+  color: rgba(0, 0, 0, 0.62);
+}
+
+.membersToggle {
+  flex: 0 0 auto;
+}
+
+.membersPanel {
+  position: relative;
+  z-index: 8;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  flex: 0 0 auto;
+  padding: 16px 24px;
+  border-bottom: 1px solid #e5e4e7;
+  background: #fafafa;
+}
+
+.memberList {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.memberRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.memberRemove {
+  margin-left: auto;
 }
 
 .emptyConversation {
@@ -419,9 +548,14 @@
   .conversationHead,
   .composer,
   .emptyConversation,
-  .messages {
+  .messages,
+  .membersPanel {
     padding-left: 16px;
     padding-right: 16px;
+  }
+
+  .conversationHead {
+    flex-wrap: wrap;
   }
 
   .send {
