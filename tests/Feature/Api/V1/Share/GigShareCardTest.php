@@ -100,11 +100,11 @@ it('keeps the gig orange palette across templates', function () {
     $gig = shareGig(shareGigEvent(shareGigOwner()));
 
     $promo = $this->get("/api/v1/gigs/{$gig->id}/share-card?template=promo")->assertOk()->getContent();
-    $brand = $this->get("/api/v1/gigs/{$gig->id}/share-card?template=brand")->assertOk()->getContent();
+    $typographic = $this->get("/api/v1/gigs/{$gig->id}/share-card?template=typographic")->assertOk()->getContent();
 
-    expect(hash('sha256', $promo))->not->toBe(hash('sha256', $brand));
+    expect(hash('sha256', $promo))->not->toBe(hash('sha256', $typographic));
 
-    $image = imagecreatefromstring($brand);
+    $image = imagecreatefromstring($promo);
     $pixel = imagecolorat($image, 40, 40);
     imagedestroy($image);
 

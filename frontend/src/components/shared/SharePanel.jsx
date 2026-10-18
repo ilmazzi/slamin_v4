@@ -73,7 +73,7 @@ export default function SharePanel({
   const [isSharing, setIsSharing] = useState(false)
   const [downloadFailed, setDownloadFailed] = useState(false)
   const [selectedFormat, setSelectedFormat] = useState('square')
-  const [selectedTemplate, setSelectedTemplate] = useState(defaultTemplate || templates[0] || 'brand')
+  const [selectedTemplate, setSelectedTemplate] = useState(defaultTemplate || templates[0] || 'poster')
   const [previewUrl, setPreviewUrl] = useState('')
   const [previewStatus, setPreviewStatus] = useState('idle')
   const [thumbnails, setThumbnails] = useState({})
@@ -111,7 +111,7 @@ export default function SharePanel({
       return
     }
 
-    const next = defaultTemplate || templates[0] || 'brand'
+    const next = defaultTemplate || templates[0] || 'poster'
     setSelectedTemplate((current) => (
       templates.includes(current) ? current : next
     ))

@@ -1,12 +1,10 @@
-export const SHARE_CARD_VERSION = 10
+export const SHARE_CARD_VERSION = 14;
 
 const SHARE_CARD_TEMPLATES = [
   'poster',
   'date_cut',
-  'diagonal',
   'framed',
   'typographic',
-  'brand',
   'promo',
   'verse',
   'photo_clean',
@@ -45,7 +43,7 @@ export function defaultTemplateFor(contentType, target) {
         ? 'photo_logo'
         : contentType === 'poem'
           ? 'verse'
-          : 'brand'
+          : 'poster'
 
-  return available.includes(preferred) ? preferred : (available[0] ?? 'brand')
+  return available.includes(preferred) ? preferred : (available[0] ?? 'poster')
 }

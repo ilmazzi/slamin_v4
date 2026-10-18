@@ -80,7 +80,7 @@ class EventShareCardRenderer
     ): string {
         $width = imagesx($image);
         $height = imagesy($image);
-        if (in_array($template, [ShareCardTemplate::DateCut, ShareCardTemplate::Diagonal, ShareCardTemplate::Framed], true)) {
+        if ($template->isGraphic()) {
             app(ShareCardGraphicLayouts::class)->paint(
                 $image,
                 $cover,
@@ -92,24 +92,7 @@ class EventShareCardRenderer
             return $this->encode($image);
         }
 
-        if ($template === ShareCardTemplate::Brand) {
-            ShareCardLogo::stampCentered($image);
-
-            return $this->encode($image);
-        }
-
-        if (in_array($template, [ShareCardTemplate::PhotoClean, ShareCardTemplate::PhotoLogo], true)) {
-            if ($cover instanceof GdImage) {
-                $this->drawCoverFill($image, $cover, 0, 0, $width, $height);
-            }
-            if ($template === ShareCardTemplate::PhotoLogo || ! $cover instanceof GdImage) {
-                ShareCardLogo::stampCentered($image);
-            }
-
-            return $this->encode($image);
-        }
-
-        if (in_array($template, [ShareCardTemplate::Typographic, ShareCardTemplate::Verse], true)) {
+        if (in_array($template, [ShareCardTemplate::Typographic, ShareCardTemplate::Verse, ShareCardTemplate::Brand], true)) {
             $cover = null;
         }
 

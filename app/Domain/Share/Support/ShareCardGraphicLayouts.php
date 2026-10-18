@@ -18,27 +18,16 @@ final class ShareCardGraphicLayouts
         array $palette,
         array $graphic,
     ): void {
-        if ($template === ShareCardTemplate::DateCut) {
-            $this->dateCut($canvas, $cover, $palette, $graphic);
+        match ($template) {
+            ShareCardTemplate::DateCut => $this->dateCut($canvas, $cover, $palette, $graphic),
+            ShareCardTemplate::Framed => $this->framed($canvas, $cover, $palette, $graphic),
+            ShareCardTemplate::PhotoClean => $this->photoClean($canvas, $cover, $palette, $graphic),
+            ShareCardTemplate::PhotoLogo => $this->photoLogo($canvas, $cover, $palette, $graphic),
+            ShareCardTemplate::Promo => $this->promo($canvas, $cover, $palette, $graphic),
+            default => $this->dateCut($canvas, $cover, $palette, $graphic),
+        };
 
-            return;
-        }
-
-        if ($template === ShareCardTemplate::Diagonal) {
-            $this->diagonal($canvas, $cover, $palette, $graphic);
-
-            return;
-        }
-
-        if ($template === ShareCardTemplate::Framed) {
-            if ($cover instanceof GdImage) {
-                $this->framed($canvas, $cover, $palette, $graphic);
-
-                return;
-            }
-
-            $this->dateCut($canvas, $cover, $palette, $graphic);
-        }
+        $this->stampLogo($canvas, $template);
     }
 
     /**
@@ -126,102 +115,51 @@ final class ShareCardGraphicLayouts
      * @param  array{int,int,int}  $palette
      * @param  array<string, mixed>  $graphic
      */
-    private function diagonal(GdImage $canvas, ?GdImage $cover, array $palette, array $graphic): void
-    {
-        $width = imagesx($canvas);
-        $height = imagesy($canvas);
-        $bubble = $this->speechBubble($width, $height);
-        $white = $this->color($canvas, 255, 255, 255);
-        [$red, $green, $blue] = $palette;
-        $fill = $this->color($canvas, $red, $green, $blue);
-        imagefilledrectangle($canvas, 0, 0, $width, $height, $white);
-
-        if ($cover instanceof GdImage) {
-            $this->coverFill($canvas, $cover, 0, 0, $width, $height);
-            $this->fillPolygon($canvas, $bubble['cut'], $white);
-        } else {
-            $this->fillSpeechBubble($canvas, $fill);
-        }
-
-        $semibold = $this->font('Switzer-Semibold.otf');
-        $regular = $this->font('Switzer-Regular.otf');
-        $ink = $this->color($canvas, 17, 17, 17);
-        $scale = $width / 1080;
-        $x = max(36, (int) round($width * 0.045));
-        $maxWidth = $width - ($x * 2);
-        $y = $x;
-        $onPhoto = $cover instanceof GdImage;
-        $titleColor = $onPhoto ? $white : $ink;
-        $metaColor = $onPhoto ? $white : $ink;
-
-        $kicker = trim((string) ($graphic['kicker'] ?? ''));
-        if ($kicker !== '') {
-            $y = $this->drawLine($canvas, $semibold, 92 * $scale, $x, $y, $kicker, $titleColor);
-            $y += (int) round(8 * $scale);
-        }
-
-        $lead = trim((string) ($graphic['lead'] ?? $graphic['headline'] ?? ''));
-        if ($lead !== '') {
-            foreach ($this->wrap($semibold, 42 * $scale, $lead, $maxWidth, 3) as $line) {
-                $y = $this->drawLine($canvas, $semibold, 42 * $scale, $x, $y, $line, $metaColor);
-                $y += (int) round(4 * $scale);
-            }
-            $y += (int) round(10 * $scale);
-        }
-
-        $site = trim((string) ($graphic['site'] ?? ''));
-        $domain = trim((string) ($graphic['domain'] ?? ''));
-        $size = 36 * $scale;
-        if ($site !== '') {
-            $this->drawLine($canvas, $regular, $size, $x, $y, $site, $metaColor);
-            $x += $this->textWidth($regular, $size, $site.' ');
-        }
-        if ($domain !== '') {
-            $this->drawLine($canvas, $semibold, $size, $x, $y, $domain, $titleColor);
-        }
-    }
-
-    /**
-     * @param  array{int,int,int}  $palette
-     * @param  array<string, mixed>  $graphic
-     */
-    private function framed(GdImage $canvas, GdImage $cover, array $palette, array $graphic): void
+    private function framed(GdImage $canvas, ?GdImage $cover, array $palette, array $graphic): void
     {
         $width = imagesx($canvas);
         $height = imagesy($canvas);
         $safe = $this->safeArea($width, $height);
         $scale = $width / 1080;
-        $border = max($safe['left'] > 80 ? 36 : 28, (int) round(28 * $scale));
+        [$red, $green, $blue] = $palette;
+        $accent = $this->color($canvas, $red, $green, $blue);
+        $white = $this->color($canvas, 255, 255, 255);
+        imagefilledrectangle($canvas, 0, 0, $width, $height, $accent);
+
+        $border = max($safe['left'] > 80 ? 48 : 36, (int) round(48 * $scale));
         $innerX = $border;
         $innerY = $border;
         $innerW = $width - ($border * 2);
         $innerH = $height - ($border * 2);
-        $this->coverFill($canvas, $cover, $innerX, $innerY, $innerW, $innerH);
+        if ($cover instanceof GdImage) {
+            $this->coverFill($canvas, $cover, $innerX, $innerY, $innerW, $innerH);
+        } else {
+            imagefilledrectangle($canvas, $innerX, $innerY, $innerX + $innerW, $innerY + $innerH, $white);
+        }
 
         $semibold = $this->font('Switzer-Semibold.otf');
         $medium = $this->font('Switzer-Medium.otf');
         $regular = $this->font('Switzer-Regular.otf');
-        [$red, $green, $blue] = $palette;
-        $accent = $this->color($canvas, $red, $green, $blue);
-        $white = $this->color($canvas, 255, 255, 255);
+        $ink = $cover instanceof GdImage ? $white : $this->color($canvas, 17, 17, 17);
+        $dateColor = $cover instanceof GdImage ? $accent : $this->color($canvas, 17, 17, 17);
         $right = $innerX + $innerW - max(36, $safe['right'] - $border);
         $y = $innerY + max(36, $safe['top'] - $border);
         $maxWidth = (int) round($innerW * 0.62);
 
         $weekday = trim((string) ($graphic['weekday'] ?? ''));
         if ($weekday !== '') {
-            $y = $this->drawRightLine($canvas, $semibold, 42 * $scale, $right, $y, $weekday, $accent, $maxWidth);
+            $y = $this->drawRightLine($canvas, $semibold, 42 * $scale, $right, $y, $weekday, $dateColor, $maxWidth);
             $y += (int) round(6 * $scale);
         }
         $date = trim((string) ($graphic['date'] ?? ''));
         if ($date !== '') {
-            $y = $this->drawRightLine($canvas, $semibold, 64 * $scale, $right, $y, $date, $white, $maxWidth);
+            $y = $this->drawRightLine($canvas, $semibold, 64 * $scale, $right, $y, $date, $ink, $maxWidth);
             $y += (int) round(16 * $scale);
         }
         $headline = trim((string) ($graphic['headline'] ?? ''));
         if ($headline !== '') {
             foreach ($this->wrap($medium, 48 * $scale, $headline, $maxWidth, 3) as $line) {
-                $y = $this->drawRightLine($canvas, $medium, 48 * $scale, $right, $y, $line, $white, $maxWidth);
+                $y = $this->drawRightLine($canvas, $medium, 48 * $scale, $right, $y, $line, $ink, $maxWidth);
                 $y += (int) round(4 * $scale);
             }
         }
@@ -231,12 +169,143 @@ final class ShareCardGraphicLayouts
         $city = trim((string) ($graphic['city'] ?? ''));
         if ($place !== '') {
             $bottom -= (int) round(34 * $scale);
-            $this->drawRightLine($canvas, $regular, 28 * $scale, $right, $bottom, $place, $white, $maxWidth);
+            $this->drawRightLine($canvas, $regular, 28 * $scale, $right, $bottom, $place, $ink, $maxWidth);
         }
         if ($city !== '') {
             $bottom -= (int) round(40 * $scale);
-            $this->drawRightLine($canvas, $semibold, 32 * $scale, $right, $bottom, $city, $white, $maxWidth);
+            $this->drawRightLine($canvas, $semibold, 32 * $scale, $right, $bottom, $city, $ink, $maxWidth);
         }
+    }
+
+    /**
+     * @param  array{int,int,int}  $palette
+     * @param  array<string, mixed>  $graphic
+     */
+    private function photoClean(GdImage $canvas, ?GdImage $cover, array $palette, array $graphic): void
+    {
+        $width = imagesx($canvas);
+        $height = imagesy($canvas);
+        $dark = $this->color($canvas, 17, 17, 17);
+        $white = $this->color($canvas, 255, 255, 255);
+        imagefilledrectangle($canvas, 0, 0, $width, $height, $dark);
+        if ($cover instanceof GdImage) {
+            $this->coverFill($canvas, $cover, 0, 0, $width, $height);
+        }
+
+        $this->drawPhotoCopy($canvas, $graphic, $white, $width);
+    }
+
+    /**
+     * @param  array{int,int,int}  $palette
+     * @param  array<string, mixed>  $graphic
+     */
+    private function photoLogo(GdImage $canvas, ?GdImage $cover, array $palette, array $graphic): void
+    {
+        $width = imagesx($canvas);
+        $height = imagesy($canvas);
+        [$red, $green, $blue] = $palette;
+        $barH = max(140, (int) round($height * 0.16));
+        $photoH = max(1, $height - $barH);
+        $dark = $this->color($canvas, 17, 17, 17);
+        $accent = $this->color($canvas, $red, $green, $blue);
+        imagefilledrectangle($canvas, 0, 0, $width, $photoH, $dark);
+        if ($cover instanceof GdImage) {
+            $this->coverFill($canvas, $cover, 0, 0, $width, $photoH);
+        }
+        imagefilledrectangle($canvas, 0, $photoH, $width, $height, $accent);
+
+        $white = $this->color($canvas, 255, 255, 255);
+        $this->drawPhotoCopy($canvas, $graphic, $white, $width);
+    }
+
+    /**
+     * @param  array{int,int,int}  $palette
+     * @param  array<string, mixed>  $graphic
+     */
+    private function promo(GdImage $canvas, ?GdImage $cover, array $palette, array $graphic): void
+    {
+        $width = imagesx($canvas);
+        $height = imagesy($canvas);
+        [$red, $green, $blue] = $palette;
+        $fill = $this->color($canvas, $red, $green, $blue);
+        $white = $this->color($canvas, 255, 255, 255);
+        $ink = ($red + $green + $blue) < 90
+            ? $white
+            : $this->color($canvas, 17, 17, 17);
+        imagefilledrectangle($canvas, 0, 0, $width, $height, $fill);
+        if ($cover instanceof GdImage) {
+            $band = (int) round($height * 0.42);
+            $this->coverFill($canvas, $cover, 0, 0, $width, $band);
+        }
+
+        $semibold = $this->font('Switzer-Semibold.otf');
+        $medium = $this->font('Switzer-Medium.otf');
+        $scale = $width / 1080;
+        $x = max(48, (int) round($width * 0.07));
+        $maxWidth = $width - ($x * 2);
+        $y = $cover instanceof GdImage
+            ? (int) round($height * 0.46)
+            : max(56, (int) round($height * 0.12));
+
+        $kicker = trim((string) ($graphic['kicker'] ?? $graphic['weekday'] ?? ''));
+        if ($kicker !== '') {
+            $y = $this->drawLine($canvas, $semibold, 36 * $scale, $x, $y, mb_strtoupper($kicker), $ink);
+            $y += (int) round(18 * $scale);
+        }
+
+        $headline = trim((string) ($graphic['headline'] ?? $graphic['lead'] ?? ''));
+        if ($headline !== '') {
+            foreach ($this->wrap($medium, 72 * $scale, $headline, $maxWidth, 4) as $line) {
+                $y = $this->drawLine($canvas, $medium, 72 * $scale, $x, $y, $line, $ink);
+                $y += (int) round(6 * $scale);
+            }
+        }
+    }
+
+    /**
+     * @param  array<string, mixed>  $graphic
+     */
+    private function drawPhotoCopy(GdImage $canvas, array $graphic, int $color, int $width): void
+    {
+        $headline = trim((string) ($graphic['headline'] ?? ''));
+        if ($headline === '') {
+            return;
+        }
+
+        $semibold = $this->font('Switzer-Semibold.otf');
+        $scale = $width / 1080;
+        $x = max(48, (int) round($width * 0.06));
+        $y = max(48, (int) round($width * 0.06));
+        $maxWidth = $width - ($x * 2);
+        foreach ($this->wrap($semibold, 42 * $scale, $headline, $maxWidth, 2) as $line) {
+            $y = $this->drawLine($canvas, $semibold, 42 * $scale, $x, $y, $line, $color);
+            $y += (int) round(4 * $scale);
+        }
+    }
+
+    private function stampLogo(GdImage $canvas, ShareCardTemplate $template): void
+    {
+        $height = imagesy($canvas);
+        if ($template === ShareCardTemplate::DateCut) {
+            ShareCardLogo::stampAt(
+                $canvas,
+                ShareCardLogo::destX(),
+                ShareCardLogo::destY($height),
+                true,
+            );
+
+            return;
+        }
+
+        if ($template === ShareCardTemplate::PhotoLogo) {
+            $barTop = $height - max(140, (int) round($height * 0.16));
+            $y = $barTop + (int) round((($height - $barTop) - ShareCardLogo::displayHeight()) / 2);
+            ShareCardLogo::stampAt($canvas, ShareCardLogo::destX(), max($barTop + 8, $y));
+
+            return;
+        }
+
+        ShareCardLogo::stamp($canvas);
     }
 
     private function drawPlaceBlock(

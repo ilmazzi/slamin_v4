@@ -201,13 +201,13 @@ it('renders distinct event templates without changing the mint palette', functio
 
     $poster = $this->get("/api/v1/events/{$event->slug}/share-card?template=poster")->assertOk()->getContent();
     $typographic = $this->get("/api/v1/events/{$event->slug}/share-card?template=typographic")->assertOk()->getContent();
-    $brand = $this->get("/api/v1/events/{$event->slug}/share-card?template=brand")->assertOk()->getContent();
+    $promo = $this->get("/api/v1/events/{$event->slug}/share-card?template=promo")->assertOk()->getContent();
 
     expect(hash('sha256', $poster))
         ->not->toBe(hash('sha256', $typographic))
-        ->and(hash('sha256', $typographic))->not->toBe(hash('sha256', $brand));
+        ->and(hash('sha256', $typographic))->not->toBe(hash('sha256', $promo));
 
-    $image = imagecreatefromstring($brand);
+    $image = imagecreatefromstring($typographic);
     $pixel = imagecolorat($image, 40, 40);
     imagedestroy($image);
 
@@ -233,12 +233,10 @@ it('renders the date and framed event templates', function () {
     ]);
 
     $dateCut = $this->get("/api/v1/events/{$event->slug}/share-card?template=date_cut")->assertOk()->getContent();
-    $diagonal = $this->get("/api/v1/events/{$event->slug}/share-card?template=diagonal")->assertOk()->getContent();
     $framed = $this->get("/api/v1/events/{$event->slug}/share-card?template=framed")->assertOk()->getContent();
     $poster = $this->get("/api/v1/events/{$event->slug}/share-card?template=poster")->assertOk()->getContent();
 
     expect(hash('sha256', $dateCut))->not->toBe(hash('sha256', $framed))
-        ->and(hash('sha256', $diagonal))->not->toBe(hash('sha256', $dateCut))
         ->and(hash('sha256', $framed))->not->toBe(hash('sha256', $poster));
 
     $dateCutImage = imagecreatefromstring($dateCut);
@@ -253,6 +251,11 @@ it('renders the date and framed event templates', function () {
         ->and([($body >> 16) & 0xFF, ($body >> 8) & 0xFF, $body & 0xFF])->toBe([132, 218, 180])
         ->and([($tail >> 16) & 0xFF, ($tail >> 8) & 0xFF, $tail & 0xFF])->toBe([132, 218, 180])
         ->and([($cut >> 16) & 0xFF, ($cut >> 8) & 0xFF, $cut & 0xFF])->toBe([255, 255, 255]);
+
+    $framedImage = imagecreatefromstring($framed);
+    $frame = imagecolorat($framedImage, 12, 12);
+    imagedestroy($framedImage);
+    expect([($frame >> 16) & 0xFF, ($frame >> 8) & 0xFF, $frame & 0xFF])->toBe([132, 218, 180]);
 });
 
 it('renders every post format at the expected dimensions', function (string $format, int $width, int $height) {

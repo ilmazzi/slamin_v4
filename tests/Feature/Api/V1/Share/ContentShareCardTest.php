@@ -51,12 +51,12 @@ it('renders distinct article templates on the article palette', function () {
         'published_at' => now(),
     ]);
 
-    $poster = $this->get("/api/v1/articles/{$article->slug}/share-card?template=poster")->assertOk()->getContent();
+    $typographic = $this->get("/api/v1/articles/{$article->slug}/share-card?template=typographic")->assertOk()->getContent();
     $dateCut = $this->get("/api/v1/articles/{$article->slug}/share-card?template=date_cut")->assertOk()->getContent();
-    $brand = $this->get("/api/v1/articles/{$article->slug}/share-card?template=brand")->assertOk()->getContent();
+    $framed = $this->get("/api/v1/articles/{$article->slug}/share-card?template=framed")->assertOk()->getContent();
 
-    expect(hash('sha256', $poster))->not->toBe(hash('sha256', $brand))
-        ->and(hash('sha256', $dateCut))->not->toBe(hash('sha256', $poster));
+    expect(hash('sha256', $typographic))->not->toBe(hash('sha256', $dateCut))
+        ->and(hash('sha256', $dateCut))->not->toBe(hash('sha256', $framed));
 });
 
 it('renders distinct media templates when a photo is available', function () {
@@ -85,14 +85,14 @@ it('renders distinct media templates when a photo is available', function () {
 
     $clean = $this->get("/api/v1/media/{$media->id}/share-card?template=photo_clean")->assertOk()->getContent();
     $logo = $this->get("/api/v1/media/{$media->id}/share-card?template=photo_logo")->assertOk()->getContent();
-    $brand = $this->get("/api/v1/media/{$media->id}/share-card?template=brand")->assertOk()->getContent();
+    $framed = $this->get("/api/v1/media/{$media->id}/share-card?template=framed")->assertOk()->getContent();
 
     expect(hash('sha256', $clean))
         ->not->toBe(hash('sha256', $logo))
-        ->and(hash('sha256', $logo))->not->toBe(hash('sha256', $brand));
+        ->and(hash('sha256', $logo))->not->toBe(hash('sha256', $framed));
 });
 
-it('falls back to the brand media template when the photo is missing', function () {
+it('keeps photo templates distinct when the file is missing', function () {
     $author = User::factory()->poetOrganizer()->create();
     $media = MediaItem::query()->create([
         'user_id' => $author->id,
@@ -104,10 +104,10 @@ it('falls back to the brand media template when the photo is missing', function 
         'published_at' => now(),
     ]);
 
-    $requested = $this->get("/api/v1/media/{$media->id}/share-card?template=photo_clean")->assertOk()->getContent();
-    $brand = $this->get("/api/v1/media/{$media->id}/share-card?template=brand")->assertOk()->getContent();
+    $clean = $this->get("/api/v1/media/{$media->id}/share-card?template=photo_clean")->assertOk()->getContent();
+    $logo = $this->get("/api/v1/media/{$media->id}/share-card?template=photo_logo")->assertOk()->getContent();
 
-    expect(hash('sha256', $requested))->toBe(hash('sha256', $brand));
+    expect(hash('sha256', $clean))->not->toBe(hash('sha256', $logo));
 });
 
 it('renders a branded media card and uses it in the social preview', function () {

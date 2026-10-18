@@ -76,7 +76,7 @@ class PoemShareCardRenderer
         int $purple,
         int $white,
     ): string {
-        if (in_array($template, [ShareCardTemplate::DateCut, ShareCardTemplate::Diagonal, ShareCardTemplate::Framed], true)) {
+        if ($template->isGraphic()) {
             $headline = trim((string) $poem->title) ?: $this->poemBody($poem);
             app(ShareCardGraphicLayouts::class)->paint(
                 $image,
@@ -92,25 +92,6 @@ class PoemShareCardRenderer
                     'domain' => 'slamin.it',
                 ],
             );
-
-            return $this->encode($image);
-        }
-
-        if ($template === ShareCardTemplate::Brand) {
-            ShareCardLogo::stampCentered($image);
-
-            return $this->encode($image);
-        }
-
-        if (in_array($template, [ShareCardTemplate::PhotoClean, ShareCardTemplate::PhotoLogo], true)) {
-            $width = imagesx($image);
-            $height = imagesy($image);
-            if ($cover instanceof GdImage) {
-                $this->coverFill($image, $cover, 0, 0, $width, $height);
-            }
-            if ($template === ShareCardTemplate::PhotoLogo || ! $cover instanceof GdImage) {
-                ShareCardLogo::stampCentered($image);
-            }
 
             return $this->encode($image);
         }

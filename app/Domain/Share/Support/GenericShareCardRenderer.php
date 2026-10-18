@@ -79,7 +79,7 @@ class GenericShareCardRenderer
         int $white,
         array $data = [],
     ): void {
-        if (in_array($template, [ShareCardTemplate::DateCut, ShareCardTemplate::Diagonal, ShareCardTemplate::Framed], true)) {
+        if ($template->isGraphic()) {
             $graphic = is_array($data['graphic'] ?? null) ? $data['graphic'] : [];
             if ($graphic === []) {
                 $graphic = [
@@ -114,24 +114,7 @@ class GenericShareCardRenderer
         $textY = $safeArea['top'];
         $textWidth = $width - $safeArea['left'] - $safeArea['right'];
 
-        if ($template === ShareCardTemplate::Brand) {
-            ShareCardLogo::stampCentered($canvas);
-
-            return;
-        }
-
-        if (in_array($template, [ShareCardTemplate::PhotoClean, ShareCardTemplate::PhotoLogo], true)) {
-            if ($cover instanceof GdImage) {
-                $this->drawImageContain($canvas, $cover, 0, 0, $width, $height);
-            }
-            if ($template === ShareCardTemplate::PhotoLogo || ! $cover instanceof GdImage) {
-                ShareCardLogo::stampCentered($canvas);
-            }
-
-            return;
-        }
-
-        if ($cover instanceof GdImage && $template !== ShareCardTemplate::Typographic) {
+        if ($cover instanceof GdImage && ! in_array($template, [ShareCardTemplate::Typographic, ShareCardTemplate::Verse, ShareCardTemplate::Brand], true)) {
             if ($format === ShareCardFormat::Landscape) {
                 $coverX = (int) round($width * 0.58);
                 $this->drawImageContain($canvas, $cover, $coverX, 0, $width - $coverX, $height);

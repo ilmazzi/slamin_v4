@@ -12,7 +12,6 @@ enum ShareCardTemplate: string
     case PhotoClean = 'photo_clean';
     case PhotoLogo = 'photo_logo';
     case DateCut = 'date_cut';
-    case Diagonal = 'diagonal';
     case Framed = 'framed';
 
     /**
@@ -23,10 +22,8 @@ enum ShareCardTemplate: string
         return [
             self::Poster,
             self::DateCut,
-            self::Diagonal,
             self::Framed,
             self::Typographic,
-            self::Brand,
             self::Promo,
             self::Verse,
             self::PhotoClean,
@@ -51,8 +48,19 @@ enum ShareCardTemplate: string
             'gig' => self::Promo,
             'poem' => self::Verse,
             'media' => self::PhotoLogo,
-            default => self::Brand,
+            default => self::Poster,
         };
+    }
+
+    public function isGraphic(): bool
+    {
+        return in_array($this, [
+            self::DateCut,
+            self::Framed,
+            self::PhotoClean,
+            self::PhotoLogo,
+            self::Promo,
+        ], true);
     }
 
     public static function resolve(string $contentType, mixed $value): self
@@ -80,7 +88,6 @@ enum ShareCardTemplate: string
             self::Promo,
             self::PhotoClean,
             self::PhotoLogo,
-            self::Diagonal,
             self::Framed,
         ], true);
     }

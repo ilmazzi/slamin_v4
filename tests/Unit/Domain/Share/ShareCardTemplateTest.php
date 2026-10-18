@@ -11,8 +11,8 @@ it('resolves only templates allowed for a content type', function () {
         ->and(ShareCardTemplate::resolve('media', 'photo_clean'))->toBe(ShareCardTemplate::PhotoClean)
         ->and(ShareCardTemplate::resolve('gig', 'promo'))->toBe(ShareCardTemplate::Promo)
         ->and(ShareCardTemplate::resolve('event', 'date_cut'))->toBe(ShareCardTemplate::DateCut)
-        ->and(ShareCardTemplate::resolve('event', 'diagonal'))->toBe(ShareCardTemplate::Diagonal)
-        ->and(ShareCardTemplate::resolve('gig', 'diagonal'))->toBe(ShareCardTemplate::Diagonal)
+        ->and(ShareCardTemplate::resolve('event', 'diagonal'))->toBe(ShareCardTemplate::Poster)
+        ->and(ShareCardTemplate::resolve('gig', 'diagonal'))->toBe(ShareCardTemplate::Promo)
         ->and(ShareCardTemplate::resolve('poem', 'framed'))->toBe(ShareCardTemplate::Framed)
         ->and(ShareCardTemplate::resolve('article', 'verse'))->toBe(ShareCardTemplate::Verse)
         ->and(ShareCardTemplate::forContentType('event'))->toBe(ShareCardTemplate::catalog())
@@ -20,7 +20,10 @@ it('resolves only templates allowed for a content type', function () {
         ->and(ShareCardTemplate::Framed->usesImage())->toBeTrue()
         ->and(ShareCardTemplate::DateCut->usesImage())->toBeFalse()
         ->and(ShareCardTemplate::fromRequest('event', 'brand', 'share.events.preview'))->toBe(ShareCardTemplate::Poster)
-        ->and(ShareCardTemplate::fromRequest('event', 'brand', 'share.events.card'))->toBe(ShareCardTemplate::Brand)
+        ->and(ShareCardTemplate::fromRequest('event', 'brand', 'share.events.card'))->toBe(ShareCardTemplate::Poster)
+        ->and(ShareCardTemplate::catalog())->not->toContain(ShareCardTemplate::Brand)
+        ->and(ShareCardTemplate::Promo->isGraphic())->toBeTrue()
+        ->and(ShareCardTemplate::Poster->isGraphic())->toBeFalse()
         ->and(ShareCardTemplate::Promo->usesImage())->toBeTrue()
         ->and(ShareCardTemplate::Brand->usesImage())->toBeFalse();
 });

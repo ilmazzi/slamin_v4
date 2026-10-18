@@ -79,9 +79,8 @@ it('renders distinct poem templates on the same purple palette', function () {
     $verse = $this->get("/api/v1/poems/{$poem->slug}/share-card?template=verse")->assertOk()->getContent();
     $typographic = $this->get("/api/v1/poems/{$poem->slug}/share-card?template=typographic")->assertOk()->getContent();
     $dateCut = $this->get("/api/v1/poems/{$poem->slug}/share-card?template=date_cut")->assertOk()->getContent();
-    $brand = $this->get("/api/v1/poems/{$poem->slug}/share-card?template=brand")->assertOk()->getContent();
 
-    expect(hash('sha256', $verse))->not->toBe(hash('sha256', $brand))
+    expect(hash('sha256', $verse))->not->toBe(hash('sha256', $typographic))
         ->and(hash('sha256', $dateCut))->not->toBe(hash('sha256', $verse));
 
     $image = imagecreatefromstring($typographic);

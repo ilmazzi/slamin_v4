@@ -31,9 +31,6 @@ class RenderMediaShareCardAction
             ->firstOrFail();
 
         $imagePath = $media->type === MediaType::Photo ? $media->file_path : null;
-        if (in_array($template, [ShareCardTemplate::PhotoClean, ShareCardTemplate::PhotoLogo, ShareCardTemplate::Poster, ShareCardTemplate::Promo], true) && ! $imagePath) {
-            $template = ShareCardTemplate::Brand;
-        }
 
         $title = $media->title ?: __('media.ui.untitled');
         $cacheKey = sprintf(

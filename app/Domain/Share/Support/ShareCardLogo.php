@@ -52,9 +52,10 @@ final class ShareCardLogo
         self::stampAt($canvas, $x, $y);
     }
 
-    public static function stampAt(GdImage $canvas, int $x, int $y): void
+    public static function stampAt(GdImage $canvas, int $x, int $y, ?bool $onLight = null): void
     {
-        $logo = self::load();
+        $onLight ??= self::isLightBehind($canvas, $x, $y);
+        $logo = self::load($onLight);
         $destW = self::DISPLAY_WIDTH;
         $destH = self::displayHeight();
 
@@ -74,7 +75,34 @@ final class ShareCardLogo
         imagedestroy($logo);
     }
 
-    private static function load(): GdImage
+    private static function isLightBehind(GdImage $canvas, int $x, int $y): bool
+    {
+        $width = imagesx($canvas);
+        $height = imagesy($canvas);
+        $samples = [
+            [$x + 24, $y + 24],
+            [$x + 90, $y + 36],
+            [$x + 150, $y + 48],
+            [$x + 40, $y + 70],
+        ];
+        $light = 0;
+        $count = 0;
+        foreach ($samples as [$sampleX, $sampleY]) {
+            if ($sampleX < 0 || $sampleY < 0 || $sampleX >= $width || $sampleY >= $height) {
+                continue;
+            }
+            $color = imagecolorsforindex($canvas, imagecolorat($canvas, $sampleX, $sampleY));
+            $luma = (0.299 * $color['red']) + (0.587 * $color['green']) + (0.114 * $color['blue']);
+            $count++;
+            if ($luma >= 210) {
+                $light++;
+            }
+        }
+
+        return $count > 0 && $light >= (int) ceil($count / 2);
+    }
+
+    private static function load(bool $onLight): GdImage
     {
         $path = resource_path('brand/slamin-logo-white.png');
         if (! is_file($path)) {
@@ -89,6 +117,35 @@ final class ShareCardLogo
         imagealphablending($logo, false);
         imagesavealpha($logo, true);
 
+        if ($onLight) {
+            self::recolorLettersForLightBackground($logo);
+        }
+
         return $logo;
+    }
+
+    private static function recolorLettersForLightBackground(GdImage $logo): void
+    {
+        $width = imagesx($logo);
+        $height = imagesy($logo);
+        for ($x = 0; $x < $width; $x++) {
+            for ($y = 0; $y < $height; $y++) {
+                $color = imagecolorsforindex($logo, imagecolorat($logo, $x, $y));
+                if ($color['alpha'] >= 120) {
+                    continue;
+                }
+                if ($color['red'] > 180 && $color['green'] < 90 && $color['blue'] < 90) {
+                    continue;
+                }
+                if ($color['red'] > 200 && $color['green'] > 200 && $color['blue'] > 200) {
+                    imagesetpixel(
+                        $logo,
+                        $x,
+                        $y,
+                        imagecolorallocatealpha($logo, 17, 17, 17, $color['alpha']),
+                    );
+                }
+            }
+        }
     }
 }
