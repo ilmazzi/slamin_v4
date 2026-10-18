@@ -1,12 +1,17 @@
-const TEMPLATES_BY_TYPE = {
-  event: ['poster', 'typographic', 'brand'],
-  article: ['poster', 'typographic', 'brand'],
-  gig: ['promo', 'typographic', 'brand'],
-  poem: ['verse', 'typographic', 'brand'],
-  media: ['photo_clean', 'photo_logo', 'brand'],
-}
+export const SHARE_CARD_VERSION = 10
 
-const IMAGE_TEMPLATES = new Set(['poster', 'promo', 'photo_clean', 'photo_logo'])
+const SHARE_CARD_TEMPLATES = [
+  'poster',
+  'date_cut',
+  'diagonal',
+  'framed',
+  'typographic',
+  'brand',
+  'promo',
+  'verse',
+  'photo_clean',
+  'photo_logo',
+]
 
 export function hasShareImage(target, contentType) {
   if (contentType === 'media') {
@@ -26,10 +31,8 @@ export function hasShareImage(target, contentType) {
   )
 }
 
-export function templatesFor(contentType, target) {
-  return (TEMPLATES_BY_TYPE[contentType] ?? ['brand']).filter((template) => (
-    !IMAGE_TEMPLATES.has(template) || hasShareImage(target, contentType)
-  ))
+export function templatesFor() {
+  return SHARE_CARD_TEMPLATES
 }
 
 export function defaultTemplateFor(contentType, target) {

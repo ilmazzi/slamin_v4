@@ -4,6 +4,7 @@ namespace Domain\Poetry\Support;
 
 use Domain\Poetry\Models\Poem;
 use Domain\Share\Support\ShareCardFormat;
+use Domain\Share\Support\ShareCardGraphicLayouts;
 use Domain\Share\Support\ShareCardLogo;
 use Domain\Share\Support\ShareCardPalette;
 use Domain\Share\Support\ShareCardSafeArea;
@@ -11,6 +12,7 @@ use Domain\Share\Support\ShareCardTemplate;
 use Domain\Share\Support\SlaminShareMark;
 use Domain\Shared\Support\RichTextSanitizer;
 use GdImage;
+use Illuminate\Support\Facades\Storage;
 use RuntimeException;
 
 class PoemShareCardRenderer
@@ -50,10 +52,15 @@ class PoemShareCardRenderer
         $locale = in_array($poem->language, ['it', 'en'], true) ? $poem->language : 'it';
         app()->setLocale($locale);
 
+        $cover = $this->loadCover($poem->image_path);
+
         try {
-            return $this->paint($poem, $image, $regular, $medium, $semibold, $template, $purple, $white);
+            return $this->paint($poem, $image, $cover, $regular, $medium, $semibold, $template, $purple, $white);
         } finally {
             app()->setLocale($previousLocale);
+            if ($cover instanceof GdImage) {
+                imagedestroy($cover);
+            }
             imagedestroy($image);
         }
     }
@@ -61,6 +68,7 @@ class PoemShareCardRenderer
     private function paint(
         Poem $poem,
         GdImage $image,
+        ?GdImage $cover,
         string $regular,
         string $medium,
         string $semibold,
@@ -68,8 +76,41 @@ class PoemShareCardRenderer
         int $purple,
         int $white,
     ): string {
+        if (in_array($template, [ShareCardTemplate::DateCut, ShareCardTemplate::Diagonal, ShareCardTemplate::Framed], true)) {
+            $headline = trim((string) $poem->title) ?: $this->poemBody($poem);
+            app(ShareCardGraphicLayouts::class)->paint(
+                $image,
+                $cover,
+                $template,
+                ShareCardPalette::for('poem'),
+                [
+                    'headline' => $headline,
+                    'city' => $this->authorFirstName($poem),
+                    'place' => (string) ($this->placeLine($poem) ?? ''),
+                    'kicker' => (string) __('poems.share_card.without_place'),
+                    'lead' => $headline,
+                    'domain' => 'slamin.it',
+                ],
+            );
+
+            return $this->encode($image);
+        }
+
         if ($template === ShareCardTemplate::Brand) {
             ShareCardLogo::stampCentered($image);
+
+            return $this->encode($image);
+        }
+
+        if (in_array($template, [ShareCardTemplate::PhotoClean, ShareCardTemplate::PhotoLogo], true)) {
+            $width = imagesx($image);
+            $height = imagesy($image);
+            if ($cover instanceof GdImage) {
+                $this->coverFill($image, $cover, 0, 0, $width, $height);
+            }
+            if ($template === ShareCardTemplate::PhotoLogo || ! $cover instanceof GdImage) {
+                ShareCardLogo::stampCentered($image);
+            }
 
             return $this->encode($image);
         }
@@ -405,6 +446,50 @@ class PoemShareCardRenderer
         }
 
         return __('poems.share_card.from', ['place' => $location]);
+    }
+
+    private function loadCover(?string $path): ?GdImage
+    {
+        $relative = trim((string) $path);
+        if ($relative === '') {
+            return null;
+        }
+
+        $full = Storage::disk('public')->path($relative);
+        if (! is_file($full)) {
+            return null;
+        }
+
+        $info = @getimagesize($full);
+        if ($info === false) {
+            return null;
+        }
+
+        $loaded = match ($info[2]) {
+            IMAGETYPE_JPEG => @imagecreatefromjpeg($full),
+            IMAGETYPE_PNG => @imagecreatefrompng($full),
+            IMAGETYPE_GIF => @imagecreatefromgif($full),
+            IMAGETYPE_WEBP => function_exists('imagecreatefromwebp') ? @imagecreatefromwebp($full) : false,
+            default => false,
+        };
+
+        return $loaded instanceof GdImage ? $loaded : null;
+    }
+
+    private function coverFill(GdImage $dest, GdImage $src, int $x, int $y, int $width, int $height): void
+    {
+        $sourceWidth = imagesx($src);
+        $sourceHeight = imagesy($src);
+        if ($sourceWidth < 1 || $sourceHeight < 1 || $width < 1 || $height < 1) {
+            return;
+        }
+
+        $scale = max($width / $sourceWidth, $height / $sourceHeight);
+        $cropWidth = min($sourceWidth, max(1, (int) round($width / $scale)));
+        $cropHeight = min($sourceHeight, max(1, (int) round($height / $scale)));
+        $cropX = (int) round(($sourceWidth - $cropWidth) / 2);
+        $cropY = (int) round(($sourceHeight - $cropHeight) / 2);
+        imagecopyresampled($dest, $src, $x, $y, $cropX, $cropY, $width, $height, $cropWidth, $cropHeight);
     }
 
     private function fontPath(string $filename): string

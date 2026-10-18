@@ -52,9 +52,11 @@ it('renders distinct article templates on the article palette', function () {
     ]);
 
     $poster = $this->get("/api/v1/articles/{$article->slug}/share-card?template=poster")->assertOk()->getContent();
+    $dateCut = $this->get("/api/v1/articles/{$article->slug}/share-card?template=date_cut")->assertOk()->getContent();
     $brand = $this->get("/api/v1/articles/{$article->slug}/share-card?template=brand")->assertOk()->getContent();
 
-    expect(hash('sha256', $poster))->not->toBe(hash('sha256', $brand));
+    expect(hash('sha256', $poster))->not->toBe(hash('sha256', $brand))
+        ->and(hash('sha256', $dateCut))->not->toBe(hash('sha256', $poster));
 });
 
 it('renders distinct media templates when a photo is available', function () {

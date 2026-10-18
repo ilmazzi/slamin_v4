@@ -125,6 +125,9 @@ return [
             'promo' => 'Promo',
             'photo_clean' => 'Clean photo',
             'photo_logo' => 'Photo with logo',
+            'date_cut' => 'Date',
+            'diagonal' => 'Diagonal',
+            'framed' => 'Frame',
         ],
     ],
 ];

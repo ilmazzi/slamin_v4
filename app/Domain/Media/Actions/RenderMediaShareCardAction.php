@@ -31,12 +31,14 @@ class RenderMediaShareCardAction
             ->firstOrFail();
 
         $imagePath = $media->type === MediaType::Photo ? $media->file_path : null;
-        if ($template->usesImage() && ! $imagePath) {
+        if (in_array($template, [ShareCardTemplate::PhotoClean, ShareCardTemplate::PhotoLogo, ShareCardTemplate::Poster, ShareCardTemplate::Promo], true) && ! $imagePath) {
             $template = ShareCardTemplate::Brand;
         }
 
+        $title = $media->title ?: __('media.ui.untitled');
         $cacheKey = sprintf(
-            'media-share-card:v3:%d:%s:%s:%s:%s',
+            'media-share-card:v%d:%d:%s:%s:%s:%s',
+            ShareCardCache::VERSION,
             $media->id,
             $media->updated_at?->timestamp ?? 0,
             $media->user?->profile?->updated_at?->timestamp ?? 0,
@@ -45,11 +47,19 @@ class RenderMediaShareCardAction
         );
 
         return ShareCardCache::remember($cacheKey, fn () => $this->renderer->render([
-            'title' => $media->title ?: __('media.ui.untitled'),
+            'title' => $title,
             'subtitle' => $media->description,
             'author' => $media->user?->profile?->display_name,
             'image_path' => $imagePath,
             'background' => ShareCardPalette::for('media'),
+            'graphic' => [
+                'headline' => $title,
+                'city' => trim((string) $media->user?->profile?->display_name),
+                'place' => trim((string) $media->description),
+                'kicker' => $title,
+                'lead' => trim((string) $media->description) ?: $title,
+                'domain' => 'slamin.it',
+            ],
         ], $format, $template));
     }
 }

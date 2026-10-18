@@ -8,6 +8,8 @@ use RuntimeException;
 
 final class ShareCardCache
 {
+    public const VERSION = 10;
+
     public static function remember(string $key, Closure $render): string
     {
         $encoded = Cache::remember(

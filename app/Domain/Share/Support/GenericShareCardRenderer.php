@@ -9,7 +9,7 @@ use RuntimeException;
 class GenericShareCardRenderer
 {
     /**
-     * @param  array{title:string, subtitle?:string|null, author?:string|null, eyebrow?:string|null, image_path?:string|null, background:array{int,int,int}}  $data
+     * @param  array{title:string, subtitle?:string|null, author?:string|null, eyebrow?:string|null, image_path?:string|null, background:array{int,int,int}, graphic?:array<string, mixed>}  $data
      */
     public function render(
         array $data,
@@ -47,6 +47,7 @@ class GenericShareCardRenderer
                 $format,
                 $template,
                 $white,
+                $data,
             );
 
             ob_start();
@@ -76,7 +77,33 @@ class GenericShareCardRenderer
         ShareCardFormat $format,
         ShareCardTemplate $template,
         int $white,
+        array $data = [],
     ): void {
+        if (in_array($template, [ShareCardTemplate::DateCut, ShareCardTemplate::Diagonal, ShareCardTemplate::Framed], true)) {
+            $graphic = is_array($data['graphic'] ?? null) ? $data['graphic'] : [];
+            if ($graphic === []) {
+                $graphic = [
+                    'headline' => $title,
+                    'date' => $eyebrow,
+                    'city' => $author,
+                    'place' => $subtitle,
+                    'kicker' => $eyebrow !== '' ? $eyebrow : $title,
+                    'lead' => $subtitle !== '' ? $subtitle : $title,
+                    'domain' => 'slamin.it',
+                ];
+            }
+
+            app(ShareCardGraphicLayouts::class)->paint(
+                $canvas,
+                $cover,
+                $template,
+                $data['background'],
+                $graphic,
+            );
+
+            return;
+        }
+
         $width = imagesx($canvas);
         $height = imagesy($canvas);
         $regular = $this->fontPath('Switzer-Regular.otf');

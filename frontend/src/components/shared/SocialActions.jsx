@@ -16,7 +16,7 @@ import { useI18n } from '../../app/hooks/useI18n.js'
 import { scheduleScrollToComments } from '../../app/utils/scrollToComments.js'
 import { CalendarIcon } from '../icons/ActionIcons.jsx'
 import SharePanel from './SharePanel.jsx'
-import { defaultTemplateFor, templatesFor } from './shareCardConfig.js'
+import { defaultTemplateFor, SHARE_CARD_VERSION, templatesFor } from './shareCardConfig.js'
 import styles from './SocialActions.module.css'
 
 function pluralizeContentType(contentType) {
@@ -140,11 +140,12 @@ async function fetchShareCard(target, contentType, format = 'square', template) 
   }
 
   const encodedKey = encodeURIComponent(String(key))
-  const params = new URLSearchParams({ format })
+  const params = new URLSearchParams({ format, v: String(SHARE_CARD_VERSION) })
   if (template) {
     params.set('template', template)
   }
   const response = await fetch(getApiUrl(`/api/v1/${shareType.plural}/${encodedKey}/share-card?${params}`), {
+    cache: 'no-store',
     headers: { Accept: 'image/png' },
   })
   if (!response.ok) {

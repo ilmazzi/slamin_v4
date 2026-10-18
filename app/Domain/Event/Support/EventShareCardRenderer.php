@@ -5,6 +5,7 @@ namespace Domain\Event\Support;
 use Domain\Event\Enums\EventDeliveryMode;
 use Domain\Event\Models\Event;
 use Domain\Share\Support\ShareCardFormat;
+use Domain\Share\Support\ShareCardGraphicLayouts;
 use Domain\Share\Support\ShareCardLogo;
 use Domain\Share\Support\ShareCardPalette;
 use Domain\Share\Support\ShareCardSafeArea;
@@ -52,9 +53,7 @@ class EventShareCardRenderer
         $locale = in_array($event->language, ['it', 'en'], true) ? $event->language : 'it';
         app()->setLocale($locale);
 
-        $cover = $template === ShareCardTemplate::Poster
-            ? $this->loadCover($event->cover_image_path)
-            : null;
+        $cover = $this->loadCover($event->cover_image_path);
 
         try {
             return $this->paint($event, $image, $cover, $regular, $medium, $semibold, $template, $mint, $white, $ink);
@@ -81,10 +80,37 @@ class EventShareCardRenderer
     ): string {
         $width = imagesx($image);
         $height = imagesy($image);
+        if (in_array($template, [ShareCardTemplate::DateCut, ShareCardTemplate::Diagonal, ShareCardTemplate::Framed], true)) {
+            app(ShareCardGraphicLayouts::class)->paint(
+                $image,
+                $cover,
+                $template,
+                ShareCardPalette::for('event'),
+                $this->graphicBillboard($event),
+            );
+
+            return $this->encode($image);
+        }
+
         if ($template === ShareCardTemplate::Brand) {
             ShareCardLogo::stampCentered($image);
 
             return $this->encode($image);
+        }
+
+        if (in_array($template, [ShareCardTemplate::PhotoClean, ShareCardTemplate::PhotoLogo], true)) {
+            if ($cover instanceof GdImage) {
+                $this->drawCoverFill($image, $cover, 0, 0, $width, $height);
+            }
+            if ($template === ShareCardTemplate::PhotoLogo || ! $cover instanceof GdImage) {
+                ShareCardLogo::stampCentered($image);
+            }
+
+            return $this->encode($image);
+        }
+
+        if (in_array($template, [ShareCardTemplate::Typographic, ShareCardTemplate::Verse], true)) {
+            $cover = null;
         }
 
         $organizer = $this->organizerFirstName($event);
@@ -524,6 +550,46 @@ class EventShareCardRenderer
         }
 
         return __('events.share_card.without_place');
+    }
+
+    /**
+     * @return array{weekday:string,date:string,headline:string,city:string,place:string,kicker:string,lead:string,domain:string}
+     */
+    private function graphicBillboard(Event $event): array
+    {
+        $occurrence = $event->occurrences->firstWhere('is_primary', true)
+            ?? $event->occurrences->sortBy('starts_at')->first();
+        $weekday = '';
+        $date = '';
+        if ($occurrence?->starts_at !== null) {
+            $local = $occurrence->starts_at
+                ->timezone($occurrence->timezone ?: 'UTC')
+                ->locale(app()->getLocale());
+            $weekday = mb_strtolower($local->translatedFormat('l'));
+            $date = mb_strtolower($local->translatedFormat('j F'));
+        }
+
+        $city = '';
+        $place = '';
+        if ($event->delivery_mode === EventDeliveryMode::Online) {
+            $place = (string) __('events.share_card.online_label');
+        } else {
+            $city = trim((string) ($event->venueDetail?->city ?? ''));
+            $place = trim((string) ($event->venueDetail?->place_name ?? ''));
+        }
+
+        $headline = trim((string) $event->title) ?: (string) __('events.event_title');
+
+        return [
+            'weekday' => $weekday,
+            'date' => $date,
+            'headline' => $headline,
+            'city' => $city,
+            'place' => $place,
+            'kicker' => $weekday !== '' ? $weekday : $headline,
+            'lead' => $headline,
+            'domain' => 'slamin.it',
+        ];
     }
 
     private function fontPath(string $filename): string

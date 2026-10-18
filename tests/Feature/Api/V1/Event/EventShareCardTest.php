@@ -216,6 +216,45 @@ it('renders distinct event templates without changing the mint palette', functio
         ->and($pixel & 0xFF)->toBe(180);
 });
 
+it('renders the date and framed event templates', function () {
+    Storage::fake('public');
+
+    $canvas = imagecreatetruecolor(800, 500);
+    imagefilledrectangle($canvas, 0, 0, 800, 500, imagecolorallocate($canvas, 20, 20, 20));
+    ob_start();
+    imagejpeg($canvas, null, 90);
+    $jpeg = (string) ob_get_clean();
+    imagedestroy($canvas);
+    Storage::disk('public')->put('events/cornice.jpg', $jpeg);
+
+    $event = publishedShareEvent(eventShareAuthor(), [
+        'slug' => 'slam-template-grafici',
+        'cover_image_path' => 'events/cornice.jpg',
+    ]);
+
+    $dateCut = $this->get("/api/v1/events/{$event->slug}/share-card?template=date_cut")->assertOk()->getContent();
+    $diagonal = $this->get("/api/v1/events/{$event->slug}/share-card?template=diagonal")->assertOk()->getContent();
+    $framed = $this->get("/api/v1/events/{$event->slug}/share-card?template=framed")->assertOk()->getContent();
+    $poster = $this->get("/api/v1/events/{$event->slug}/share-card?template=poster")->assertOk()->getContent();
+
+    expect(hash('sha256', $dateCut))->not->toBe(hash('sha256', $framed))
+        ->and(hash('sha256', $diagonal))->not->toBe(hash('sha256', $dateCut))
+        ->and(hash('sha256', $framed))->not->toBe(hash('sha256', $poster));
+
+    $dateCutImage = imagecreatefromstring($dateCut);
+    expect($dateCutImage)->toBeInstanceOf(GdImage::class);
+    $mint = imagecolorat($dateCutImage, 20, 20);
+    $body = imagecolorat($dateCutImage, 1000, 180);
+    $tail = imagecolorat($dateCutImage, 1060, 1060);
+    $cut = imagecolorat($dateCutImage, 40, 1060);
+    imagedestroy($dateCutImage);
+
+    expect([($mint >> 16) & 0xFF, ($mint >> 8) & 0xFF, $mint & 0xFF])->toBe([132, 218, 180])
+        ->and([($body >> 16) & 0xFF, ($body >> 8) & 0xFF, $body & 0xFF])->toBe([132, 218, 180])
+        ->and([($tail >> 16) & 0xFF, ($tail >> 8) & 0xFF, $tail & 0xFF])->toBe([132, 218, 180])
+        ->and([($cut >> 16) & 0xFF, ($cut >> 8) & 0xFF, $cut & 0xFF])->toBe([255, 255, 255]);
+});
+
 it('renders every post format at the expected dimensions', function (string $format, int $width, int $height) {
     $event = publishedShareEvent(eventShareAuthor());
 

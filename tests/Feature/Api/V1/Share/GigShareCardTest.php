@@ -76,6 +76,26 @@ it('renders branded gig cards in every selectable format', function (string $for
     'story' => ['story', 1080, 1920],
 ]);
 
+it('changes the card when the gig asks for different people', function () {
+    $event = shareGigEvent(shareGigOwner());
+    $event->occurrences()->create([
+        'starts_at' => now()->addWeek()->setTime(21, 0),
+        'timezone' => 'Europe/Rome',
+        'is_primary' => true,
+    ]);
+    $poets = shareGig($event, ['quantity' => 2]);
+    $host = shareGig($event, ['type' => 'mc_host', 'quantity' => 1]);
+
+    $poetCard = $this->get("/api/v1/gigs/{$poets->id}/share-card?template=typographic")->assertOk()->getContent();
+    $hostCard = $this->get("/api/v1/gigs/{$host->id}/share-card?template=typographic")->assertOk()->getContent();
+    $dateCut = $this->get("/api/v1/gigs/{$poets->id}/share-card?template=date_cut")->assertOk()->getContent();
+    $sameHost = $this->get("/api/v1/gigs/{$host->id}/share-card?template=typographic")->assertOk()->getContent();
+
+    expect(hash('sha256', $poetCard))->not->toBe(hash('sha256', $hostCard))
+        ->and(hash('sha256', $poetCard))->not->toBe(hash('sha256', $dateCut))
+        ->and(hash('sha256', $hostCard))->toBe(hash('sha256', $sameHost));
+});
+
 it('keeps the gig orange palette across templates', function () {
     $gig = shareGig(shareGigEvent(shareGigOwner()));
 

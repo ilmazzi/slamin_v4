@@ -29,12 +29,11 @@ class RenderArticleShareCardAction
             ->where('is_public', true)
             ->firstOrFail();
 
-        if ($template->usesImage() && ! $article->cover_image_path) {
-            $template = ShareCardTemplate::Typographic;
-        }
+        $published = $article->published_at?->timezone(config('app.timezone'))->locale(app()->getLocale());
 
         $cacheKey = sprintf(
-            'article-share-card:v3:%d:%s:%s:%s:%s',
+            'article-share-card:v%d:%d:%s:%s:%s:%s',
+            ShareCardCache::VERSION,
             $article->id,
             $article->updated_at?->timestamp ?? 0,
             $article->user?->profile?->updated_at?->timestamp ?? 0,
@@ -42,12 +41,23 @@ class RenderArticleShareCardAction
             $template->value,
         );
 
+        $title = $article->title ?: __('articles.all.no_title');
+
         return ShareCardCache::remember($cacheKey, fn () => $this->renderer->render([
-            'title' => $article->title ?: __('articles.all.no_title'),
+            'title' => $title,
             'subtitle' => SharePage::excerpt($article->excerpt ?: $article->content),
             'author' => $article->user?->profile?->display_name,
             'image_path' => $article->cover_image_path,
             'background' => ShareCardPalette::for('article'),
+            'graphic' => [
+                'weekday' => $published ? mb_strtolower($published->translatedFormat('l')) : '',
+                'date' => $published ? mb_strtolower($published->translatedFormat('j F')) : '',
+                'headline' => $title,
+                'city' => trim((string) $article->user?->profile?->display_name),
+                'kicker' => $title,
+                'lead' => SharePage::excerpt($article->excerpt ?: $article->content) ?: $title,
+                'domain' => 'slamin.it',
+            ],
         ], $format, $template));
     }
 }

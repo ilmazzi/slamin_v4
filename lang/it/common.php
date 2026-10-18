@@ -125,6 +125,9 @@ return [
             'promo' => 'Promo',
             'photo_clean' => 'Foto pulita',
             'photo_logo' => 'Foto con logo',
+            'date_cut' => 'Data',
+            'diagonal' => 'Diagonale',
+            'framed' => 'Cornice',
         ],
     ],
 ];

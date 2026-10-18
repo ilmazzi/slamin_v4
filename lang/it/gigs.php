@@ -71,6 +71,20 @@ return [
         'source_text' => 'Testo originale',
         'translated_text' => 'Testo tradotto',
     ],
+    'share_card' => [
+        'seeking' => '{1} Cerchiamo 1 :role|[2,*] Cerchiamo :count :role',
+        'roles' => [
+            'poet_artist' => ['one' => 'poeta', 'other' => 'poeti'],
+            'mc_host' => ['one' => 'host', 'other' => 'host'],
+            'technical_support' => ['one' => 'tecnico', 'other' => 'tecnici'],
+            'volunteer' => ['one' => 'volontario', 'other' => 'volontari'],
+            'translator' => ['one' => 'traduttore', 'other' => 'traduttori'],
+        ],
+        'diagonal_kicker' => 'ingaggi',
+        'diagonal_lead' => 'scopri le opportunità',
+        'diagonal_site' => 'sul sito',
+        'diagonal_domain' => 'slamin.it',
+    ],
     'card' => [
         'untitled' => 'Ingaggio',
         'no_description' => 'Nessuna descrizione disponibile.',

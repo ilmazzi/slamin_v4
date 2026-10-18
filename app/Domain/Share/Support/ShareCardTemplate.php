@@ -11,19 +11,37 @@ enum ShareCardTemplate: string
     case Promo = 'promo';
     case PhotoClean = 'photo_clean';
     case PhotoLogo = 'photo_logo';
+    case DateCut = 'date_cut';
+    case Diagonal = 'diagonal';
+    case Framed = 'framed';
+
+    /**
+     * @return list<self>
+     */
+    public static function catalog(): array
+    {
+        return [
+            self::Poster,
+            self::DateCut,
+            self::Diagonal,
+            self::Framed,
+            self::Typographic,
+            self::Brand,
+            self::Promo,
+            self::Verse,
+            self::PhotoClean,
+            self::PhotoLogo,
+        ];
+    }
 
     /**
      * @return list<self>
      */
     public static function forContentType(string $contentType): array
     {
-        return match ($contentType) {
-            'event', 'article' => [self::Poster, self::Typographic, self::Brand],
-            'gig' => [self::Promo, self::Typographic, self::Brand],
-            'poem' => [self::Verse, self::Typographic, self::Brand],
-            'media' => [self::PhotoClean, self::PhotoLogo, self::Brand],
-            default => [self::Brand],
-        };
+        unset($contentType);
+
+        return self::catalog();
     }
 
     public static function defaultFor(string $contentType): self
@@ -57,6 +75,13 @@ enum ShareCardTemplate: string
 
     public function usesImage(): bool
     {
-        return in_array($this, [self::Poster, self::Promo, self::PhotoClean, self::PhotoLogo], true);
+        return in_array($this, [
+            self::Poster,
+            self::Promo,
+            self::PhotoClean,
+            self::PhotoLogo,
+            self::Diagonal,
+            self::Framed,
+        ], true);
     }
 }

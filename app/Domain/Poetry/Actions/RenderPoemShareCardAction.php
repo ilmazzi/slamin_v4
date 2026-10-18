@@ -31,7 +31,8 @@ class RenderPoemShareCardAction
         app()->setLocale($locale);
 
         $cacheKey = sprintf(
-            'poem-share-card:v7:%d:%s:%s:%s:%s:%s',
+            'poem-share-card:v%d:%d:%s:%s:%s:%s:%s',
+            ShareCardCache::VERSION,
             $poem->id,
             $poem->updated_at?->timestamp ?? 0,
             $poem->user?->profile?->updated_at?->timestamp ?? 0,

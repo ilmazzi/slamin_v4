@@ -71,6 +71,20 @@ return [
         'source_text' => 'Source text',
         'translated_text' => 'Translated text',
     ],
+    'share_card' => [
+        'seeking' => '{1} Looking for 1 :role|[2,*] Looking for :count :role',
+        'roles' => [
+            'poet_artist' => ['one' => 'poet', 'other' => 'poets'],
+            'mc_host' => ['one' => 'host', 'other' => 'hosts'],
+            'technical_support' => ['one' => 'technician', 'other' => 'technicians'],
+            'volunteer' => ['one' => 'volunteer', 'other' => 'volunteers'],
+            'translator' => ['one' => 'translator', 'other' => 'translators'],
+        ],
+        'diagonal_kicker' => 'gigs',
+        'diagonal_lead' => 'discover the opportunities',
+        'diagonal_site' => 'on',
+        'diagonal_domain' => 'slamin.it',
+    ],
     'card' => [
         'untitled' => 'Gig',
         'no_description' => 'No description available.',

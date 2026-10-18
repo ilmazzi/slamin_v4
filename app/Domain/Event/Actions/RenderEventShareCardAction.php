@@ -27,17 +27,14 @@ class RenderEventShareCardAction
             ->where('is_public', true)
             ->firstOrFail();
 
-        if ($template->usesImage() && ! $event->cover_image_path) {
-            $template = ShareCardTemplate::Typographic;
-        }
-
         $locale = in_array($event->language, ['it', 'en'], true) ? $event->language : config('app.locale');
         app()->setLocale($locale);
 
         $primary = $event->occurrences->firstWhere('is_primary', true) ?? $event->occurrences->first();
 
         $cacheKey = sprintf(
-            'event-share-card:v7:%d:%s:%s:%s:%s:%s:%s:%s:%s',
+            'event-share-card:v%d:%d:%s:%s:%s:%s:%s:%s:%s:%s',
+            ShareCardCache::VERSION,
             $event->id,
             $event->updated_at?->timestamp ?? 0,
             $event->user?->profile?->updated_at?->timestamp ?? 0,
