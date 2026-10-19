@@ -26,6 +26,8 @@ return [
     'events' => 'eventos',
     'card_alt' => 'Vista previa del evento',
     'calendar' => 'calendario',
+    'calendar_title_middle' => 'eventos',
+    'calendar_title_tail' => 'públicos',
     'personal_events' => 'eventos personales',
     'save_event' => 'Guardar evento',
     'unsave_event' => 'Quitar del calendario',

@@ -1,4 +1,4 @@
-import { lazy, Suspense, useEffect, useState } from 'react'
+import { lazy, Suspense, useEffect, useMemo, useState } from 'react'
 import MainLayout from '../../components/layout/MainLayout.jsx'
 import PageHero from '../../components/PageHero.jsx'
 import shellStyles from '../shared/ContentPageShell.module.css'
@@ -72,6 +72,21 @@ export default function EventPage() {
     return () => controller.abort()
   }, [t, token])
 
+  const calendarEvents = useMemo(
+    () => publicEvents.map((event) => ({
+      id: event.id,
+      occurrenceId: event.occurrence_id,
+      slug: event.slug,
+      title: event.title,
+      subtitle: event.subtitle || '',
+      start_datetime: event.start_datetime,
+      venue_name: event.venue_name,
+      city: event.city,
+      relations: [],
+    })),
+    [publicEvents],
+  )
+
   return (
     <MainLayout themeTone="event">
       <div className={[shellStyles.eventPage, styles.eventPage].join(' ')}>
@@ -91,7 +106,15 @@ export default function EventPage() {
             error={eventsError}
           />
         </Suspense>
-        {token ? <PersonalEventsCalendar tone="event" showVisibilityToggle={false} /> : null}
+        <PersonalEventsCalendar
+          tone="event"
+          showVisibilityToggle={false}
+          events={calendarEvents}
+          canCreate={canCreateEvent}
+          titleAccent={t('events.calendar')}
+          titleMiddle={t('events.calendar_title_middle')}
+          titleTail={t('events.calendar_title_tail')}
+        />
 
         <HomeDashboardPromoSection compactTop={true} />
       </div>

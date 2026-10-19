@@ -26,6 +26,8 @@ return [
     'events' => 'événements',
     'card_alt' => 'Aperçu de l’événement',
     'calendar' => 'calendrier',
+    'calendar_title_middle' => 'événements',
+    'calendar_title_tail' => 'publics',
     'personal_events' => 'événements personnels',
     'save_event' => 'Enregistrer l’événement',
     'unsave_event' => 'Retirer du calendrier',
