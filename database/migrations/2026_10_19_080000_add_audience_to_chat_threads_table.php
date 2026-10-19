@@ -10,8 +10,13 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('chat_threads', function (Blueprint $table) {
-            $table->string('audience')->nullable()->after('group_id');
-            $table->boolean('is_enabled')->default(true)->after('audience');
+            if (! Schema::hasColumn('chat_threads', 'audience')) {
+                $table->string('audience')->nullable()->after('group_id');
+            }
+
+            if (! Schema::hasColumn('chat_threads', 'is_enabled')) {
+                $table->boolean('is_enabled')->default(true)->after('audience');
+            }
         });
 
         DB::table('chat_threads')
@@ -22,21 +27,53 @@ return new class extends Migration
                 'is_enabled' => true,
             ]);
 
-        Schema::table('chat_threads', function (Blueprint $table) {
-            $table->dropUnique(['group_id']);
-            $table->unique(['group_id', 'audience']);
-        });
+        if (! Schema::hasIndex('chat_threads', 'chat_threads_group_id_index')) {
+            Schema::table('chat_threads', function (Blueprint $table) {
+                $table->index('group_id', 'chat_threads_group_id_index');
+            });
+        }
+
+        if (Schema::hasIndex('chat_threads', 'chat_threads_group_id_unique')) {
+            Schema::table('chat_threads', function (Blueprint $table) {
+                $table->dropUnique('chat_threads_group_id_unique');
+            });
+        }
+
+        if (! Schema::hasIndex('chat_threads', 'chat_threads_group_id_audience_unique')) {
+            Schema::table('chat_threads', function (Blueprint $table) {
+                $table->unique(['group_id', 'audience'], 'chat_threads_group_id_audience_unique');
+            });
+        }
     }
 
     public function down(): void
     {
-        Schema::table('chat_threads', function (Blueprint $table) {
-            $table->dropUnique(['group_id', 'audience']);
-        });
+        if (Schema::hasIndex('chat_threads', 'chat_threads_group_id_audience_unique')) {
+            Schema::table('chat_threads', function (Blueprint $table) {
+                $table->dropUnique('chat_threads_group_id_audience_unique');
+            });
+        }
 
         Schema::table('chat_threads', function (Blueprint $table) {
-            $table->dropColumn(['audience', 'is_enabled']);
-            $table->unique('group_id');
+            if (Schema::hasColumn('chat_threads', 'audience')) {
+                $table->dropColumn('audience');
+            }
+
+            if (Schema::hasColumn('chat_threads', 'is_enabled')) {
+                $table->dropColumn('is_enabled');
+            }
         });
+
+        if (! Schema::hasIndex('chat_threads', 'chat_threads_group_id_unique')) {
+            Schema::table('chat_threads', function (Blueprint $table) {
+                $table->unique('group_id');
+            });
+        }
+
+        if (Schema::hasIndex('chat_threads', 'chat_threads_group_id_index')) {
+            Schema::table('chat_threads', function (Blueprint $table) {
+                $table->dropIndex('chat_threads_group_id_index');
+            });
+        }
     }
 };
