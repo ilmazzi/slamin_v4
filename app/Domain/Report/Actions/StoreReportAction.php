@@ -7,6 +7,7 @@ use Domain\Article\Models\Article;
 use Domain\Comment\Models\Comment;
 use Domain\Event\Enums\EventStatus;
 use Domain\Event\Models\Event;
+use Domain\Group\Models\Group;
 use Domain\Media\Enums\MediaStatus;
 use Domain\Media\Enums\MediaVisibility;
 use Domain\Media\Models\MediaItem;
@@ -74,6 +75,7 @@ class StoreReportAction
             $reportable instanceof Comment => 'comment',
             $reportable instanceof MediaItem => 'media',
             $reportable instanceof Event => 'event',
+            $reportable instanceof Group => 'group',
             default => 'content',
         };
 
@@ -152,6 +154,10 @@ class StoreReportAction
                 return;
             }
 
+            if ($commentable instanceof Group && $commentable->is_active) {
+                return;
+            }
+
             if ($commentable instanceof MediaItem && $commentable->status === MediaStatus::Ready && $commentable->visibility === MediaVisibility::Public) {
                 return;
             }
@@ -159,6 +165,12 @@ class StoreReportAction
 
         if ($reportable instanceof Event) {
             if ($reportable->status === EventStatus::Published && $reportable->is_public === true) {
+                return;
+            }
+        }
+
+        if ($reportable instanceof Group) {
+            if ($reportable->is_active) {
                 return;
             }
         }

@@ -24,6 +24,11 @@ class ShowGroupAction
                 'members as admins_count' => fn ($query) => $query
                     ->where('role', 'admin')
                     ->where('status', 'active'),
+                'likes',
+                'comments',
+            ])
+            ->withExists([
+                'likes as is_liked' => fn ($query) => $query->where('user_id', $authUserId ?? 0),
             ])
             ->where('slug', $slug)
             ->where('is_active', true)

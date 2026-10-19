@@ -31,3 +31,11 @@ export async function createEventReport(eventId, payload, { token, signal } = {}
     fallbackMessage: 'Unable to submit event report',
   })
 }
+
+export async function createGroupReport(group, payload, { token, signal } = {}) {
+  return authApiPost(`/api/v1/groups/${encodeURIComponent(group)}/reports`, payload, {
+    token,
+    signal,
+    fallbackMessage: 'Unable to submit group report',
+  })
+}

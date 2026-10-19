@@ -12,6 +12,8 @@ use App\Http\Controllers\Api\V1\Group\UpdateGroupChatThreadsController;
 use App\Http\Controllers\Api\V1\Group\FollowGroupController;
 use App\Http\Controllers\Api\V1\Group\InviteGroupMemberController;
 use App\Http\Controllers\Api\V1\Group\LeaveGroupController;
+use App\Http\Controllers\Api\V1\Group\LikeGroupController;
+use App\Http\Controllers\Api\V1\Group\UnlikeGroupController;
 use App\Http\Controllers\Api\V1\Group\ListGroupAnnouncementsController;
 use App\Http\Controllers\Api\V1\Group\ListGroupCategoriesController;
 use App\Http\Controllers\Api\V1\Group\ListGroupEventsController;
@@ -71,6 +73,8 @@ Route::middleware([
 
     Route::get('/groups/{group}/membership', ShowMyGroupMembershipController::class)->name('groups.membership.show');
     Route::post('/groups/{group}/follow', FollowGroupController::class)->name('groups.follow');
+    Route::post('/groups/{group}/like', LikeGroupController::class)->name('groups.like');
+    Route::delete('/groups/{group}/like', UnlikeGroupController::class)->name('groups.unlike');
     Route::post('/groups/{group}/join', RequestToJoinGroupController::class)->name('groups.join');
     Route::post('/groups/{group}/role-requests', RequestGroupRoleController::class)->name('groups.role-requests.store');
     Route::get('/groups/{group}/invite-users', SearchGroupInviteUsersController::class)->name('groups.invite-users');

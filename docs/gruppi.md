@@ -41,6 +41,16 @@ Fino a quattro thread, a scelta dell’admin, in creazione o dal pannello staff:
 
 L’adesione segue il ruolo. Le chat libere in `/chat` non dipendono dai gruppi.
 
+## Social
+
+Sulla pagina del gruppo si possono mettere like, commentare, condividere e segnalare, come su eventi e articoli.
+
+- **like e segnalazione** — chi può vedere la pagina, anche dal teaser di un privato listed
+- **commenti** — solo chi vede la bacheca (pubblici, o membri dei privati)
+- **condivisione** — link della pagina, senza card grafica
+
+Un like o un commento avvisa gli admin del gruppo, non un proprietario singolo.
+
 ## Categorie
 
 Obbligatorie in creazione. Le gestisce l’admin di piattaforma, non il gruppo.

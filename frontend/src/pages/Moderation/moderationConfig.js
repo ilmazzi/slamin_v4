@@ -24,7 +24,7 @@ export const QUEUE_TYPES = {
 
 export const QUEUE_STATUSES = ['pending_review', 'rejected', 'published', 'draft']
 export const REPORT_STATUSES = ['open', 'in_review', 'resolved', 'dismissed']
-export const REPORT_TYPES = ['poem', 'article', 'event', 'media', 'comment']
+export const REPORT_TYPES = ['poem', 'article', 'event', 'group', 'media', 'comment']
 
 export function isQueueType(type) {
   return Boolean(QUEUE_TYPES[type])
@@ -51,6 +51,9 @@ export function reportableHref(reportable) {
   if (reportable.type === 'event' && reportable.slug) {
     return `/events/${encodeURIComponent(reportable.slug)}`
   }
+  if (reportable.type === 'group' && reportable.slug) {
+    return `/groups/${encodeURIComponent(reportable.slug)}`
+  }
   if (reportable.type === 'media' && reportable.id) {
     return `/media/${encodeURIComponent(reportable.id)}`
   }
@@ -61,5 +64,5 @@ export function reportableTitle(reportable, fallback = '—') {
   if (!reportable) {
     return fallback
   }
-  return reportable.title || reportable.content || fallback
+  return reportable.title || reportable.name || reportable.content || fallback
 }

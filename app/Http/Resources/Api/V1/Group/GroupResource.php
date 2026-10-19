@@ -39,6 +39,9 @@ class GroupResource extends JsonResource
             'facebook_url' => $this->facebook_url,
             'instagram_url' => $this->instagram_url,
             'youtube_url' => $this->youtube_url,
+            'likes_count' => (int) ($this->likes_count ?? 0),
+            'comments_count' => (int) ($this->comments_count ?? 0),
+            'is_liked' => (bool) ($this->is_liked ?? false),
             'active_members_count' => $this->active_members_count ?? $this->activeMembers->count(),
             'admins_count' => $this->admins_count ?? $this->members
                 ->where('role', GroupMemberRole::Admin)

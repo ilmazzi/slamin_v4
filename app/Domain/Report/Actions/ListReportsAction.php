@@ -5,6 +5,7 @@ namespace Domain\Report\Actions;
 use Domain\Article\Models\Article;
 use Domain\Comment\Models\Comment;
 use Domain\Event\Models\Event;
+use Domain\Group\Models\Group;
 use Domain\Media\Models\MediaItem;
 use Domain\Poetry\Models\Poem;
 use Domain\Report\DTOs\ListReportsData;
@@ -25,6 +26,7 @@ class ListReportsAction
                         Article::class => [],
                         Comment::class => [],
                         Event::class => [],
+                        Group::class => [],
                         MediaItem::class => [],
                     ]);
                 },
@@ -45,6 +47,7 @@ class ListReportsAction
                 'article' => (new Article)->getMorphClass(),
                 'comment' => (new Comment)->getMorphClass(),
                 'event' => (new Event)->getMorphClass(),
+                'group' => (new Group)->getMorphClass(),
                 'media' => (new MediaItem)->getMorphClass(),
             };
 

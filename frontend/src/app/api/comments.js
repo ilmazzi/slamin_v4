@@ -1,4 +1,4 @@
-import { apiGet, authApiPost, authApiRequest } from './client.js'
+import { apiGet, authApiGet, authApiPost, authApiRequest } from './client.js'
 
 const DEFAULT_PER_PAGE = 10
 
@@ -91,6 +91,30 @@ export async function createEventComment(eventId, payload, { token, signal } = {
     token,
     signal,
     fallbackMessage: 'Unable to post event comment',
+  })
+}
+
+export async function listGroupComments(
+  group,
+  { page = 1, perPage = DEFAULT_PER_PAGE, token, signal } = {},
+) {
+  const params = new URLSearchParams()
+  params.set('page', String(page))
+  params.set('per_page', String(perPage))
+  const { data, meta } = await authApiGet(`/api/v1/groups/${encodeURIComponent(group)}/comments?${params.toString()}`, {
+    token,
+    signal,
+    fallbackMessage: 'Unable to load group comments',
+  })
+
+  return { data, meta }
+}
+
+export async function createGroupComment(group, payload, { token, signal } = {}) {
+  return authApiPost(`/api/v1/groups/${encodeURIComponent(group)}/comments`, payload, {
+    token,
+    signal,
+    fallbackMessage: 'Unable to post group comment',
   })
 }
 

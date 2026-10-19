@@ -177,4 +177,19 @@ class GroupPolicy
     {
         return $group->canReceiveProposalFrom($user->id);
     }
+
+    public function like(User $user, Group $group): bool
+    {
+        return $this->view($user, $group);
+    }
+
+    public function comment(User $user, Group $group): bool
+    {
+        return $this->viewFeed($user, $group);
+    }
+
+    public function report(User $user, Group $group): bool
+    {
+        return $this->view($user, $group);
+    }
 }

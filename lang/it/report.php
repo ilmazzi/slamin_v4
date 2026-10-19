@@ -18,6 +18,7 @@ return [
         'comment' => 'commento',
         'media' => 'media',
         'event' => 'evento',
+        'group' => 'gruppo',
         'content' => 'contenuto',
     ],
     'ui' => [

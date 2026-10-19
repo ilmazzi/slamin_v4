@@ -7,6 +7,7 @@ use Domain\Article\Models\Article;
 use Domain\Comment\Models\Comment;
 use Domain\Event\Enums\EventStatus;
 use Domain\Event\Models\Event;
+use Domain\Group\Models\Group;
 use Domain\Media\Enums\MediaStatus;
 use Domain\Media\Enums\MediaVisibility;
 use Domain\Media\Models\MediaItem;
@@ -51,6 +52,12 @@ class ListCommentsAction
 
         if ($commentable instanceof Event) {
             if ($commentable->status === EventStatus::Published && $commentable->is_public === true) {
+                return;
+            }
+        }
+
+        if ($commentable instanceof Group) {
+            if ($commentable->is_active) {
                 return;
             }
         }

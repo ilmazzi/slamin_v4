@@ -418,6 +418,34 @@
   background: #eee;
 }
 
+.social {
+  width: 100%;
+  display: flex;
+  flex-direction: row;
+  align-items: flex-end;
+  justify-content: space-between;
+  color: #000;
+  gap: 12px;
+}
+
+.socialMetrics {
+  gap: 10px;
+  align-items: flex-end;
+}
+
+.socialMetric {
+  gap: 4px;
+}
+
+.socialButtons {
+  gap: 12px;
+  align-items: flex-end;
+}
+
+.commentsBand {
+  scroll-margin-top: 104px;
+}
+
 @media (max-width: 1024px) {
   .layout {
     grid-template-columns: 1fr;

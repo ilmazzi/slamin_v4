@@ -23,7 +23,7 @@ class ListReportsRequest extends FormRequest
                 ReportStatus::Resolved->value,
                 ReportStatus::Dismissed->value,
             ])],
-            'reportable_type' => ['nullable', Rule::in(['poem', 'article', 'comment', 'event', 'media'])],
+            'reportable_type' => ['nullable', Rule::in(['poem', 'article', 'comment', 'event', 'group', 'media'])],
         ];
     }
 }

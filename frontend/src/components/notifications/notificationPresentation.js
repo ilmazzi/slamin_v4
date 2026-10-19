@@ -14,6 +14,7 @@ const COMMENTABLE_PATHS = {
   poem: '/poems',
   event: '/events',
   article: '/articles',
+  group: '/groups',
 }
 
 function typeKey(type) {

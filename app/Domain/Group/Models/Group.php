@@ -3,16 +3,20 @@
 namespace Domain\Group\Models;
 
 use Domain\Chat\Models\ChatThread;
+use Domain\Comment\Models\Comment;
+use Domain\Engagement\Models\Like;
 use Domain\Event\Models\Event;
 use Domain\Group\Enums\GroupMemberRole;
 use Domain\Group\Enums\GroupMemberStatus;
 use Domain\Group\Enums\GroupVisibility;
+use Domain\Report\Models\Report;
 use Domain\User\Models\User;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Group extends Model
@@ -45,6 +49,18 @@ class Group extends Model
     public function getRouteKeyName(): string
     {
         return 'slug';
+    }
+
+    public function resolveRouteBinding($value, $field = null)
+    {
+        $field ??= $this->getRouteKeyName();
+
+        if ($field === $this->getRouteKeyName() && ctype_digit((string) $value)) {
+            return $this->newQuery()->whereKey($value)->first()
+                ?? $this->newQuery()->where($field, $value)->first();
+        }
+
+        return $this->newQuery()->where($field, $value)->first();
     }
 
     public function category(): BelongsTo
@@ -111,6 +127,31 @@ class Group extends Model
     public function chatThreads(): HasMany
     {
         return $this->hasMany(ChatThread::class);
+    }
+
+    public function likes(): MorphMany
+    {
+        return $this->morphMany(Like::class, 'likeable');
+    }
+
+    public function comments(): MorphMany
+    {
+        return $this->morphMany(Comment::class, 'commentable');
+    }
+
+    public function reports(): MorphMany
+    {
+        return $this->morphMany(Report::class, 'reportable');
+    }
+
+    public function loadEngagement(?int $userId): static
+    {
+        $this->loadCount(['likes', 'comments']);
+        $this->loadExists([
+            'likes as is_liked' => fn ($builder) => $builder->where('user_id', $userId ?? 0),
+        ]);
+
+        return $this;
     }
 
     public function hasActiveMember(int $userId): bool

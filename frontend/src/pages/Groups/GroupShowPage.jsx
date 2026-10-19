@@ -1,15 +1,22 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
-import { Link, useParams } from 'react-router-dom'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { Link, useLocation, useParams } from 'react-router-dom'
 import { getGroup, listGroupEvents, listGroupPublications } from '../../app/api/groups.js'
+import { createGroupReport } from '../../app/api/reports.js'
 import { resolvePublicUrl } from '../../app/api/url.js'
 import { useAuth } from '../../app/hooks/useAuth.js'
+import { useContentFeedbackUi } from '../../app/hooks/useContentFeedbackUi.js'
 import { useI18n } from '../../app/hooks/useI18n.js'
 import { expandEventOccurrencesForCalendar } from '../../app/normalizers/event.js'
+import { scheduleScrollToComments } from '../../app/utils/scrollToComments.js'
 import GroupFeed from '../../components/groups/GroupFeed.jsx'
 import GroupMembershipActions from '../../components/groups/GroupMembershipActions.jsx'
 import GroupStaffPanel from '../../components/groups/GroupStaffPanel.jsx'
 import MainLayout from '../../components/layout/MainLayout.jsx'
 import PersonalEventsCalendar from '../../components/PersonalEventsCalendar.jsx'
+import AppToast from '../../components/shared/AppToast.jsx'
+import CommentsThread from '../../components/shared/CommentsThread.jsx'
+import ContentReportModal from '../../components/shared/ContentReportModal.jsx'
+import SocialActions from '../../components/shared/SocialActions.jsx'
 import styles from './GroupWorkspace.module.css'
 
 function Fact({ label, value }) {
@@ -24,8 +31,10 @@ function Fact({ label, value }) {
 
 export default function GroupShowPage() {
   const { slug } = useParams()
+  const location = useLocation()
   const { t, locale } = useI18n()
   const { token } = useAuth()
+  const commentsRef = useRef(null)
   const [group, setGroup] = useState(null)
   const [events, setEvents] = useState([])
   const [publications, setPublications] = useState({ poems: [], articles: [] })
@@ -67,9 +76,45 @@ export default function GroupShowPage() {
     return () => controller.abort()
   }, [load, slug, t, token])
 
+  const {
+    reportModalItem,
+    toastMessage,
+    isSubmittingReport,
+    setReportModalItem,
+    setToastMessage,
+    handleReportConfirm,
+  } = useContentFeedbackUi({
+    contentType: 'group',
+    knownItems: group ? [group] : [],
+    shareCopiedMessage: t('group.ui.share_copied'),
+    shareSentMessage: t('group.ui.share_sent'),
+    shareFailedMessage: t('group.ui.share_failed'),
+    reportSubmittedMessage: t('group.ui.report_submitted'),
+    reportFailedMessage: t('common.no_results'),
+    submitReport: async (item, { reason, details }) => {
+      const target = item?.id ?? group?.id ?? null
+      if (!target) {
+        throw new Error(t('common.no_results'))
+      }
+      await createGroupReport(target, { reason: reason || 'spam', details: details || null }, { token })
+    },
+  })
+
   const membership = group?.current_user_membership
   const isActiveMember = membership?.status === 'active'
   const showTeaser = group?.visibility === 'private' && !isActiveMember
+
+  useEffect(() => {
+    if (showTeaser || (location.hash !== '#comments' && !location.state?.focusComments)) {
+      return undefined
+    }
+    if (!group?.id || !commentsRef.current) {
+      return undefined
+    }
+
+    return scheduleScrollToComments({ behavior: 'smooth' })
+  }, [group?.id, location.hash, location.state, showTeaser])
+
   const canManageStaff = Boolean(
     group?.permissions?.invite
     || group?.permissions?.manage_content_links
@@ -153,6 +198,26 @@ export default function GroupShowPage() {
                     ) : null}
                   </dl>
 
+                  <SocialActions
+                    target={group}
+                    contentType="group"
+                    apiBasePath="/groups"
+                    publicBasePath="/groups"
+                    variant="list"
+                    metrics={{
+                      likes: group.likes_count ?? 0,
+                      comments: group.comments_count ?? 0,
+                    }}
+                    metricsOrder={showTeaser ? ['likes'] : ['likes', 'comments']}
+                    shareLabel={t('group.ui.share')}
+                    reportLabel={t('group.ui.report')}
+                    onComments={() => commentsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
+                    className={styles.social}
+                    metricsClassName={styles.socialMetrics}
+                    metricClassName={styles.socialMetric}
+                    buttonsClassName={styles.socialButtons}
+                  />
+
                   {links.length > 0 && !showTeaser ? (
                     <>
                       <h2 className={styles.sectionTitle}>{t('group.ui.links')}</h2>
@@ -180,6 +245,11 @@ export default function GroupShowPage() {
               </section>
             </aside>
           </div>
+          {!showTeaser ? (
+            <div ref={commentsRef} id="comments" className={styles.commentsBand}>
+              <CommentsThread contentType="group" contentId={group.id} title={t('group.ui.comments')} />
+            </div>
+          ) : null}
           <GroupFeed
             group={group}
             token={token}
@@ -208,6 +278,20 @@ export default function GroupShowPage() {
         />
       ) : null}
       </div>
+      <ContentReportModal
+        key={reportModalItem?.id ?? 'group-report-closed'}
+        isOpen={Boolean(reportModalItem)}
+        item={reportModalItem}
+        itemTitle={reportModalItem?.name ?? group?.name ?? t('group.ui.title')}
+        title={t('group.ui.report_title')}
+        description={t('group.ui.report_description')}
+        cancelLabel={t('group.ui.report_cancel')}
+        confirmLabel={t('group.ui.report_confirm')}
+        isSubmitting={isSubmittingReport}
+        onClose={() => setReportModalItem(null)}
+        onConfirm={handleReportConfirm}
+      />
+      <AppToast message={toastMessage} isVisible={Boolean(toastMessage)} onClose={() => setToastMessage('')} />
     </MainLayout>
   )
 }

@@ -1082,6 +1082,71 @@ it('keeps outsider article proposals pending until staff accepts them', function
         ->assertJsonPath('data.articles.0.slug', 'articolo-proposto');
 });
 
+it('likes comments and reports a public group', function () {
+    $owner = groupOwner();
+    $reader = groupOwner();
+    $group = createGroupWithOwner($owner);
+
+    Sanctum::actingAs($reader);
+
+    $this->postJson("/api/v1/groups/{$group->id}/like")
+        ->assertOk()
+        ->assertJsonPath('data.group.is_liked', true)
+        ->assertJsonPath('data.group.likes_count', 1);
+
+    $this->postJson("/api/v1/groups/{$group->slug}/like")
+        ->assertOk()
+        ->assertJsonPath('data.group.likes_count', 1);
+
+    $this->postJson("/api/v1/groups/{$group->id}/comments", [
+        'content' => 'Bella pagina',
+    ])->assertOk();
+
+    $this->getJson("/api/v1/groups/{$group->slug}/comments")
+        ->assertOk()
+        ->assertJsonPath('data.0.content', 'Bella pagina');
+
+    $this->deleteJson("/api/v1/groups/{$group->id}/like")
+        ->assertOk()
+        ->assertJsonPath('data.group.is_liked', false);
+
+    $this->postJson("/api/v1/groups/{$group->id}/reports", [
+        'reason' => 'spam',
+    ])->assertOk();
+
+    $this->getJson("/api/v1/groups/{$group->slug}")
+        ->assertOk()
+        ->assertJsonPath('data.group.likes_count', 0)
+        ->assertJsonPath('data.group.comments_count', 1)
+        ->assertJsonPath('data.group.is_liked', false);
+});
+
+it('lets listed private visitors like but not comment', function () {
+    $owner = groupOwner();
+    $visitor = groupOwner();
+    $group = createGroupWithOwner($owner, GroupVisibility::Private);
+
+    Sanctum::actingAs($visitor);
+    $this->postJson("/api/v1/groups/{$group->id}/like")->assertOk();
+    $this->postJson("/api/v1/groups/{$group->id}/comments", [
+        'content' => 'Ciao',
+    ])->assertForbidden();
+    $this->getJson("/api/v1/groups/{$group->slug}/comments")->assertForbidden();
+});
+
+it('hides social actions on unlisted private groups', function () {
+    $owner = groupOwner();
+    $visitor = groupOwner();
+    $group = createGroupWithOwner($owner, GroupVisibility::Private);
+    $group->update(['is_listed' => false]);
+
+    Sanctum::actingAs($visitor);
+    $this->postJson("/api/v1/groups/{$group->id}/like")->assertForbidden();
+    $this->postJson("/api/v1/groups/{$group->id}/comments", [
+        'content' => 'Ciao',
+    ])->assertForbidden();
+});
+
 it('forbids proposing poems to unlisted private groups', function () {
     $owner = groupOwner();
     $author = groupOwner();

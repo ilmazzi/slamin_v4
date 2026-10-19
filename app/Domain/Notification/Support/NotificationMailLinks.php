@@ -12,6 +12,7 @@ final class NotificationMailLinks
         'poem' => 'poems',
         'event' => 'events',
         'article' => 'articles',
+        'group' => 'groups',
     ];
 
     public static function frontend(string $path = ''): string
@@ -43,6 +44,7 @@ final class NotificationMailLinks
             ! empty($data['gig_id']) => 'gigs/'.$data['gig_id'],
             isset(self::COMMENTABLE_PATHS[$data['commentable_type'] ?? '']) && ! empty($data['commentable_slug']) => self::COMMENTABLE_PATHS[$data['commentable_type']].'/'.rawurlencode((string) $data['commentable_slug']),
             ($data['commentable_type'] ?? null) === 'media' && ! empty($data['commentable_id']) => 'media/'.$data['commentable_id'],
+            ! empty($data['group_slug']) => 'groups/'.rawurlencode((string) $data['group_slug']),
             ! empty($data['event_slug']) => 'events/'.rawurlencode((string) $data['event_slug']),
             ! empty($data['poem_slug']) => 'poems/'.rawurlencode((string) $data['poem_slug']),
             ! empty($data['article_slug']) => 'articles/'.rawurlencode((string) $data['article_slug']),

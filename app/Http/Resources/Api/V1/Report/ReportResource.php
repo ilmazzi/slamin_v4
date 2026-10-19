@@ -5,6 +5,7 @@ namespace App\Http\Resources\Api\V1\Report;
 use Domain\Article\Models\Article;
 use Domain\Comment\Models\Comment;
 use Domain\Event\Models\Event;
+use Domain\Group\Models\Group;
 use Domain\Media\Models\MediaItem;
 use Domain\Poetry\Models\Poem;
 use Domain\Report\Models\Report;
@@ -72,6 +73,12 @@ class ReportResource extends JsonResource
                 'slug' => $reportable->slug,
                 'title' => $reportable->title,
                 'status' => $reportable->status?->value,
+            ],
+            $reportable instanceof Group => [
+                'type' => 'group',
+                'id' => $reportable->id,
+                'slug' => $reportable->slug,
+                'title' => $reportable->name,
             ],
             $reportable instanceof MediaItem => [
                 'type' => 'media',

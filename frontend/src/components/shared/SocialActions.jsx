@@ -178,7 +178,7 @@ async function fetchShareCard(target, contentType, format = 'square', template) 
 
 async function nativeShare(target, { contentType, publicBasePath, format = 'square', template }) {
   const shareUrl = resolveShareUrl(target, contentType, publicBasePath)
-  const shareTitle = target?.title ?? ''
+  const shareTitle = target?.title ?? target?.name ?? ''
   const shareType = resolveSharePageType(contentType)
   const key = shareType ? target?.[shareType.key] : 'slamin'
 
@@ -586,7 +586,7 @@ export default function SocialActions({
       {isSharePanelOpen ? (
         <SharePanel
           isOpen
-          title={target?.title ?? ''}
+          title={target?.title ?? target?.name ?? ''}
           url={resolveShareUrl(target, contentType, publicBasePath)}
           imageName={`${target?.slug ?? target?.id ?? 'slamin'}-share.png`}
           templates={templatesFor(contentType, target)}

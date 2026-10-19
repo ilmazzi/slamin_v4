@@ -6,11 +6,13 @@ import {
   createArticleComment,
   createPoemComment,
   createEventComment,
+  createGroupComment,
   deleteComment,
   listMediaComments,
   listArticleComments,
   listPoemComments,
   listEventComments,
+  listGroupComments,
   updateComment,
 } from '../../app/api/comments.js'
 import { formatShortPublishedDate } from '../../app/formatters/date.js'
@@ -50,17 +52,44 @@ export default function CommentsThread({
   const isPoem = contentType === 'poem'
   const isMedia = contentType === 'media'
   const isEvent = contentType === 'event'
+  const isGroup = contentType === 'group'
   const resolvedTitle = title ?? t(
-    isPoem ? 'comment.ui.title_poem' : isMedia ? 'comment.ui.title_media' : isEvent ? 'comment.ui.title_event' : contentType === 'article' ? 'comment.ui.title_article' : 'comment.ui.title',
+    isPoem
+      ? 'comment.ui.title_poem'
+      : isMedia
+        ? 'comment.ui.title_media'
+        : isEvent
+          ? 'comment.ui.title_event'
+          : isGroup
+            ? 'comment.ui.title_group'
+            : contentType === 'article'
+              ? 'comment.ui.title_article'
+              : 'comment.ui.title',
   )
   const unknownUserLabel = t('common.unknown_user')
   const listFn = useMemo(
-    () => (isPoem ? listPoemComments : isMedia ? listMediaComments : isEvent ? listEventComments : listArticleComments),
-    [isEvent, isMedia, isPoem],
+    () => (isPoem
+      ? listPoemComments
+      : isMedia
+        ? listMediaComments
+        : isEvent
+          ? listEventComments
+          : isGroup
+            ? listGroupComments
+            : listArticleComments),
+    [isEvent, isGroup, isMedia, isPoem],
   )
   const createFn = useMemo(
-    () => (isPoem ? createPoemComment : isMedia ? createMediaComment : isEvent ? createEventComment : createArticleComment),
-    [isEvent, isMedia, isPoem],
+    () => (isPoem
+      ? createPoemComment
+      : isMedia
+        ? createMediaComment
+        : isEvent
+          ? createEventComment
+          : isGroup
+            ? createGroupComment
+            : createArticleComment),
+    [isEvent, isGroup, isMedia, isPoem],
   )
 
   async function loadComments() {
@@ -73,7 +102,7 @@ export default function CommentsThread({
     setIsLoading(true)
     setError('')
     try {
-      const result = await listFn(contentId, { page, perPage: PAGE_SIZE })
+      const result = await listFn(contentId, { page, perPage: PAGE_SIZE, token })
       setComments(Array.isArray(result?.data) ? result.data : [])
       setMeta(result?.meta || { current_page: 1, last_page: 1 })
     } catch (nextError) {
@@ -87,7 +116,7 @@ export default function CommentsThread({
 
   useEffect(() => {
     loadComments()
-  }, [contentId, page, listFn]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [contentId, page, listFn, token]) // eslint-disable-line react-hooks/exhaustive-deps
 
   async function handleCreate(event) {
     event.preventDefault()

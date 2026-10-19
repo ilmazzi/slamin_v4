@@ -7,6 +7,9 @@ use Domain\Article\Models\Article;
 use Domain\Comment\Models\Comment;
 use Domain\Event\Enums\EventStatus;
 use Domain\Event\Models\Event;
+use Domain\Group\Enums\GroupMemberRole;
+use Domain\Group\Enums\GroupMemberStatus;
+use Domain\Group\Models\Group;
 use Domain\Media\Enums\MediaStatus;
 use Domain\Media\Enums\MediaVisibility;
 use Domain\Media\Models\MediaItem;
@@ -99,6 +102,12 @@ class StoreCommentAction
             }
         }
 
+        if ($commentable instanceof Group) {
+            if ($commentable->is_active) {
+                return;
+            }
+        }
+
         if ($commentable instanceof MediaItem) {
             if ($commentable->status === MediaStatus::Ready && $commentable->visibility === MediaVisibility::Public) {
                 return;
@@ -110,6 +119,12 @@ class StoreCommentAction
 
     private function notifyInterestedUsers(Model $commentable, Comment $comment, ?Comment $parent): void
     {
+        if ($commentable instanceof Group) {
+            $this->notifyGroupComment($commentable, $comment, $parent);
+
+            return;
+        }
+
         $commentableType = match (true) {
             $commentable instanceof Poem => 'poem',
             $commentable instanceof Article => 'article',
@@ -156,6 +171,49 @@ class StoreCommentAction
                     'commentable_type' => $commentableType,
                     'commentable_id' => $commentable->id,
                     'commentable_slug' => $slug,
+                ],
+            );
+        }
+    }
+
+    private function notifyGroupComment(Group $group, Comment $comment, ?Comment $parent): void
+    {
+        $adminIds = $group->members()
+            ->where('status', GroupMemberStatus::Active)
+            ->where('role', GroupMemberRole::Admin)
+            ->where('user_id', '!=', $comment->user_id)
+            ->pluck('user_id');
+
+        foreach ($adminIds as $adminId) {
+            $this->createNotificationAction->execute(
+                userId: $adminId,
+                type: 'group_commented',
+                title: fn () => __('comment.notifications.group_commented_title'),
+                message: fn () => __('comment.notifications.group_commented_message', ['title' => $group->name]),
+                data: [
+                    'comment_id' => $comment->id,
+                    'commentable_type' => 'group',
+                    'commentable_id' => $group->id,
+                    'commentable_slug' => $group->slug,
+                    'group_slug' => $group->slug,
+                    'parent_id' => $comment->parent_id,
+                ],
+            );
+        }
+
+        if ($parent && $parent->user_id !== $comment->user_id && ! $adminIds->contains($parent->user_id)) {
+            $this->createNotificationAction->execute(
+                userId: $parent->user_id,
+                type: 'comment_replied',
+                title: fn () => __('comment.notifications.reply_title'),
+                message: fn () => __('comment.notifications.reply_message'),
+                data: [
+                    'comment_id' => $comment->id,
+                    'parent_comment_id' => $parent->id,
+                    'commentable_type' => 'group',
+                    'commentable_id' => $group->id,
+                    'commentable_slug' => $group->slug,
+                    'group_slug' => $group->slug,
                 ],
             );
         }
