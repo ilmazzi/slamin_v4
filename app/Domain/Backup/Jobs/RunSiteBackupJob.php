@@ -2,9 +2,9 @@
 
 namespace Domain\Backup\Jobs;
 
+use Domain\Backup\Actions\PerformSiteBackupAction;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
-use Illuminate\Support\Facades\Artisan;
 
 class RunSiteBackupJob implements ShouldQueue
 {
@@ -14,8 +14,8 @@ class RunSiteBackupJob implements ShouldQueue
 
     public int $timeout = 3600;
 
-    public function handle(): void
+    public function handle(PerformSiteBackupAction $action): void
     {
-        Artisan::call('backup:run');
+        $action->execute(force: true);
     }
 }

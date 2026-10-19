@@ -2,12 +2,12 @@
 
 namespace Domain\Backup\Actions;
 
-use Domain\Backup\Jobs\RunSiteBackupJob;
+use Domain\Backup\Support\BackupRunState;
 
 class RunBackupAction
 {
     public function execute(): void
     {
-        RunSiteBackupJob::dispatch();
+        BackupRunState::request();
     }
 }

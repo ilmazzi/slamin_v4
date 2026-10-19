@@ -1,5 +1,7 @@
 <?php
 
+use Domain\Backup\Actions\PerformSiteBackupAction;
+use Domain\Backup\Support\BackupRunState;
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Schedule;
@@ -28,6 +30,14 @@ Schedule::command('backup:clean')
 
 Schedule::command('backup:run')
     ->dailyAt('01:20')
+    ->timezone('Europe/Rome')
+    ->withoutOverlapping(180)
+    ->onOneServer();
+
+Schedule::call(fn () => app(PerformSiteBackupAction::class)->execute())
+    ->everyMinute()
+    ->when(fn () => BackupRunState::requested())
+    ->name('backup-manual-run')
     ->timezone('Europe/Rome')
     ->withoutOverlapping(180)
     ->onOneServer();

@@ -111,6 +111,12 @@ export async function listAdminBackups({ token, signal } = {}) {
     newest_at: null,
     error: null,
     backups: [],
+    run: {
+      state: 'idle',
+      queued_at: null,
+      finished_at: null,
+      error: null,
+    },
   }
 }
 

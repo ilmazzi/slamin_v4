@@ -72,6 +72,21 @@ export default function BackupsAdminPage() {
     return () => controller.abort()
   }, [loadStatus, t, token])
 
+  const runState = status?.run?.state
+  const isBusy = runState === 'queued' || runState === 'running'
+
+  useEffect(() => {
+    if (!token || !isBusy) {
+      return undefined
+    }
+
+    const id = setInterval(() => {
+      loadStatus().catch(() => {})
+    }, 10000)
+
+    return () => clearInterval(id)
+  }, [isBusy, loadStatus, token])
+
   const handleRun = async () => {
     setIsRunning(true)
     setMessage('')
@@ -80,6 +95,7 @@ export default function BackupsAdminPage() {
     try {
       await runAdminBackup({ token })
       setMessage(t('admin.backups.queued'))
+      await loadStatus()
     } catch (runError) {
       setError(runError?.message || t('admin.backups.run_error'))
     } finally {
@@ -112,8 +128,23 @@ export default function BackupsAdminPage() {
               {!status?.configured ? (
                 <p className={styles.help}>{t('admin.backups.not_configured')}</p>
               ) : null}
-              {status?.configured && !status?.reachable ? (
-                <p className={styles.help}>{status.error || t('admin.backups.unreachable')}</p>
+              {status?.configured && !status?.reachable && status.error ? (
+                <p className={styles.help}>{status.error}</p>
+              ) : null}
+              {status?.configured && !status?.reachable && !status.error ? (
+                <p className={styles.help}>{t('admin.backups.unreachable')}</p>
+              ) : null}
+              {runState === 'queued' ? (
+                <p className={styles.help}>{t('admin.backups.pending')}</p>
+              ) : null}
+              {runState === 'running' ? (
+                <p className={styles.help}>{t('admin.backups.in_progress')}</p>
+              ) : null}
+              {runState === 'failed' ? (
+                <p className={styles.error}>
+                  {t('admin.backups.last_failed')}
+                  {status?.run?.error ? `: ${status.run.error}` : ''}
+                </p>
               ) : null}
               <p className={styles.help}>
                 {t('admin.backups.newest')}: {formatDate(status?.newest_at, locale) || t('admin.backups.never')}
@@ -122,7 +153,7 @@ export default function BackupsAdminPage() {
                 {t('admin.backups.used')}: {formatBytes(status?.used_bytes, locale)}
               </p>
               <div className={styles.cardActions}>
-                <button type="button" onClick={handleRun} disabled={isRunning || !status?.configured}>
+                <button type="button" onClick={handleRun} disabled={isRunning || isBusy || !status?.configured}>
                   {isRunning ? t('admin.backups.running') : t('admin.backups.run')}
                 </button>
               </div>

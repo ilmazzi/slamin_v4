@@ -2,6 +2,7 @@
 
 namespace Domain\Backup\Actions;
 
+use Domain\Backup\Support\BackupRunState;
 use Spatie\Backup\BackupDestination\Backup;
 use Spatie\Backup\BackupDestination\BackupDestination;
 use Throwable;
@@ -17,7 +18,8 @@ class ListBackupsAction
      *     used_bytes: int,
      *     newest_at: ?string,
      *     error: ?string,
-     *     backups: list<array{path: string, created_at: string, size_bytes: int}>
+     *     backups: list<array{path: string, created_at: string, size_bytes: int}>,
+     *     run: array{state: string, queued_at: ?string, finished_at: ?string, error: ?string}
      * }
      */
     public function execute(): array
@@ -30,62 +32,96 @@ class ListBackupsAction
             && filled(config('filesystems.disks.backups.endpoint'));
 
         if (! $configured) {
-            return [
-                'configured' => false,
-                'reachable' => false,
-                'healthy' => false,
-                'disk' => $disk,
-                'used_bytes' => 0,
-                'newest_at' => null,
-                'error' => null,
-                'backups' => [],
-            ];
+            return $this->payload($disk, configured: false);
         }
 
         try {
             $destination = BackupDestination::create($disk, $name);
-            $reachable = $destination->isReachable();
         } catch (Throwable $exception) {
-            return [
-                'configured' => true,
-                'reachable' => false,
-                'healthy' => false,
-                'disk' => $disk,
-                'used_bytes' => 0,
-                'newest_at' => null,
-                'error' => $exception->getMessage(),
-                'backups' => [],
-            ];
+            return $this->payload($disk, configured: true, error: $exception->getMessage());
         }
 
-        $error = $destination->connectionError()?->getMessage();
-        $backups = [];
-        $usedBytes = 0;
-        $newestAt = null;
+        if ($destination->disk() === null) {
+            return $this->payload(
+                $disk,
+                configured: true,
+                error: $destination->connectionError()?->getMessage(),
+            );
+        }
 
-        if ($reachable) {
-            $collection = $destination->backups();
-            $usedBytes = (int) $collection->size();
-            $newestAt = $collection->newest()?->date()->toIso8601String();
-            $backups = $collection
+        try {
+            $destination->disk()->files($name);
+        } catch (Throwable $exception) {
+            if (! $this->isEmptyPrefixError($exception)) {
+                return $this->payload($disk, configured: true, error: $exception->getMessage());
+            }
+        }
+
+        $collection = $destination->backups();
+
+        return $this->payload(
+            $disk,
+            configured: true,
+            reachable: true,
+            usedBytes: (int) $collection->size(),
+            newestAt: $collection->newest()?->date()->toIso8601String(),
+            backups: $collection
                 ->map(fn (Backup $backup): array => [
                     'path' => basename($backup->path()),
                     'created_at' => $backup->date()->toIso8601String(),
                     'size_bytes' => (int) $backup->sizeInBytes(),
                 ])
                 ->values()
-                ->all();
-        }
+                ->all(),
+        );
+    }
 
+    /**
+     * @param  list<array{path: string, created_at: string, size_bytes: int}>  $backups
+     * @return array{
+     *     configured: bool,
+     *     reachable: bool,
+     *     healthy: bool,
+     *     disk: string,
+     *     used_bytes: int,
+     *     newest_at: ?string,
+     *     error: ?string,
+     *     backups: list<array{path: string, created_at: string, size_bytes: int}>,
+     *     run: array{state: string, queued_at: ?string, finished_at: ?string, error: ?string}
+     * }
+     */
+    private function payload(
+        string $disk,
+        bool $configured,
+        bool $reachable = false,
+        int $usedBytes = 0,
+        ?string $newestAt = null,
+        ?string $error = null,
+        array $backups = [],
+    ): array {
         return [
             'configured' => $configured,
             'reachable' => $reachable,
-            'healthy' => $reachable && $configured,
+            'healthy' => $configured && $reachable,
             'disk' => $disk,
             'used_bytes' => $usedBytes,
             'newest_at' => $newestAt,
             'error' => $error,
             'backups' => $backups,
+            'run' => BackupRunState::status(),
         ];
+    }
+
+    private function isEmptyPrefixError(Throwable $exception): bool
+    {
+        $haystack = $exception->getMessage();
+        $previous = $exception->getPrevious();
+
+        if ($previous instanceof Throwable) {
+            $haystack .= ' '.$previous->getMessage();
+        }
+
+        return str_contains($haystack, 'NoSuchKey')
+            || str_contains($haystack, 'specified key does not exist');
     }
 }
