@@ -44,7 +44,12 @@
 }
 
 .isLiked {
-  opacity: 1;
+  color: var(--color-red);
+}
+
+.metricButton.isLiked .metricIcon {
+  /* Tint the raster like icon to brand red, overriding invert filters on cards. */
+  filter: invert(16%) sepia(97%) saturate(7482%) hue-rotate(353deg) brightness(90%) contrast(118%);
 }
 
 .metricValue {

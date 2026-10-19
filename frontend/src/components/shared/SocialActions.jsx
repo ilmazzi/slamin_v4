@@ -503,6 +503,7 @@ export default function SocialActions({
         .filter(Boolean)
         .join(' ')}
       aria-label={t('common.like')}
+      aria-pressed={isLiked}
       onClick={handleLike}
     >
       <span className={[styles.metricValue, metricValueClassName].filter(Boolean).join(' ')}>{likesValue}</span>
