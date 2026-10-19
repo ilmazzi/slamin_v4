@@ -1,5 +1,7 @@
 <?php
 
+use App\Http\Controllers\Api\V1\I18n\ExportI18nTranslationsController;
+use App\Http\Controllers\Api\V1\I18n\ImportI18nTranslationsController;
 use App\Http\Controllers\Api\V1\I18n\ListI18nLanguagesController;
 use App\Http\Controllers\Api\V1\I18n\ListI18nTranslationKeysController;
 use App\Http\Controllers\Api\V1\I18n\ShowI18nController;
@@ -18,6 +20,8 @@ Route::middleware([
 ])->prefix('admin/i18n')->group(function (): void {
     Route::get('/languages', ListI18nLanguagesController::class)->name('api.v1.admin.i18n.languages.index');
     Route::get('/keys', ListI18nTranslationKeysController::class)->name('api.v1.admin.i18n.keys.index');
+    Route::get('/export', ExportI18nTranslationsController::class)->name('api.v1.admin.i18n.export');
+    Route::post('/import', ImportI18nTranslationsController::class)->name('api.v1.admin.i18n.import');
     Route::put('/translations', UpsertI18nTranslationController::class)->name('api.v1.admin.i18n.translations.upsert');
 });
 

@@ -1,4 +1,4 @@
-import { authApiGet, authApiPost, authApiPut } from './client.js'
+import { authApiGet, authApiPatch, authApiPost, authApiPut } from './client.js'
 
 export async function listI18nLanguages(token, { signal } = {}) {
   const { data } = await authApiGet('/api/v1/admin/i18n/languages', {
@@ -59,4 +59,38 @@ export async function createI18nKey(token, payload) {
   })
 
   return data?.key ?? null
+}
+
+export async function updateI18nLanguage(token, languageId, payload) {
+  const { data } = await authApiPatch(
+    `/api/v1/admin/i18n/languages/${encodeURIComponent(languageId)}`,
+    payload,
+    {
+      token,
+      fallbackMessage: 'Unable to update language',
+    },
+  )
+
+  return data?.language ?? null
+}
+
+export async function exportI18nTranslations(token, locale) {
+  const { data } = await authApiGet(
+    `/api/v1/admin/i18n/export?locale=${encodeURIComponent(locale)}`,
+    {
+      token,
+      fallbackMessage: 'Unable to export translations',
+    },
+  )
+
+  return data ?? null
+}
+
+export async function importI18nTranslations(token, payload) {
+  const { data } = await authApiPost('/api/v1/admin/i18n/import', payload, {
+    token,
+    fallbackMessage: 'Unable to import translations',
+  })
+
+  return data ?? null
 }

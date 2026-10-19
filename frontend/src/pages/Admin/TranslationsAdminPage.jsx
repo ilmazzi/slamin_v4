@@ -1,6 +1,15 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { createI18nKey, createI18nLanguage, listI18nKeys, listI18nLanguages, upsertI18nTranslation } from '../../app/api/i18n.js'
+import {
+  createI18nKey,
+  createI18nLanguage,
+  exportI18nTranslations,
+  importI18nTranslations,
+  listI18nKeys,
+  listI18nLanguages,
+  updateI18nLanguage,
+  upsertI18nTranslation,
+} from '../../app/api/i18n.js'
 import { useAuth } from '../../app/hooks/useAuth.js'
 import { useI18n } from '../../app/hooks/useI18n.js'
 import MainLayout from '../../components/layout/MainLayout.jsx'
@@ -27,6 +36,11 @@ export default function TranslationsAdminPage() {
   const [isLoading, setIsLoading] = useState(true)
   const [newLanguage, setNewLanguage] = useState({ code: '', name: '', flag: '' })
   const [newKey, setNewKey] = useState({ key: '', value: '' })
+  const [importFile, setImportFile] = useState(null)
+  const [importOverwrite, setImportOverwrite] = useState(false)
+  const [importCreateKeys, setImportCreateKeys] = useState(false)
+  const [isExporting, setIsExporting] = useState(false)
+  const [isImporting, setIsImporting] = useState(false)
 
   const selectedLanguage = useMemo(
     () => languages.find((language) => language.code === locale) || null,
@@ -146,6 +160,80 @@ export default function TranslationsAdminPage() {
     }
   }
 
+  const handleUpdateLanguage = async (language, payload) => {
+    setMessage('')
+    setError('')
+
+    try {
+      await updateI18nLanguage(token, language.id, payload)
+      setMessage(t('i18n.panel.language_updated'))
+      await loadLanguages()
+    } catch (updateError) {
+      setError(updateError?.message || t('i18n.panel.language_update_error'))
+    }
+  }
+
+  const handleExport = async () => {
+    if (!locale) {
+      return
+    }
+
+    setIsExporting(true)
+    setMessage('')
+    setError('')
+
+    try {
+      const payload = await exportI18nTranslations(token, locale)
+      const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' })
+      const url = URL.createObjectURL(blob)
+      const link = document.createElement('a')
+      link.href = url
+      link.download = `slamin-translations-${locale}.json`
+      link.click()
+      URL.revokeObjectURL(url)
+    } catch (exportError) {
+      setError(exportError?.message || t('i18n.panel.export_error'))
+    } finally {
+      setIsExporting(false)
+    }
+  }
+
+  const handleImport = async (event) => {
+    event.preventDefault()
+    if (!locale || !importFile) {
+      return
+    }
+
+    setIsImporting(true)
+    setMessage('')
+    setError('')
+
+    try {
+      const body = new FormData()
+      body.append('locale', locale)
+      body.append('overwrite', importOverwrite ? '1' : '0')
+      if (isAdmin && importCreateKeys) {
+        body.append('create_keys', '1')
+      }
+      body.append('file', importFile)
+
+      const result = await importI18nTranslations(token, body)
+      setImportFile(null)
+      setMessage(t('i18n.panel.imported', {
+        imported: result?.imported ?? 0,
+        skipped: result?.skipped ?? 0,
+        created: result?.created_keys ?? 0,
+        unknown: result?.unknown_keys ?? 0,
+      }))
+      await loadLanguages()
+      await loadKeys()
+    } catch (importError) {
+      setError(importError?.message || t('i18n.panel.import_error'))
+    } finally {
+      setIsImporting(false)
+    }
+  }
+
   const handleCreateKey = async (event) => {
     event.preventDefault()
     setMessage('')
@@ -191,6 +279,43 @@ export default function TranslationsAdminPage() {
             </p>
           ) : null}
         </header>
+
+        {isAdmin ? (
+          <section className={styles.card}>
+            <h2>{t('i18n.panel.languages')}</h2>
+            <ul className={styles.languageList}>
+              {languages.map((language) => (
+                <li key={language.id} className={styles.languageRow}>
+                  <div>
+                    <strong>{language.flag} {language.name}</strong>
+                    <span>{language.code} · {t('i18n.panel.coverage', {
+                      translated: language.translated_count,
+                      total: language.total_keys,
+                    })}</span>
+                  </div>
+                  <div className={styles.languageActions}>
+                    <label className={styles.checkbox}>
+                      <input
+                        type="checkbox"
+                        checked={language.is_active}
+                        disabled={language.is_default}
+                        onChange={(event) => handleUpdateLanguage(language, { is_active: event.target.checked })}
+                      />
+                      {language.is_active ? t('i18n.panel.active') : t('i18n.panel.inactive')}
+                    </label>
+                    {language.is_default ? (
+                      <span className={styles.badge}>{t('i18n.panel.default')}</span>
+                    ) : (
+                      <button type="button" onClick={() => handleUpdateLanguage(language, { is_default: true })}>
+                        {t('i18n.panel.set_default')}
+                      </button>
+                    )}
+                  </div>
+                </li>
+              ))}
+            </ul>
+          </section>
+        ) : null}
 
         <div className={styles.toolbar}>
           <label className={styles.field}>
@@ -252,11 +377,49 @@ export default function TranslationsAdminPage() {
             <input
               value={newLanguage.flag}
               onChange={(event) => setNewLanguage((current) => ({ ...current, flag: event.target.value }))}
-              placeholder={t('i18n.panel.flag')}
+              placeholder={t('i18n.panel.flag_placeholder')}
             />
             <button type="submit">{t('i18n.panel.create_language')}</button>
+            <p className={styles.formHint}>{t('i18n.panel.flag_help')}</p>
           </form>
         ) : null}
+
+        <form className={styles.transfer} onSubmit={handleImport}>
+          <strong>{t('i18n.panel.import')}</strong>
+          <p className={styles.formHint}>{t('i18n.panel.import_help')}</p>
+          <button type="button" onClick={handleExport} disabled={!locale || isExporting}>
+            {t('i18n.panel.export')}
+          </button>
+          <label className={styles.fileField}>
+            <span>{t('i18n.panel.choose_file')}</span>
+            <input
+              type="file"
+              accept=".json,.csv,application/json,text/csv"
+              onChange={(event) => setImportFile(event.target.files?.[0] ?? null)}
+            />
+          </label>
+          <label className={styles.checkbox}>
+            <input
+              type="checkbox"
+              checked={importOverwrite}
+              onChange={(event) => setImportOverwrite(event.target.checked)}
+            />
+            {t('i18n.panel.import_overwrite')}
+          </label>
+          {isAdmin ? (
+            <label className={styles.checkbox}>
+              <input
+                type="checkbox"
+                checked={importCreateKeys}
+                onChange={(event) => setImportCreateKeys(event.target.checked)}
+              />
+              {t('i18n.panel.import_create_keys')}
+            </label>
+          ) : null}
+          <button type="submit" disabled={!locale || !importFile || isImporting}>
+            {t('i18n.panel.import')}
+          </button>
+        </form>
 
         {isAdmin ? (
           <form className={styles.newLanguage} onSubmit={handleCreateKey}>

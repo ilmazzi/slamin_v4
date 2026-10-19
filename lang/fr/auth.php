@@ -1,0 +1,33 @@
+<?php
+
+return array_merge(
+    require __DIR__.'/auth_ui.php',
+    [
+        'invalid_credentials' => 'Identifiants invalides.',
+        'logged_out' => 'Déconnexion réussie.',
+        'too_many_attempts' => 'Trop de tentatives. Réessaie plus tard.',
+        'forgot_password_sent' => 'Si l’email existe, tu recevras les instructions pour réinitialiser ton mot de passe.',
+        'password_reset_success' => 'Mot de passe réinitialisé avec succès.',
+        'email_verified' => 'Email vérifié avec succès.',
+        'invalid_verification_link' => 'Le lien de vérification est invalide ou a expiré.',
+        'user_not_found' => 'Utilisateur introuvable.',
+        'email_not_verified' => 'Tu dois vérifier ton email avant de continuer.',
+        'verification_link_sent' => 'Lien de vérification envoyé avec succès.',
+        'verification_mail_subject' => 'Vérifie ton adresse email',
+        'verification_mail_greeting' => 'Bonjour :name,',
+        'verification_mail_title' => 'Bienvenue sur Slam In',
+        'verification_mail_body' => 'Vérifie ton adresse email pour terminer ton inscription et commencer à utiliser toutes les fonctionnalités de Slam In.',
+        'verification_mail_button' => 'Vérifier l’adresse email',
+        'verification_mail_expiry' => 'Ce lien est valable 60 minutes.',
+        'verification_mail_ignore' => 'Si tu n’as pas créé ce compte, tu peux ignorer cet email.',
+        'verification_mail_footer' => 'Cet email a été envoyé automatiquement par Slam In.',
+        'smtp_not_enabled' => 'La configuration SMTP n’est pas activée.',
+        'smtp_test_subject' => 'Test email Slam In',
+        'smtp_test_body' => 'La configuration SMTP de Slam In fonctionne correctement.',
+        'smtp_test_sent' => 'Email de test envoyé.',
+        'smtp_test_failed' => 'Échec de l’envoi : :message',
+        'invalid_account_type' => 'Ton compte n’a pas la permission d’effectuer cette action.',
+        'insufficient_role' => 'Tu n’as pas les permissions nécessaires pour effectuer cette action.',
+        'unauthenticated' => 'Non authentifié.',
+    ],
+);

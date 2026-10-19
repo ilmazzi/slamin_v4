@@ -151,6 +151,21 @@ it('does not overwrite existing database translations on import', function () {
         ->assertJsonPath('data.translations.articles.title', 'Titolo dal pannello');
 });
 
+it('forbids translators from creating keys during import', function () {
+    Sanctum::actingAs(i18nTranslatorUser());
+
+    $this->postJson('/api/v1/admin/i18n/import', [
+        'locale' => 'en',
+        'create_keys' => true,
+        'translations' => [
+            'common.only_admin_key' => 'Nope',
+        ],
+    ])
+        ->assertOk()
+        ->assertJsonPath('data.created_keys', 0)
+        ->assertJsonPath('data.unknown_keys', 1);
+});
+
 it('forbids translators from creating languages', function () {
     Sanctum::actingAs(i18nTranslatorUser());
 
@@ -158,6 +173,84 @@ it('forbids translators from creating languages', function () {
         'code' => 'es',
         'name' => 'Espanol',
     ])->assertForbidden();
+});
+
+it('exports a locale catalog and imports translations without overwriting existing values', function () {
+    Sanctum::actingAs(i18nTranslatorUser());
+
+    $export = $this->getJson('/api/v1/admin/i18n/export?locale=en')
+        ->assertOk();
+
+    $translations = $export->json('data.translations');
+    expect($translations['articles.title'] ?? null)->not->toBeEmpty();
+
+    $this->putJson('/api/v1/admin/i18n/translations', [
+        'key' => 'articles.title',
+        'locale' => 'en',
+        'value' => 'Stories from panel',
+    ])->assertOk();
+
+    Translation::query()
+        ->whereHas('key', fn ($query) => $query->where('key', 'i18n.panel.subtitle'))
+        ->whereHas('language', fn ($query) => $query->where('code', 'en'))
+        ->delete();
+
+    $this->postJson('/api/v1/admin/i18n/import', [
+        'locale' => 'en',
+        'overwrite' => false,
+        'translations' => [
+            'articles.title' => 'Imported title',
+            'i18n.panel.subtitle' => 'Imported subtitle',
+        ],
+    ])
+        ->assertOk()
+        ->assertJsonPath('data.imported', 1);
+
+    $this->getJson('/api/v1/i18n/en.json')
+        ->assertOk()
+        ->assertJsonPath('data.translations.articles.title', 'Stories from panel')
+        ->assertJsonPath('data.translations.i18n.panel.subtitle', 'Imported subtitle');
+
+    $this->postJson('/api/v1/admin/i18n/import', [
+        'locale' => 'en',
+        'overwrite' => true,
+        'translations' => [
+            'articles.title' => 'Imported title',
+        ],
+    ])->assertOk();
+
+    $this->getJson('/api/v1/i18n/en.json')
+        ->assertOk()
+        ->assertJsonPath('data.translations.articles.title', 'Imported title');
+});
+
+it('lets an admin create keys during import and deactivate a language', function () {
+    $admin = i18nAdminUser();
+    Sanctum::actingAs($admin);
+
+    $this->postJson('/api/v1/admin/i18n/import', [
+        'locale' => 'en',
+        'create_keys' => true,
+        'translations' => [
+            'common.export_import_label' => 'Export and import',
+        ],
+    ])
+        ->assertOk()
+        ->assertJsonPath('data.created_keys', 1)
+        ->assertJsonPath('data.imported', 1);
+
+    $this->getJson('/api/v1/i18n/en.json')
+        ->assertOk()
+        ->assertJsonPath('data.translations.common.export_import_label', 'Export and import');
+
+    $english = Language::query()->where('code', 'en')->firstOrFail();
+
+    $this->patchJson("/api/v1/admin/i18n/languages/{$english->id}", [
+        'is_active' => false,
+    ])->assertOk()
+        ->assertJsonPath('data.language.is_active', false);
+
+    $this->getJson('/api/v1/i18n/en.json')->assertNotFound();
 });
 
 it('forbids audience users from the translation panel', function () {

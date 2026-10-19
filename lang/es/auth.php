@@ -1,0 +1,33 @@
+<?php
+
+return array_merge(
+    require __DIR__.'/auth_ui.php',
+    [
+        'invalid_credentials' => 'Credenciales no válidas.',
+        'logged_out' => 'Has cerrado sesión correctamente.',
+        'too_many_attempts' => 'Demasiados intentos. Vuelve a intentarlo más tarde.',
+        'forgot_password_sent' => 'Si el email existe, recibirás instrucciones para restablecer tu contraseña.',
+        'password_reset_success' => 'Contraseña restablecida correctamente.',
+        'email_verified' => 'Email verificado correctamente.',
+        'invalid_verification_link' => 'El enlace de verificación no es válido o ha caducado.',
+        'user_not_found' => 'Usuario no encontrado.',
+        'email_not_verified' => 'Debes verificar tu email antes de continuar.',
+        'verification_link_sent' => 'Enlace de verificación enviado correctamente.',
+        'verification_mail_subject' => 'Verifica tu dirección de email',
+        'verification_mail_greeting' => 'Hola :name,',
+        'verification_mail_title' => 'Bienvenido a Slam In',
+        'verification_mail_body' => 'Verifica tu dirección de email para completar el registro y empezar a usar todas las funciones de Slam In.',
+        'verification_mail_button' => 'Verificar dirección de email',
+        'verification_mail_expiry' => 'Este enlace es válido durante 60 minutos.',
+        'verification_mail_ignore' => 'Si no has creado esta cuenta, puedes ignorar este email.',
+        'verification_mail_footer' => 'Este email lo ha enviado automáticamente Slam In.',
+        'smtp_not_enabled' => 'La configuración SMTP no está activada.',
+        'smtp_test_subject' => 'Prueba de email de Slam In',
+        'smtp_test_body' => 'La configuración SMTP de Slam In funciona correctamente.',
+        'smtp_test_sent' => 'Email de prueba enviado.',
+        'smtp_test_failed' => 'El envío ha fallado: :message',
+        'invalid_account_type' => 'Tu cuenta no tiene permiso para realizar esta acción.',
+        'insufficient_role' => 'No tienes los permisos necesarios para realizar esta acción.',
+        'unauthenticated' => 'No autenticado.',
+    ],
+);

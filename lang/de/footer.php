@@ -1,0 +1,27 @@
+<?php
+
+return [
+    'tagline' => 'Teile, entdecke und erlebe Poesie.',
+    'discover_title' => 'Entdecken',
+    'discover_events' => 'Events',
+    'discover_poems' => 'Gedichte',
+    'discover_news' => 'News',
+    'discover_jobs' => 'Gigs',
+    'discover_media' => 'Medien',
+    'community_title' => 'Community',
+    'community_faq' => 'FAQ',
+    'community_help' => 'Hilfe',
+    'community_support' => 'Support',
+    'community_contact' => 'Kontakt',
+    'community_tutorial' => 'Tutorials',
+    'info_title' => 'Info',
+    'info_about' => 'Über uns',
+    'info_terms' => 'Nutzungsbedingungen',
+    'info_privacy' => 'Datenschutzerklärung',
+    'info_cookies' => 'Cookie-Hinweis',
+    'newsletter_title' => 'Newsletter',
+    'newsletter_description' => 'Erhalte wichtige Mitteilungen der Plattform – wir versichern dir, dass wir nicht mehr als eine E-Mail pro Woche senden!',
+    'newsletter_cta' => 'Newsletter abonnieren',
+    'license_text' => 'Alle Inhalte auf dieser Website stehen unter der',
+    'license_name' => 'CC BY-NC-SA 4.0',
+];

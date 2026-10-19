@@ -1,0 +1,27 @@
+<?php
+
+return [
+    'tagline' => 'Partage, découvre et vis des expériences à travers la poésie.',
+    'discover_title' => 'Découvrir',
+    'discover_events' => 'Événements',
+    'discover_poems' => 'Poèmes',
+    'discover_news' => 'Actualités',
+    'discover_jobs' => 'Opportunités',
+    'discover_media' => 'Médias',
+    'community_title' => 'Communauté',
+    'community_faq' => 'FAQ',
+    'community_help' => 'Aide',
+    'community_support' => 'Support',
+    'community_contact' => 'Contact',
+    'community_tutorial' => 'Tutoriels',
+    'info_title' => 'Infos',
+    'info_about' => 'À propos',
+    'info_terms' => 'Conditions d’utilisation',
+    'info_privacy' => 'Politique de confidentialité',
+    'info_cookies' => 'Avis cookies',
+    'newsletter_title' => 'Newsletter',
+    'newsletter_description' => 'Reçois les communications importantes de la plateforme : on t’assure qu’on n’enverra pas plus d’un email par semaine !',
+    'newsletter_cta' => 'S’inscrire à la newsletter',
+    'license_text' => 'Tous les contenus de ce site sont publiés sous licence',
+    'license_name' => 'CC BY-NC-SA 4.0',
+];

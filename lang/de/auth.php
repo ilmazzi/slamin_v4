@@ -1,0 +1,33 @@
+<?php
+
+return array_merge(
+    require __DIR__.'/auth_ui.php',
+    [
+        'invalid_credentials' => 'Ungültige Zugangsdaten.',
+        'logged_out' => 'Erfolgreich abgemeldet.',
+        'too_many_attempts' => 'Zu viele Versuche. Bitte versuche es später erneut.',
+        'forgot_password_sent' => 'Falls die E-Mail existiert, erhältst du Anweisungen zum Zurücksetzen deines Passworts.',
+        'password_reset_success' => 'Passwort erfolgreich zurückgesetzt.',
+        'email_verified' => 'E-Mail erfolgreich bestätigt.',
+        'invalid_verification_link' => 'Der Bestätigungslink ist ungültig oder abgelaufen.',
+        'user_not_found' => 'Benutzer nicht gefunden.',
+        'email_not_verified' => 'Du musst deine E-Mail bestätigen, bevor du fortfahren kannst.',
+        'verification_link_sent' => 'Bestätigungslink erfolgreich gesendet.',
+        'verification_mail_subject' => 'Bestätige deine E-Mail-Adresse',
+        'verification_mail_greeting' => 'Hallo :name,',
+        'verification_mail_title' => 'Willkommen bei Slam In',
+        'verification_mail_body' => 'Bestätige deine E-Mail-Adresse, um deine Registrierung abzuschließen und alle Funktionen von Slam In zu nutzen.',
+        'verification_mail_button' => 'E-Mail-Adresse bestätigen',
+        'verification_mail_expiry' => 'Dieser Link ist 60 Minuten gültig.',
+        'verification_mail_ignore' => 'Wenn du dieses Konto nicht erstellt hast, kannst du diese E-Mail ignorieren.',
+        'verification_mail_footer' => 'Diese E-Mail wurde automatisch von Slam In gesendet.',
+        'smtp_not_enabled' => 'Die SMTP-Konfiguration ist nicht aktiviert.',
+        'smtp_test_subject' => 'Slam In E-Mail-Test',
+        'smtp_test_body' => 'Die SMTP-Konfiguration von Slam In funktioniert korrekt.',
+        'smtp_test_sent' => 'Test-E-Mail gesendet.',
+        'smtp_test_failed' => 'Zustellung fehlgeschlagen: :message',
+        'invalid_account_type' => 'Dein Konto hat keine Berechtigung für diese Aktion.',
+        'insufficient_role' => 'Du hast nicht die erforderlichen Berechtigungen für diese Aktion.',
+        'unauthenticated' => 'Nicht angemeldet.',
+    ],
+);

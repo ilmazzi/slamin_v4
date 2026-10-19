@@ -40,12 +40,77 @@
 }
 
 .toolbar,
-.newLanguage {
+.newLanguage,
+.transfer {
   display: flex;
   flex-wrap: wrap;
   gap: 12px;
   align-items: end;
   margin-bottom: 20px;
+}
+
+.card,
+.transfer {
+  padding: 16px;
+  border: 1px solid var(--color-border);
+  border-radius: 16px;
+}
+
+.card {
+  margin-bottom: 20px;
+}
+
+.card h2 {
+  margin: 0 0 12px;
+}
+
+.languageList {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.languageRow {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: center;
+  flex-wrap: wrap;
+  padding: 10px 12px;
+  border: 1px solid var(--color-border);
+  border-radius: 14px;
+}
+
+.languageRow strong {
+  display: block;
+}
+
+.languageRow span {
+  color: var(--color-text-muted);
+  font-size: 13px;
+}
+
+.languageActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.badge {
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: #f2f2f2;
+  font-size: 13px;
+}
+
+.fileField {
+  display: grid;
+  gap: 6px;
+  font-size: 13px;
+  color: var(--color-text-muted);
 }
 
 .field,
@@ -99,6 +164,8 @@
 }
 
 .newLanguage button,
+.transfer button,
+.languageActions button,
 .table button,
 .pagination button {
   border: 0;
