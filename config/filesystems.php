@@ -60,6 +60,20 @@ return [
             'report' => false,
         ],
 
+        'backups' => [
+            'driver' => 's3',
+            'key' => env('BACKUP_ACCESS_KEY_ID'),
+            'secret' => env('BACKUP_SECRET_ACCESS_KEY'),
+            'region' => env('BACKUP_REGION', 'auto'),
+            'bucket' => env('BACKUP_BUCKET'),
+            'endpoint' => env('BACKUP_ENDPOINT'),
+            'use_path_style_endpoint' => env('BACKUP_USE_PATH_STYLE_ENDPOINT', true),
+            'root' => env('BACKUP_ROOT', 'slamin'),
+            'visibility' => 'private',
+            'throw' => true,
+            'report' => false,
+        ],
+
     ],
 
     /*

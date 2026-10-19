@@ -95,6 +95,35 @@ export async function updateAdminUser(userId, payload, { token, signal } = {}) {
   return data?.user ?? null
 }
 
+export async function listAdminBackups({ token, signal } = {}) {
+  const { data } = await authApiGet('/api/v1/admin/backups', {
+    token,
+    signal,
+    fallbackMessage: 'Unable to load backups',
+  })
+
+  return data ?? {
+    configured: false,
+    reachable: false,
+    healthy: false,
+    disk: 'backups',
+    used_bytes: 0,
+    newest_at: null,
+    error: null,
+    backups: [],
+  }
+}
+
+export async function runAdminBackup({ token, signal } = {}) {
+  const { data } = await authApiPost('/api/v1/admin/backups', {}, {
+    token,
+    signal,
+    fallbackMessage: 'Unable to start backup',
+  })
+
+  return data ?? { queued: true }
+}
+
 export async function deleteAdminUser(userId, { token, signal } = {}) {
   await authApiDelete(`/api/v1/admin/users/${encodeURIComponent(userId)}`, {
     token,

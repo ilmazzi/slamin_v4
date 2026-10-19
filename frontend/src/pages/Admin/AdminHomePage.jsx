@@ -89,6 +89,13 @@ export default function AdminHomePage() {
       description: t('admin.hub.featured_articles_description'),
       ready: true,
     } : null,
+    canManageSettings ? {
+      id: 'backups',
+      href: '/admin/backups',
+      title: t('admin.hub.backups_title'),
+      description: t('admin.hub.backups_description'),
+      ready: true,
+    } : null,
   ].filter(Boolean)
 
   return (

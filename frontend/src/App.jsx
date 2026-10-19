@@ -60,6 +60,7 @@ const GroupCategoriesAdminPage = lazy(() => import('./pages/Admin/GroupCategorie
 const AdminEmailTestsPage = lazy(() => import('./pages/Admin/AdminEmailTestsPage.jsx'))
 const AdminNewsletterPage = lazy(() => import('./pages/Admin/AdminNewsletterPage.jsx'))
 const FeaturedArticlesAdminPage = lazy(() => import('./pages/Admin/FeaturedArticlesAdminPage.jsx'))
+const BackupsAdminPage = lazy(() => import('./pages/Admin/BackupsAdminPage.jsx'))
 const NewsletterPage = lazy(() => import('./pages/Newsletter/NewsletterPage.jsx'))
 const HelpPage = lazy(() => import('./pages/Help/HelpPage.jsx'))
 const TermsPage = lazy(() => import('./pages/Legal/TermsPage.jsx'))
@@ -500,6 +501,14 @@ export default function App() {
             element={
               <ProtectedRoute roles={['admin']}>
                 <FeaturedArticlesAdminPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/backups"
+            element={
+              <ProtectedRoute roles={['admin']}>
+                <BackupsAdminPage />
               </ProtectedRoute>
             }
           />

@@ -35,4 +35,5 @@ Route::prefix('v1')->group(function (): void {
     require __DIR__.'/api/v1/support.php';
     require __DIR__.'/api/v1/newsletter.php';
     require __DIR__.'/api/v1/admin-settings.php';
+    require __DIR__.'/api/v1/backups.php';
 });

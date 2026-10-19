@@ -19,3 +19,21 @@ Schedule::command('notifications:send-weekly-digest')
     ->timezone('Europe/Rome')
     ->withoutOverlapping()
     ->onOneServer();
+
+Schedule::command('backup:clean')
+    ->dailyAt('01:00')
+    ->timezone('Europe/Rome')
+    ->withoutOverlapping()
+    ->onOneServer();
+
+Schedule::command('backup:run')
+    ->dailyAt('01:20')
+    ->timezone('Europe/Rome')
+    ->withoutOverlapping(180)
+    ->onOneServer();
+
+Schedule::command('backup:monitor')
+    ->dailyAt('03:00')
+    ->timezone('Europe/Rome')
+    ->withoutOverlapping()
+    ->onOneServer();
