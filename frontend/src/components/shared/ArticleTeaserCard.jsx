@@ -24,27 +24,42 @@ function buildArticleMetrics(article) {
   }
 }
 
-export default function ArticleTeaserCard({ article, locale, t, compact = false }) {
+export default function ArticleTeaserCard({ article, locale, t, compact = false, variant = 'default' }) {
   const readingMinutes = estimateReadingMinutes(article)
   const publishedDate = formatShortPublishedDate(article?.published_at, locale, '-')
   const authorName = article?.author?.nickname ?? article?.author?.display_name ?? t('articles.all.no_author')
   const excerpt = article?.excerpt ?? t('articles.all.no_excerpt')
   const metrics = buildArticleMetrics(article)
   const detailId = article?.slug ?? article?.id
+  const isSlider = variant === 'slider'
+  const coverUrl = article?.cover_image_url || ''
+  const desktopClassName = [
+    styles.desktopCard,
+    compact ? styles.compact : '',
+    isSlider ? styles.sliderCard : '',
+  ].filter(Boolean).join(' ')
+  const mobileClassName = [
+    styles.mobileCard,
+    isSlider ? styles.sliderMobileCard : '',
+  ].filter(Boolean).join(' ')
 
   return (
     <>
-      <article className={compact ? `${styles.desktopCard} ${styles.compact}` : styles.desktopCard}>
+      <article className={desktopClassName}>
         <div
-          className={styles.cover}
+          className={isSlider ? styles.sliderCover : styles.cover}
           style={
-            article?.cover_image_url
+            !isSlider && coverUrl
               ? {
-                  backgroundImage: `url("${article.cover_image_url}")`,
+                  backgroundImage: `url("${coverUrl}")`,
                 }
               : undefined
           }
-        />
+        >
+          {isSlider && coverUrl ? (
+            <img src={coverUrl} alt="" className={styles.sliderCoverImage} />
+          ) : null}
+        </div>
 
         <div className={styles.content}>
           <div className={styles.top}>
@@ -100,17 +115,21 @@ export default function ArticleTeaserCard({ article, locale, t, compact = false 
         </aside>
       </article>
 
-      <article className={styles.mobileCard}>
+      <article className={mobileClassName}>
         <div
-          className={styles.mobileCover}
+          className={isSlider ? styles.sliderMobileCover : styles.mobileCover}
           style={
-            article?.cover_image_url
+            !isSlider && coverUrl
               ? {
-                  backgroundImage: `url("${article.cover_image_url}")`,
+                  backgroundImage: `url("${coverUrl}")`,
                 }
               : undefined
           }
-        />
+        >
+          {isSlider && coverUrl ? (
+            <img src={coverUrl} alt="" className={styles.sliderCoverImage} />
+          ) : null}
+        </div>
 
         <div className={styles.mobileContent}>
           <div className={styles.mobileTop}>

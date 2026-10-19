@@ -80,7 +80,7 @@ export default function HomeFeaturedArticles() {
                 className={styles.slide}
                 style={{ width: `${100 / articles.length}%` }}
               >
-                <ArticleTeaserCard article={article} locale={locale} t={t} />
+                <ArticleTeaserCard article={article} locale={locale} t={t} variant="slider" />
               </div>
             ))}
           </div>
