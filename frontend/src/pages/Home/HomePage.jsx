@@ -37,6 +37,11 @@ export function HomePage({ variant = 'guest', user = null }) {
     title: t(`home.content_cards.${card.key}`),
   }))
 
+  const statsLabel = (id, fallback) => {
+    const translated = t(`home.stats.${id}`)
+    return translated !== `home.stats.${id}` ? translated : (fallback || translated)
+  }
+
   const stats = Array.isArray(communityStatsSection?.cards) && communityStatsSection.cards.length
     ? communityStatsSection.cards.map((card) => ({
         id: card.id,
@@ -44,13 +49,13 @@ export function HomePage({ variant = 'guest', user = null }) {
           typeof card.value === 'number'
             ? formatLocaleNumber(card.value, locale)
             : String(card.value ?? 0),
-        label: card.label,
+        label: statsLabel(card.id, card.label),
       }))
     : [
-        { id: 'views', value: '0', label: t('home.stats.views') },
-        { id: 'poets', value: '0', label: t('home.stats.poets') },
-        { id: 'events', value: '0', label: t('home.stats.events') },
-        { id: 'videos', value: '0', label: t('home.stats.videos') },
+        { id: 'views', value: '0', label: statsLabel('views') },
+        { id: 'poets', value: '0', label: statsLabel('poets') },
+        { id: 'events', value: '0', label: statsLabel('events') },
+        { id: 'videos', value: '0', label: statsLabel('videos') },
       ]
 
   useEffect(() => {
@@ -180,8 +185,8 @@ export function HomePage({ variant = 'guest', user = null }) {
         />
 
         <HomeStats
-          accent={communityStatsSection?.title || t('home.stats.title')}
-          subtitle={communityStatsSection?.subtitle || t('home.stats.subtitle')}
+          accent={t('home.stats.title')}
+          subtitle={t('home.stats.subtitle')}
           stats={stats}
         />
 

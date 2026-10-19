@@ -59,7 +59,7 @@ return [
         'title' => 'Die Community in Zahlen',
         'subtitle' => 'Unser Wachstum geht weiter',
         'views' => 'Aufrufe',
-        'poets' => 'Poets',
+        'poets' => 'Poeten',
         'events' => 'Events',
         'videos' => 'Videos',
     ],

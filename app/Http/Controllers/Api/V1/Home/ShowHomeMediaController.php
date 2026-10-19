@@ -4,6 +4,8 @@ namespace App\Http\Controllers\Api\V1\Home;
 
 use App\Http\Controllers\Controller;
 use App\Support\Responses\ApiResponse;
+use Domain\I18n\Actions\ResolveDefaultLocaleAction;
+use Domain\I18n\Actions\ResolveSupportedLocalesAction;
 use Domain\Media\Actions\ListMediaAction;
 use Domain\Media\DTOs\ListMediaData;
 use Domain\Media\Enums\MediaType;
@@ -15,6 +17,8 @@ class ShowHomeMediaController extends Controller
 {
     public function __construct(
         private readonly ListMediaAction $action,
+        private readonly ResolveSupportedLocalesAction $supportedLocales,
+        private readonly ResolveDefaultLocaleAction $defaultLocale,
     ) {}
 
     public function __invoke(Request $request): JsonResponse
@@ -80,12 +84,19 @@ class ShowHomeMediaController extends Controller
 
     private function resolveLocale(Request $request): string
     {
+        $supported = $this->supportedLocales->execute();
+        $default = $this->defaultLocale->execute();
         $raw = strtolower(trim((string) $request->query('locale', '')));
-        if ($raw === '') {
-            return 'it';
+
+        if ($raw !== '' && in_array($raw, $supported, true)) {
+            return $raw;
         }
 
-        // Keep it strict: the API currently ships translations only for these locales.
-        return in_array($raw, ['it', 'en'], true) ? $raw : 'it';
+        $current = app()->getLocale();
+        if (in_array($current, $supported, true)) {
+            return $current;
+        }
+
+        return $default;
     }
 }

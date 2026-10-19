@@ -8,6 +8,8 @@ use Domain\Article\Enums\ArticleStatus;
 use Domain\Article\Models\Article;
 use Domain\Event\Enums\EventStatus;
 use Domain\Event\Models\Event;
+use Domain\I18n\Actions\ResolveDefaultLocaleAction;
+use Domain\I18n\Actions\ResolveSupportedLocalesAction;
 use Domain\Media\Enums\MediaStatus;
 use Domain\Media\Enums\MediaType;
 use Domain\Media\Enums\MediaVisibility;
@@ -21,6 +23,11 @@ use Illuminate\Http\Request;
 
 class ShowHomeStatsController extends Controller
 {
+    public function __construct(
+        private readonly ResolveSupportedLocalesAction $supportedLocales,
+        private readonly ResolveDefaultLocaleAction $defaultLocale,
+    ) {}
+
     public function __invoke(Request $request): JsonResponse
     {
         $locale = $this->resolveLocale($request);
@@ -93,11 +100,19 @@ class ShowHomeStatsController extends Controller
 
     private function resolveLocale(Request $request): string
     {
+        $supported = $this->supportedLocales->execute();
+        $default = $this->defaultLocale->execute();
         $raw = strtolower(trim((string) $request->query('locale', '')));
-        if ($raw === '') {
-            return 'it';
+
+        if ($raw !== '' && in_array($raw, $supported, true)) {
+            return $raw;
         }
 
-        return in_array($raw, ['it', 'en'], true) ? $raw : 'it';
+        $current = app()->getLocale();
+        if (in_array($current, $supported, true)) {
+            return $current;
+        }
+
+        return $default;
     }
 }
