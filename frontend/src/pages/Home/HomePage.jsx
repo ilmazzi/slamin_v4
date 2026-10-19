@@ -24,6 +24,7 @@ import { useI18n } from '../../app/hooks/useI18n.js'
 import styles from './HomePage.module.css'
 
 const HomeUpcomingEvents = lazy(() => import('../../components/home/HomeUpcomingEvents.jsx'))
+const HomeFeaturedArticles = lazy(() => import('../../components/home/HomeFeaturedArticles.jsx'))
 
 export function HomePage({ variant = 'guest', user = null }) {
   const { t, locale } = useI18n()
@@ -145,6 +146,10 @@ export function HomePage({ variant = 'guest', user = null }) {
           cards={cards}
           ctaLabel={t('home.content_cards.discover_more')}
         />
+
+        <Suspense fallback={null}>
+          <HomeFeaturedArticles />
+        </Suspense>
 
         <Suspense fallback={null}>
           <HomeUpcomingEvents />

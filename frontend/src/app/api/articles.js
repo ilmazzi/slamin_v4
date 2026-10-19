@@ -1,4 +1,4 @@
-import { apiGet, authApiDelete, authApiGet, authApiPatch, authApiPost } from './client.js'
+import { apiGet, authApiDelete, authApiGet, authApiPatch, authApiPost, authApiPut } from './client.js'
 
 function buildArticlePayload(article) {
   const coverImage = article?.cover_image
@@ -78,6 +78,51 @@ export async function listFeaturedArticles({ page = 1, perPage = 3 } = {}, { sig
   const { data, meta } = await apiGet(`/api/v1/featured-articles?${params.toString()}`, { signal })
   const items = Array.isArray(data) ? data : []
   return { items, meta }
+}
+
+export async function adminListFeaturedArticles({ token, signal } = {}) {
+  const { data } = await authApiGet('/api/v1/admin/featured-articles', {
+    token,
+    signal,
+    fallbackMessage: 'Unable to load featured articles',
+  })
+  return Array.isArray(data?.articles) ? data.articles : []
+}
+
+export async function adminSearchArticles(
+  { search = '', page = 1, perPage = 20 } = {},
+  { token, signal } = {},
+) {
+  const params = new URLSearchParams()
+  params.set('page', String(page))
+  params.set('per_page', String(perPage))
+  if (search) {
+    params.set('search', search)
+  }
+
+  const { data, meta } = await authApiGet(`/api/v1/admin/articles?${params.toString()}`, {
+    token,
+    signal,
+    fallbackMessage: 'Unable to load articles',
+  })
+
+  return {
+    items: Array.isArray(data) ? data : [],
+    meta,
+  }
+}
+
+export async function adminSyncFeaturedArticles(articleIds, { token, signal } = {}) {
+  const { data } = await authApiPut(
+    '/api/v1/admin/featured-articles',
+    { article_ids: articleIds },
+    {
+      token,
+      signal,
+      fallbackMessage: 'Unable to save featured articles',
+    },
+  )
+  return Array.isArray(data?.articles) ? data.articles : []
 }
 
 export async function getArticleBySlug(slug, { token, signal } = {}) {

@@ -32,6 +32,12 @@ return [
         'title' => 'upcoming events',
         'subtitle' => 'coming up',
     ],
+    'featured_articles' => [
+        'title' => 'from the newsroom',
+        'subtitle' => 'featured articles',
+        'prev_aria' => 'Previous article',
+        'next_aria' => 'Next article',
+    ],
     'community_media' => [
         'title' => 'videos and photos',
         'subtitle' => 'from the community',

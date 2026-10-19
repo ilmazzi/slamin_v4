@@ -32,6 +32,12 @@ return [
         'title' => 'prossimi eventi',
         'subtitle' => 'in programma',
     ],
+    'featured_articles' => [
+        'title' => 'dalla redazione',
+        'subtitle' => 'articoli in evidenza',
+        'prev_aria' => 'Articolo precedente',
+        'next_aria' => 'Articolo successivo',
+    ],
     'community_media' => [
         'title' => 'video e foto',
         'subtitle' => 'dalla community',

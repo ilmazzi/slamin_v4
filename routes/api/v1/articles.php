@@ -17,6 +17,9 @@ use App\Http\Controllers\Api\V1\Article\RemoveBookmarkArticleController;
 use App\Http\Controllers\Api\V1\Article\ShowArticleController;
 use App\Http\Controllers\Api\V1\Article\ShowArticleTranslationController;
 use App\Http\Controllers\Api\V1\Article\StoreArticleController;
+use App\Http\Controllers\Api\V1\Admin\ListAdminArticlesController;
+use App\Http\Controllers\Api\V1\Admin\ListAdminFeaturedArticlesController;
+use App\Http\Controllers\Api\V1\Admin\SyncFeaturedArticlesController;
 use App\Http\Controllers\Api\V1\Article\UnlikeArticleController;
 use App\Http\Controllers\Api\V1\Article\UpdateArticleController;
 use App\Http\Controllers\Api\V1\Article\UpsertArticleTranslationController;
@@ -61,6 +64,9 @@ Route::middleware([
     Route::get('/article-categories/{articleCategory}', AdminShowArticleCategoryController::class)->name('admin.article-categories.show');
     Route::patch('/article-categories/{articleCategory}', AdminUpdateArticleCategoryController::class)->name('admin.article-categories.update');
     Route::delete('/article-categories/{articleCategory}', AdminDeleteArticleCategoryController::class)->name('admin.article-categories.delete');
+    Route::get('/articles', ListAdminArticlesController::class)->name('admin.articles.index');
+    Route::get('/featured-articles', ListAdminFeaturedArticlesController::class)->name('admin.featured-articles.index');
+    Route::put('/featured-articles', SyncFeaturedArticlesController::class)->name('admin.featured-articles.sync');
 });
 
 Route::get('/articles', ListArticleController::class)->name('articles.index');

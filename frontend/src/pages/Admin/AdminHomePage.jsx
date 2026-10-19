@@ -82,6 +82,13 @@ export default function AdminHomePage() {
       description: t('admin.hub.newsletter_description'),
       ready: true,
     } : null,
+    canManageSettings ? {
+      id: 'featured-articles',
+      href: '/admin/featured-articles',
+      title: t('admin.hub.featured_articles_title'),
+      description: t('admin.hub.featured_articles_description'),
+      ready: true,
+    } : null,
   ].filter(Boolean)
 
   return (

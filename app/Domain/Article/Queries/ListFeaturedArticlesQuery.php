@@ -13,11 +13,12 @@ class ListFeaturedArticlesQuery
     {
         $query = Article::query()
             ->with(['user.profile', 'category.translations'])
-            ->withCount(['likes', 'bookmarks'])
+            ->withCount(['likes', 'bookmarks', 'comments'])
             ->where('status', ArticleStatus::Published)
             ->where('is_public', true)
             ->where('is_featured', true)
-            ->orderBy('featured_rank');
+            ->orderBy('featured_rank')
+            ->orderBy('id');
 
         if ($data->articleCategoryId) {
             $query->where('article_category_id', $data->articleCategoryId);
