@@ -35,6 +35,9 @@ const ArticlePage = lazy(() => import('./pages/Articles/ArticlePage.jsx'))
 const ArticleDetailPage = lazy(() => import('./pages/Articles/ArticleDetailPage.jsx'))
 const ArticleCreate = lazy(() => import('./pages/Articles/ArticleCreate.jsx'))
 const GigPage = lazy(() => import('./pages/Gigs/GigPage.jsx'))
+const GroupsPage = lazy(() => import('./pages/Groups/GroupsPage.jsx'))
+const GroupCreatePage = lazy(() => import('./pages/Groups/GroupCreatePage.jsx'))
+const GroupShowPage = lazy(() => import('./pages/Groups/GroupShowPage.jsx'))
 const GigDetailPage = lazy(() => import('./pages/Gigs/GigDetailPage.jsx'))
 const GigFormPage = lazy(() => import('./pages/Gigs/GigFormPage.jsx'))
 const MyGigsPage = lazy(() => import('./pages/Gigs/MyGigsPage.jsx'))
@@ -53,6 +56,7 @@ const AdminHomePage = lazy(() => import('./pages/Admin/AdminHomePage.jsx'))
 const HelpAdminPage = lazy(() => import('./pages/Admin/HelpAdminPage.jsx'))
 const AdminUsersPage = lazy(() => import('./pages/Admin/AdminUsersPage.jsx'))
 const EventCategoriesAdminPage = lazy(() => import('./pages/Admin/EventCategoriesAdminPage.jsx'))
+const GroupCategoriesAdminPage = lazy(() => import('./pages/Admin/GroupCategoriesAdminPage.jsx'))
 const AdminEmailTestsPage = lazy(() => import('./pages/Admin/AdminEmailTestsPage.jsx'))
 const AdminNewsletterPage = lazy(() => import('./pages/Admin/AdminNewsletterPage.jsx'))
 const NewsletterPage = lazy(() => import('./pages/Newsletter/NewsletterPage.jsx'))
@@ -206,6 +210,38 @@ export default function App() {
           />
           <Route path="/articles/:slug" element={<ArticleDetailPage />} />
           <Route path="/share/articles/:slug" element={<ShareContentRedirect toBase="/articles" />} />
+          <Route
+            path="/groups"
+            element={
+              <ProtectedRoute>
+                <GroupsPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/groups/create"
+            element={
+              <ProtectedRoute accountTypes={['poet_organizer']} redirectTo="/groups">
+                <GroupCreatePage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/groups/:slug/edit"
+            element={
+              <ProtectedRoute>
+                <GroupCreatePage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/groups/:slug"
+            element={
+              <ProtectedRoute>
+                <GroupShowPage />
+              </ProtectedRoute>
+            }
+          />
           <Route
             path="/gigs"
             element={
@@ -431,6 +467,14 @@ export default function App() {
             element={
               <ProtectedRoute roles={['admin']}>
                 <EventCategoriesAdminPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/group-categories"
+            element={
+              <ProtectedRoute roles={['admin']}>
+                <GroupCategoriesAdminPage />
               </ProtectedRoute>
             }
           />

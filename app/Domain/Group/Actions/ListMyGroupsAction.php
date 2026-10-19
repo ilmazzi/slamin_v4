@@ -11,12 +11,13 @@ class ListMyGroupsAction
     {
         return Group::query()
             ->with([
+                'category.translations',
                 'members' => fn ($query) => $query->where('user_id', $userId),
             ])
             ->withCount([
                 'activeMembers as active_members_count',
-                'members as owners_count' => fn ($query) => $query
-                    ->where('role', 'owner')
+                'members as admins_count' => fn ($query) => $query
+                    ->where('role', 'admin')
                     ->where('status', 'active'),
             ])
             ->whereHas('members', fn ($query) => $query

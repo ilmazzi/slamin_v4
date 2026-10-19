@@ -8,6 +8,7 @@ use Domain\Event\Enums\EventStatus;
 use Domain\Event\Models\Event;
 use Domain\Gig\Enums\GigStatus;
 use Domain\Gig\Models\Gig;
+use Domain\Group\Models\Group;
 use Domain\Media\Enums\MediaStatus;
 use Domain\Media\Enums\MediaVisibility;
 use Domain\Media\Models\MediaItem;
@@ -44,6 +45,7 @@ class SearchCatalogAction
 
         if ($viewer !== null && $viewer->hasVerifiedEmail()) {
             $groups[] = $this->group('gigs', '/gigs?q='.rawurlencode($query), $this->searchGigs($term));
+            $groups[] = $this->group('groups', '/groups?q='.rawurlencode($query), $this->searchGroups($query));
         }
 
         return [
@@ -246,6 +248,30 @@ class SearchCatalogAction
     /**
      * @return list<array<string, mixed>>
      */
+    private function searchGroups(string $query): array
+    {
+        return Group::query()
+            ->with('category.translations')
+            ->listed()
+            ->search($query)
+            ->orderBy('name')
+            ->limit(self::LIMIT)
+            ->get()
+            ->map(fn (Group $group): array => $this->hit(
+                type: 'group',
+                id: $group->id,
+                title: (string) $group->name,
+                subtitle: $group->category?->translatedName(),
+                href: $group->slug ? '/groups/'.$group->slug : null,
+                imageUrl: $group->image_path
+                    ? Storage::disk('public')->url($group->image_path)
+                    : null,
+            ))
+            ->filter(fn (array $hit): bool => filled($hit['href']))
+            ->values()
+            ->all();
+    }
+
     private function searchMedia(string $term): array
     {
         return MediaItem::query()

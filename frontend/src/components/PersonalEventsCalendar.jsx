@@ -10,11 +10,20 @@ import { expandEventOccurrencesForCalendar } from '../app/normalizers/event.js'
 
 
 
-export default function PersonalEventsCalendar({ tone = 'default',showVisibilityToggle = true, }) {
+export default function PersonalEventsCalendar({
+  tone = 'default',
+  showVisibilityToggle = true,
+  events: eventsProp,
+  canCreate,
+  titleAccent,
+  titleMiddle,
+  titleTail,
+}) {
 
     const { t, locale } = useI18n()
     const { token, user } = useAuth()
-    const canCreateEvent = user?.account_type === 'poet_organizer'
+    const isControlled = eventsProp !== undefined
+    const canCreateEvent = canCreate ?? (!isControlled && user?.account_type === 'poet_organizer')
 
     const MONTHS = [t('common.months.january'), t('common.months.february'), t('common.months.march'), t('common.months.april'), t('common.months.may'), t('common.months.june'), t('common.months.july'), t('common.months.august'), t('common.months.september'), t('common.months.october'), t('common.months.november'), t('common.months.december')]
 
@@ -55,6 +64,12 @@ export default function PersonalEventsCalendar({ tone = 'default',showVisibility
     const canCreateOn = (dayKey) => canCreateEvent && dayKey >= todayKey
 
     useEffect(() => {
+      if (isControlled) {
+        setEvents(Array.isArray(eventsProp) ? eventsProp : [])
+        setIsLoadingEvents(false)
+        return
+      }
+
       if (!token) {
         setEvents([])
         setSelectedDayKey(null)
@@ -96,7 +111,7 @@ export default function PersonalEventsCalendar({ tone = 'default',showVisibility
       loadCalendarEvents()
 
       return () => controller.abort()
-    }, [token, calendarTick])
+    }, [calendarTick, eventsProp, isControlled, token])
 
     useEffect(() => {
       const handleBookmarkChanged = () => setCalendarTick((value) => value + 1)
@@ -187,13 +202,13 @@ export default function PersonalEventsCalendar({ tone = 'default',showVisibility
 
 
   return (
-    <div className={`${styles.calendarRoot} ${tone === 'event' ? styles.toneEvent : ''}`}>
+    <div className={`${styles.calendarRoot} ${tone === 'event' || tone === 'groups' ? styles.toneEvent : ''}`}>
 
 <section className={styles.calendarHeader}>
 <h2 className={styles.title}>
-  <span className={styles.titleAccent}>{t('dashboard.calendar_title_accent').toLowerCase()}</span>{'  '}
-  <span className={styles.titleMiddle}>{t('dashboard.calendar_title_middle').toLowerCase()}</span>{' '}
-  <span className={styles.titleTail}>{t('dashboard.calendar_title_tail').toLowerCase()}</span>
+  <span className={styles.titleAccent}>{(titleAccent || t('dashboard.calendar_title_accent')).toLowerCase()}</span>{'  '}
+  <span className={styles.titleMiddle}>{(titleMiddle || t('dashboard.calendar_title_middle')).toLowerCase()}</span>{' '}
+  <span className={styles.titleTail}>{(titleTail || t('dashboard.calendar_title_tail')).toLowerCase()}</span>
 </h2>
 
 {showVisibilityToggle ? <button type="button" className={styles.hideButtonDesktop} onClick={() => setIsHidden(prev => !prev)}>

@@ -54,6 +54,7 @@ export default function Header({
 
     if (isAuthenticated) {
       items.splice(2, 0, { id: 'gigs', label: t('common.gigs'), href: '/gigs', tone: 'gigs', emphasized: true })
+      items.splice(3, 0, { id: 'groups', label: t('common.groups'), href: '/groups', tone: 'groups' })
     }
 
     return items

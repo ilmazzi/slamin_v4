@@ -16,6 +16,8 @@ class UpdateGroupAction
                 'name' => $group->name,
                 'description' => $group->description,
                 'visibility' => $group->visibility?->value,
+                'is_listed' => $group->is_listed,
+                'group_category_id' => $group->group_category_id,
             ];
 
             $imagePath = $group->image_path;
@@ -38,6 +40,9 @@ class UpdateGroupAction
                 'description' => $data->description,
                 'image_path' => $imagePath,
                 'visibility' => $data->visibility,
+                'is_listed' => $data->isListed,
+                'auto_accept_events' => $data->autoAcceptEvents,
+                'group_category_id' => $data->groupCategoryId,
                 'website_url' => $data->websiteUrl,
                 'facebook_url' => $data->facebookUrl,
                 'instagram_url' => $data->instagramUrl,
@@ -53,13 +58,15 @@ class UpdateGroupAction
                     'name' => $group->name,
                     'description' => $group->description,
                     'visibility' => $group->visibility?->value,
+                    'is_listed' => $group->is_listed,
+                    'group_category_id' => $group->group_category_id,
                 ],
                 metadata: [
                     'source' => 'group_update',
                 ],
             );
 
-            return $group->fresh(['members.user.profile']);
+            return $group->fresh(['members.user.profile', 'category.translations']);
         });
     }
 }

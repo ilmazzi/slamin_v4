@@ -7,6 +7,7 @@ use Domain\Event\DTOs\StoreEventData;
 use Domain\Event\Enums\EventScheduleMode;
 use Domain\Event\Enums\EventStatus;
 use Domain\Event\Models\Event;
+use Domain\Group\Actions\ProposeEventToGroupsAction;
 use Domain\Shared\Enums\ContentType;
 use Domain\Shared\Enums\PublicationFlow;
 use Illuminate\Support\Facades\DB;
@@ -20,6 +21,7 @@ class StoreEventAction
         private readonly BuildEventInviteNotificationsAction $buildEventInviteNotificationsAction,
         private readonly NotifyEventInvitesAction $notifyEventInvitesAction,
         private readonly SyncEventOccurrencesAction $syncEventOccurrencesAction,
+        private readonly ProposeEventToGroupsAction $proposeEventToGroupsAction,
     ) {}
 
     public function execute(StoreEventData $data): Event
@@ -135,11 +137,7 @@ class StoreEventAction
         }
 
         if ($data->groupIds !== []) {
-            $event->groupLinks()->createMany(
-                collect($data->groupIds)
-                    ->map(fn ($groupId) => ['group_id' => $groupId])
-                    ->all()
-            );
+            $this->proposeEventToGroupsAction->execute($event, $data->groupIds, $data->userId);
         }
 
         if ($data->participantInvites !== []) {
@@ -191,20 +189,7 @@ class StoreEventAction
 
     private function loadFullEvent(Event $event): Event
     {
-        return $event->load([
-            'user.profile',
-            'category.translations',
-            'festival',
-            'occurrences',
-            'recurrence',
-            'availabilityPoll',
-            'availabilityOptions.votes',
-            'venueDetail',
-            'onlineDetail',
-            'groupLinks',
-            'participantInvites.user.profile',
-            'audienceInvites.user.profile',
-        ]);
+        return $event->load(Event::RESOURCE_RELATIONS);
     }
 
     private function resolveTargetStatus(EventStatus $requestedStatus): EventStatus

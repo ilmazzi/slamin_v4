@@ -4,6 +4,7 @@ namespace App\Http\Resources\Api\V1\Chat;
 
 use Domain\Chat\Models\ChatThread;
 use Domain\Chat\Models\ChatThreadMember;
+use Domain\Group\Support\GroupChatAudienceRules;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 use Illuminate\Support\Facades\Storage;
@@ -34,7 +35,11 @@ class ChatThreadResource extends JsonResource
         return [
             'id' => $this->id,
             'type' => $this->type?->value,
-            'title' => $this->title ?? $this->group?->name,
+            'audience' => $this->audience?->value,
+            'is_enabled' => $this->is_enabled,
+            'title' => $this->isAttachedGroup() && $this->audience && $this->group
+                ? GroupChatAudienceRules::title($this->group, $this->audience)
+                : ($this->title ?? $this->group?->name),
             'created_by_user_id' => $this->created_by_user_id,
             'is_group_attached' => $this->group !== null,
             'can_manage_members' => $request->user()?->can('manageMembers', $this->resource) ?? false,

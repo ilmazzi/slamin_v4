@@ -12,7 +12,13 @@ class ListPendingGroupRequestsAction
     {
         return $group->members()
             ->with(['user.profile', 'handledBy.profile'])
-            ->where('status', GroupMemberStatus::Pending)
+            ->where(function ($query) {
+                $query->where('status', GroupMemberStatus::Pending)
+                    ->orWhere(function ($query) {
+                        $query->where('status', GroupMemberStatus::Active)
+                            ->whereIn('requested_role', ['editor', 'admin']);
+                    });
+            })
             ->orderBy('created_at')
             ->get();
     }

@@ -10,9 +10,7 @@ use Domain\Event\Models\Event;
 use Domain\Event\Models\EventCategory;
 use Domain\Gig\Enums\GigStatus;
 use Domain\Gig\Enums\GigType;
-use Domain\Group\Enums\GroupMemberRole;
-use Domain\Group\Enums\GroupMemberStatus;
-use Domain\Group\Models\GroupMember;
+use Domain\Group\Models\Group;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -355,27 +353,23 @@ class StoreEventRequest extends FormRequest
                     ->unique()
                     ->values();
 
-                $manageableGroupIds = $numericGroupIds->isEmpty()
+                $proposabeGroupIds = $numericGroupIds->isEmpty()
                     ? collect()
-                    : GroupMember::query()
-                        ->whereIn('group_id', $numericGroupIds->all())
-                        ->where('user_id', $this->user()->id)
-                        ->where('status', GroupMemberStatus::Active)
-                        ->whereIn('role', [
-                            GroupMemberRole::Owner,
-                            GroupMemberRole::Admin,
-                            GroupMemberRole::Moderator,
-                        ])
-                        ->pluck('group_id')
+                    : Group::query()
+                        ->whereIn('id', $numericGroupIds->all())
+                        ->where('is_active', true)
+                        ->get()
+                        ->filter(fn (Group $group): bool => $group->canReceiveProposalFrom((int) $this->user()->id))
+                        ->pluck('id')
                         ->map(fn ($groupId): int => (int) $groupId);
 
                 $invalidGroupIds = collect($groupIds)
                     ->filter(fn ($groupId): bool => ! is_numeric($groupId)
-                        || ! $manageableGroupIds->contains((int) $groupId))
+                        || ! $proposabeGroupIds->contains((int) $groupId))
                     ->values();
 
                 if ($invalidGroupIds->isNotEmpty()) {
-                    $validator->errors()->add('group_ids', __('event.validation.group_management_required'));
+                    $validator->errors()->add('group_ids', __('event.validation.group_proposal_required'));
                 }
             }
 

@@ -1,0 +1,94 @@
+.field {
+  display: grid;
+  gap: 8px;
+}
+
+.label {
+  font-size: 0.94rem;
+  font-weight: 700;
+}
+
+.combobox {
+  position: relative;
+}
+
+.input {
+  width: 100%;
+  box-sizing: border-box;
+  border: 1px solid rgba(0, 0, 0, 0.18);
+  background: #fff;
+  color: #111;
+  border-radius: 8px;
+  padding: 12px 14px;
+  font: inherit;
+}
+
+.suggestions {
+  position: absolute;
+  z-index: 8;
+  top: calc(100% + 6px);
+  left: 0;
+  width: 100%;
+  overflow: hidden;
+  border: 1px solid #000;
+  border-radius: 12px;
+  background: #fff;
+}
+
+.suggestion {
+  display: flex;
+  width: 100%;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 11px 14px;
+  border: 0;
+  border-bottom: 1px solid rgb(0 0 0 / 0.12);
+  background: #fff;
+  color: #000;
+  text-align: left;
+  cursor: pointer;
+}
+
+.suggestion:last-child {
+  border-bottom: 0;
+}
+
+.suggestion:hover,
+.suggestion:focus-visible {
+  background: #f3f3f3;
+}
+
+.suggestion small,
+.status {
+  color: rgb(0 0 0 / 0.55);
+}
+
+.status {
+  margin: 0;
+  padding: 12px 14px;
+  font-size: 14px;
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.chip {
+  min-height: 36px;
+  padding: 6px 12px;
+  border: 1px solid #000;
+  border-radius: 999px;
+  background: #fff;
+  color: #000;
+  font: inherit;
+  cursor: pointer;
+}
+
+.chip:hover,
+.chip:focus-visible {
+  background: #000;
+  color: #fff;
+}

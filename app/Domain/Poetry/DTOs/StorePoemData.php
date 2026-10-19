@@ -20,6 +20,7 @@ class StorePoemData
         public readonly PoemStatus $status,
         public readonly bool $isPublic,
         public readonly ?string $publishedAt,
+        public readonly array $groupIds,
     ) {
     }
 
@@ -39,6 +40,7 @@ class StorePoemData
                 : PoemStatus::Draft,
             isPublic: (bool) $request->validated('is_public', true),
             publishedAt: $request->validated('published_at'),
+            groupIds: $request->validated('group_ids', []) ?? [],
         );
     }
 }

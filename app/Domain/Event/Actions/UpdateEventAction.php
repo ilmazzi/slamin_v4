@@ -8,6 +8,7 @@ use Domain\Event\Enums\EventScheduleMode;
 use Domain\Event\Enums\EventStatus;
 use Domain\Event\Models\Event;
 use Domain\Event\Models\EventCategory;
+use Domain\Group\Actions\ProposeEventToGroupsAction;
 use Domain\Shared\Enums\ContentType;
 use Domain\Shared\Enums\PublicationFlow;
 use Illuminate\Support\Facades\DB;
@@ -23,6 +24,7 @@ class UpdateEventAction
         private readonly NotifyEventInvitesAction $notifyEventInvitesAction,
         private readonly NotifyEventUpdatedAction $notifyEventUpdatedAction,
         private readonly SyncEventOccurrencesAction $syncEventOccurrencesAction,
+        private readonly ProposeEventToGroupsAction $proposeEventToGroupsAction,
     ) {}
 
     public function execute(Event $event, UpdateEventData $data): Event
@@ -232,10 +234,8 @@ class UpdateEventAction
             $event->onlineDetail()->create($data->online);
         }
 
-        if ($data->groupIds !== []) {
-            $event->groupLinks()->createMany(
-                collect($data->groupIds)->map(fn ($groupId) => ['group_id' => $groupId])->all()
-            );
+        if ($data->syncGroupLinks) {
+            $this->proposeEventToGroupsAction->execute($event, $data->groupIds, $data->userId);
         }
 
         if ($data->participantInvites !== []) {

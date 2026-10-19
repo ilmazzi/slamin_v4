@@ -8,12 +8,17 @@ use Domain\ContentTranslation\Concerns\HasContentTranslations;
 use Domain\ContentTranslation\Contracts\TranslatableContent;
 use Domain\Engagement\Models\Bookmark;
 use Domain\Engagement\Models\Like;
+use Domain\Group\Enums\GroupContentType;
+use Domain\Group\Models\Group;
+use Domain\Group\Models\GroupContentLink;
 use Domain\Moderation\Models\ModerationDecision;
 use Domain\Report\Models\Report;
 use Domain\User\Models\User;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
@@ -92,5 +97,19 @@ class Article extends Model implements TranslatableContent
     public function reports(): MorphMany
     {
         return $this->morphMany(Report::class, 'reportable');
+    }
+
+    public function groupLinks(): HasMany
+    {
+        return $this->hasMany(GroupContentLink::class, 'content_id')
+            ->where('content_type', GroupContentType::Article);
+    }
+
+    public function groups(): BelongsToMany
+    {
+        return $this->belongsToMany(Group::class, 'group_content_links', 'content_id', 'group_id')
+            ->where('group_content_links.content_type', GroupContentType::Article->value)
+            ->where('group_content_links.status', 'accepted')
+            ->withTimestamps();
     }
 }

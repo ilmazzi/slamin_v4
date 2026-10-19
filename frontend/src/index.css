@@ -7,6 +7,7 @@
   --color-red: #e30613;
   --color-event: #84dab4;
   --color-gigs: #fdae5f;
+  --color-groups: #287FA8;
   --color-poems: #a553dd;
   --color-articles: #6574de;
   --color-forum: #f5e6be;
@@ -207,6 +208,10 @@ a {
   color: #fdae5f;
 }
 
+.textGroups {
+  color: #F27483;
+}
+
 .textPoems {
   color: #a553dd;
 }
@@ -259,6 +264,10 @@ a {
   background: #fdae5f;
 }
 
+.bgGroups {
+  background: #F27483;
+}
+
 .bgPoems {
   background: #a553dd;
 }
@@ -297,6 +306,10 @@ a {
 
 .borderGigs {
   border-color: #fdae5f;
+}
+
+.borderGroups {
+  border-color: #F27483;
 }
 
 .borderPoems {

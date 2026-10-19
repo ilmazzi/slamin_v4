@@ -18,7 +18,7 @@ class RequestToJoinGroupController extends Controller
 
     public function __invoke(Group $group): JsonResponse
     {
-        $this->authorize('requestJoin', $group);
+        $this->authorize('follow', $group);
 
         $membership = $this->action->execute($group, (int) request()->user()->id);
 

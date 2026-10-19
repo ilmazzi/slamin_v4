@@ -3,6 +3,8 @@
 namespace Domain\Poetry\Actions;
 
 use Domain\Admin\Actions\ResolveContentPublicationFlowAction;
+use Domain\Group\Actions\ProposeContentToGroupsAction;
+use Domain\Group\Enums\GroupContentType;
 use Domain\Poetry\DTOs\UpdatePoemData;
 use Domain\Poetry\Enums\PoemStatus;
 use Domain\Poetry\Models\Poem;
@@ -16,6 +18,7 @@ class UpdatePoemAction
     public function __construct(
         private readonly ResolveContentPublicationFlowAction $resolveContentPublicationFlowAction,
         private readonly RichTextSanitizer $richTextSanitizer,
+        private readonly ProposeContentToGroupsAction $proposeContentToGroupsAction,
     ) {}
 
     public function execute(Poem $poem, UpdatePoemData $data): Poem
@@ -95,7 +98,23 @@ class UpdatePoemAction
             ],
         );
 
-        return $poem->fresh(['user.profile', 'category.translations', 'type.translations']);
+        if ($data->syncGroupLinks) {
+            $this->proposeContentToGroupsAction->execute(
+                GroupContentType::Poem,
+                $poem->id,
+                $poem->title,
+                $poem->slug,
+                $data->groupIds,
+                $data->userId,
+            );
+        }
+
+        return $poem->fresh([
+            'user.profile',
+            'category.translations',
+            'type.translations',
+            'groupLinks.group.category.translations',
+        ]);
     }
 
     private function resolveTargetStatus(PoemStatus $requestedStatus): PoemStatus

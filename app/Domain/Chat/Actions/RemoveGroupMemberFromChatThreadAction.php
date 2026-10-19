@@ -7,18 +7,19 @@ use Domain\Group\Models\Group;
 
 class RemoveGroupMemberFromChatThreadAction
 {
+    public function __construct(
+        private readonly SyncGroupChatMembersAction $syncGroupChatMembersAction,
+    ) {}
+
     public function execute(Group $group, int $userId): void
     {
-        $thread = ChatThread::query()
+        ChatThread::query()
             ->where('group_id', $group->id)
-            ->first();
+            ->get()
+            ->each(function (ChatThread $thread) use ($userId) {
+                $thread->memberRecords()->where('user_id', $userId)->delete();
+            });
 
-        if (! $thread) {
-            return;
-        }
-
-        $thread->memberRecords()
-            ->where('user_id', $userId)
-            ->delete();
+        $this->syncGroupChatMembersAction->execute($group);
     }
 }

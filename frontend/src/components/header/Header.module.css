@@ -380,6 +380,10 @@ overflow: hidden;
   color: var(--color-articles);
 }
 
+.authMenuLink[data-tone='groups']:hover {
+  color: var(--color-groups);
+}
+
 .authMenuLink[data-tone='media']:hover {
   color: var(--color-black);
 }
@@ -530,6 +534,10 @@ overflow: hidden;
 
 .menuArrowLinkDiscover[data-tone='gigs']:hover {
   color: var(--color-gigs);
+}
+
+.menuArrowLinkDiscover[data-tone='groups']:hover {
+  color: var(--color-groups);
 }
 
 .menuArrowLinkDiscover[data-tone='poems']:hover {

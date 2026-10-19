@@ -30,7 +30,10 @@ export function mapEventToFormValues(event) {
   const options = Array.isArray(event?.availability_options) ? event.availability_options : []
   const invites = Array.isArray(event?.participant_invites) ? event.participant_invites : []
   const audienceInvites = Array.isArray(event?.audience_invites) ? event.audience_invites : []
-  const groupIds = Array.isArray(event?.group_ids) ? event.group_ids : []
+  const groupAffiliations = Array.isArray(event?.group_affiliations) ? event.group_affiliations : []
+  const selectedGroups = groupAffiliations
+    .filter((item) => item?.group && !['rejected', 'removed'].includes(item.status))
+    .map((item) => item.group)
   const status = event?.status === 'draft' || event?.status === 'rejected' ? 'draft' : 'published'
 
   return {
@@ -88,7 +91,7 @@ export function mapEventToFormValues(event) {
       meeting_url: online?.meeting_url ?? '',
       timezone: online?.timezone || occurrence?.timezone || 'Europe/Rome',
     },
-    group_ids_text: groupIds.filter(Boolean).join(', '),
+    selectedGroups,
     audience_invites: audienceInvites.map((invite) => ({
       invite_type: invite?.invite_type || (invite?.user_id ? 'internal' : 'external'),
       user_id: invite?.user_id ? Number(invite.user_id) : null,

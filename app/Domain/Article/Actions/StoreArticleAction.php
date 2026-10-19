@@ -4,6 +4,8 @@ namespace Domain\Article\Actions;
 
 use Domain\Admin\Actions\ResolveContentPublicationFlowAction;
 use Domain\Article\DTOs\StoreArticleData;
+use Domain\Group\Actions\ProposeContentToGroupsAction;
+use Domain\Group\Enums\GroupContentType;
 use Domain\Article\Enums\ArticleStatus;
 use Domain\Article\Models\Article;
 use Domain\Shared\Enums\ContentType;
@@ -16,6 +18,7 @@ class StoreArticleAction
     public function __construct(
         private readonly ResolveContentPublicationFlowAction $resolveContentPublicationFlowAction,
         private readonly RichTextSanitizer $richTextSanitizer,
+        private readonly ProposeContentToGroupsAction $proposeContentToGroupsAction,
     ) {}
 
     public function execute(StoreArticleData $data): Article
@@ -59,7 +62,20 @@ class StoreArticleAction
             ],
         );
 
-        return $article->load(['user.profile', 'category.translations']);
+        $this->proposeContentToGroupsAction->execute(
+            GroupContentType::Article,
+            $article->id,
+            $article->title,
+            $article->slug,
+            $data->groupIds,
+            $data->userId,
+        );
+
+        return $article->load([
+            'user.profile',
+            'category.translations',
+            'groupLinks.group.category.translations',
+        ]);
     }
 
     private function resolveTargetStatus(ArticleStatus $requestedStatus): ArticleStatus

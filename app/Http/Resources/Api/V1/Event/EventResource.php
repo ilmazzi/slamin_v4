@@ -4,6 +4,7 @@ namespace App\Http\Resources\Api\V1\Event;
 
 use Domain\Event\Enums\EventStatus;
 use Domain\Event\Models\Event;
+use Domain\Group\Support\VisibleAcceptedGroups;
 use Domain\Share\Support\SharePublicUrl;
 use Illuminate\Filesystem\FilesystemAdapter;
 use Illuminate\Http\Request;
@@ -109,7 +110,21 @@ class EventResource extends JsonResource
                 'meeting_url' => $this->onlineDetail->meeting_url,
                 'timezone' => $this->onlineDetail->timezone,
             ] : null,
-            'group_ids' => $this->when($isOwner, fn () => $this->groupLinks->pluck('group_id')->values()),
+            'groups' => VisibleAcceptedGroups::map($this->groupLinks, $authUserId, $disk),
+            'group_ids' => $this->when($isOwner, fn () => $this->groupLinks
+                ->filter(fn ($link) => ! in_array($link->status?->value, ['rejected', 'removed'], true))
+                ->pluck('group_id')
+                ->values()),
+            'group_affiliations' => $this->when($isOwner, fn () => $this->groupLinks->map(fn ($link) => [
+                'id' => $link->id,
+                'group_id' => $link->group_id,
+                'status' => $link->status?->value,
+                'group' => $link->group ? [
+                    'id' => $link->group->id,
+                    'slug' => $link->group->slug,
+                    'name' => $link->group->name,
+                ] : null,
+            ])->values()),
             'participant_invites' => $this->when($isOwner, fn () => $this->participantInvites->map(fn ($invite) => [
                 'id' => $invite->id,
                 'user_id' => $invite->user_id,
@@ -154,4 +169,5 @@ class EventResource extends JsonResource
             ]),
         ];
     }
+
 }

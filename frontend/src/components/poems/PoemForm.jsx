@@ -12,6 +12,7 @@ import { useAuth } from '../../app/hooks/useAuth.js'
 import { useI18n } from '../../app/hooks/useI18n.js'
 import AppToast from '../shared/AppToast.jsx'
 import RichTextEditor from '../shared/RichTextEditor.jsx'
+import GroupProposeField, { selectedFromContent } from '../groups/GroupProposeField.jsx'
 import styles from './PoemForm.module.css'
 
 export default function PoemForm({ slug = null }) {
@@ -27,6 +28,7 @@ export default function PoemForm({ slug = null }) {
     poem_type_id: '',
     language: 'it',
     image: null,
+    selectedGroups: [],
   })
   const [categories, setCategories] = useState([])
   const [types, setTypes] = useState([])
@@ -69,6 +71,7 @@ export default function PoemForm({ slug = null }) {
             poem_type_id: poem.poem_type_id ?? '',
             language: poem.language ?? 'it',
             image: null,
+            selectedGroups: selectedFromContent(poem),
           })
         }
       } catch (error) {
@@ -125,12 +128,14 @@ export default function PoemForm({ slug = null }) {
     const status = requestedStatus === 'published' ? 'published' : 'draft'
 
     try {
+      const { selectedGroups, ...fields } = formValues
       const payload = {
-        ...formValues,
+        ...fields,
         status,
         is_public: true,
         poem_category_id: formValues.poem_category_id || null,
         poem_type_id: formValues.poem_type_id || null,
+        group_ids: (selectedGroups || []).map((group) => group.id),
       }
       const savedPoem = isEditing
         ? await updatePoem(editingPoem.id, payload, { token })
@@ -239,6 +244,15 @@ export default function PoemForm({ slug = null }) {
               ariaLabel={t('poems.form.label_content')}
               compactParagraphs
               onChange={(content) => setFormValues((prev) => ({ ...prev, content }))}
+            />
+          </div>
+
+          <div className={`${styles.field} ${styles.full}`}>
+            <GroupProposeField
+              token={token}
+              t={t}
+              selectedGroups={formValues.selectedGroups}
+              onChange={(selectedGroups) => setFormValues((prev) => ({ ...prev, selectedGroups }))}
             />
           </div>
 

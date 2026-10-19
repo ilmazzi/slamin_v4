@@ -14,6 +14,7 @@ class GroupMember extends Model
         'group_id',
         'user_id',
         'role',
+        'requested_role',
         'status',
         'joined_at',
         'handled_by_user_id',
@@ -22,6 +23,7 @@ class GroupMember extends Model
 
     protected $casts = [
         'role' => GroupMemberRole::class,
+        'requested_role' => GroupMemberRole::class,
         'status' => GroupMemberStatus::class,
         'joined_at' => 'datetime',
         'handled_at' => 'datetime',

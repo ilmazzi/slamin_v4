@@ -3,6 +3,7 @@
 namespace Domain\Chat\Models;
 
 use Domain\Chat\Enums\ChatThreadType;
+use Domain\Group\Enums\GroupChatAudience;
 use Domain\Group\Models\Group;
 use Domain\User\Models\User;
 use Illuminate\Database\Eloquent\Model;
@@ -17,6 +18,8 @@ class ChatThread extends Model
         'type',
         'direct_key',
         'group_id',
+        'audience',
+        'is_enabled',
         'title',
         'created_by_user_id',
         'last_message_at',
@@ -24,6 +27,8 @@ class ChatThread extends Model
 
     protected $casts = [
         'type' => ChatThreadType::class,
+        'audience' => GroupChatAudience::class,
+        'is_enabled' => 'boolean',
         'last_message_at' => 'datetime',
     ];
 
@@ -72,5 +77,10 @@ class ChatThread extends Model
     public function isAttachedGroup(): bool
     {
         return $this->isGroup() && $this->group_id !== null;
+    }
+
+    public function isEnabledAttachedGroup(): bool
+    {
+        return $this->isAttachedGroup() && $this->is_enabled !== false;
     }
 }

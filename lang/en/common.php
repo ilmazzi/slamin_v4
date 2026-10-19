@@ -15,6 +15,7 @@ return [
     'login' => 'Sign in',
     'events' => 'Events',
     'gigs' => 'Gigs',
+    'groups' => 'Groups',
     'poems' => 'Poems',
     'articles' => 'Articles',
     'media' => 'Media',

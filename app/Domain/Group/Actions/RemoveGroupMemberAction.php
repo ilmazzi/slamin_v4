@@ -30,15 +30,15 @@ class RemoveGroupMemberAction
                 ->where('status', GroupMemberStatus::Active)
                 ->firstOrFail();
 
-            if ($member->role === GroupMemberRole::Owner && $actorMembership->role !== GroupMemberRole::Owner) {
+            if ($member->role === GroupMemberRole::Admin && $actorMembership->role !== GroupMemberRole::Admin) {
                 throw ValidationException::withMessages([
-                    'group' => [__('group.errors.cannot_manage_owner')],
+                    'group' => [__('group.errors.cannot_manage_admin')],
                 ]);
             }
 
-            if ($member->role === GroupMemberRole::Owner && $member->status === GroupMemberStatus::Active && $group->activeOwnersCount() <= 1) {
+            if ($member->role === GroupMemberRole::Admin && $member->status === GroupMemberStatus::Active && $group->activeAdminsCount() <= 1) {
                 throw ValidationException::withMessages([
-                    'group' => [__('group.errors.last_owner')],
+                    'group' => [__('group.errors.last_admin')],
                 ]);
             }
 

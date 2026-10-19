@@ -2,6 +2,7 @@
 
 namespace Domain\Group\Actions;
 
+use Domain\Chat\Actions\SyncGroupChatMembersAction;
 use Domain\Group\Enums\GroupMemberRole;
 use Domain\Group\Enums\GroupMemberStatus;
 use Domain\Group\Models\Group;
@@ -14,6 +15,7 @@ class UpdateGroupMemberRoleAction
 {
     public function __construct(
         private readonly CreateNotificationAction $createNotificationAction,
+        private readonly SyncGroupChatMembersAction $syncGroupChatMembersAction,
     ) {}
 
     public function execute(Group $group, GroupMember $member, GroupMemberRole $newRole, int $actorUserId): GroupMember
@@ -30,21 +32,21 @@ class UpdateGroupMemberRoleAction
                 ->where('status', GroupMemberStatus::Active)
                 ->firstOrFail();
 
-            if ($newRole === GroupMemberRole::Owner && $actorMembership->role !== GroupMemberRole::Owner) {
+            if ($newRole === GroupMemberRole::Admin && $actorMembership->role !== GroupMemberRole::Admin) {
                 throw ValidationException::withMessages([
-                    'role' => [__('group.errors.cannot_promote_to_owner')],
+                    'role' => [__('group.errors.cannot_promote_to_admin')],
                 ]);
             }
 
-            if ($member->role === GroupMemberRole::Owner && $actorMembership->role !== GroupMemberRole::Owner) {
+            if ($member->role === GroupMemberRole::Admin && $actorMembership->role !== GroupMemberRole::Admin) {
                 throw ValidationException::withMessages([
-                    'role' => [__('group.errors.cannot_manage_owner')],
+                    'role' => [__('group.errors.cannot_manage_admin')],
                 ]);
             }
 
-            if ($member->role === GroupMemberRole::Owner && $newRole !== GroupMemberRole::Owner && $group->activeOwnersCount() <= 1) {
+            if ($member->role === GroupMemberRole::Admin && $newRole !== GroupMemberRole::Admin && $group->activeAdminsCount() <= 1) {
                 throw ValidationException::withMessages([
-                    'role' => [__('group.errors.last_owner')],
+                    'role' => [__('group.errors.last_admin')],
                 ]);
             }
 
@@ -66,6 +68,8 @@ class UpdateGroupMemberRoleAction
                     'source' => 'group_member_role_update',
                 ],
             );
+
+            $this->syncGroupChatMembersAction->execute($group);
 
             $this->createNotificationAction->execute(
                 userId: $member->user_id,

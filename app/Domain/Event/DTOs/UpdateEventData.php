@@ -44,6 +44,7 @@ class UpdateEventData extends StoreEventData
         ?array $venue,
         ?array $online,
         public readonly bool $removeCoverImage,
+        public readonly bool $syncGroupLinks,
     ) {
         parent::__construct(
             $userId,
@@ -120,6 +121,7 @@ class UpdateEventData extends StoreEventData
             $base->venue,
             $base->online,
             (bool) $request->validated('remove_cover_image', false),
+            $request->exists('group_ids'),
         );
     }
 }

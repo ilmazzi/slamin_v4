@@ -9,6 +9,7 @@ import AppToast from '../../components/shared/AppToast.jsx'
 import AllPoemsSection from '../../components/poems/AllPoemsSection.jsx'
 import { useContentFeedbackUi } from '../../app/hooks/useContentFeedbackUi.js'
 import PoemCard from '../../components/poems/PoemCard.jsx'
+import EventGroupsHighlight from '../../components/groups/EventGroupsHighlight.jsx'
 import CommentsThread from '../../components/shared/CommentsThread.jsx'
 import { createPoemReport } from '../../app/api/reports.js'
 import { useAuth } from '../../app/hooks/useAuth.js'
@@ -64,12 +65,18 @@ export default function PoemDetailPage() {
   return (
     <MainLayout themeTone="poems">
       <div className={[shellStyles.poemsPage, styles.poemDetailPage].join(' ')}>
-        <div className={styles.poem}>
-          <PoemCard
-            key={slug}
-            slug={slug}
-            onLoaded={setLoadedPoem}
-            onComments={() => commentsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
+        <PoemCard
+          key={slug}
+          slug={slug}
+          onLoaded={setLoadedPoem}
+          onComments={() => commentsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
+        />
+        <div className={styles.groupsBand}>
+          <EventGroupsHighlight
+            groups={poemDetail?.groups}
+            t={t}
+            contentType="poem"
+            variant="inset"
           />
         </div>
         <div id="comments" ref={commentsRef} className={styles.commentsBand}>

@@ -21,6 +21,8 @@ class UpdatePoemData
         public readonly PoemStatus $status,
         public readonly bool $isPublic,
         public readonly ?string $publishedAt,
+        public readonly array $groupIds,
+        public readonly bool $syncGroupLinks,
     ) {
     }
 
@@ -41,6 +43,8 @@ class UpdatePoemData
                 : PoemStatus::Draft,
             isPublic: (bool) $request->validated('is_public', true),
             publishedAt: $request->validated('published_at'),
+            groupIds: $request->validated('group_ids', []) ?? [],
+            syncGroupLinks: $request->exists('group_ids'),
         );
     }
 }

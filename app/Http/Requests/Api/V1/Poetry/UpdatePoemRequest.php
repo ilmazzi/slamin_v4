@@ -3,6 +3,7 @@
 namespace App\Http\Requests\Api\V1\Poetry;
 
 use App\Rules\RichTextContent;
+use Domain\Group\Support\GroupProposalRules;
 use Domain\Poetry\Enums\PoemStatus;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
@@ -26,10 +27,12 @@ class UpdatePoemRequest extends FormRequest
 
             if (in_array($normalized, ['true', '1', 'yes', 'on'], true)) {
                 $this->merge([$field => true]);
-            } elseif (in_array($normalized, ['false', '0', 'no', 'off', ''], true)) {
+            } else            if (in_array($normalized, ['false', '0', 'no', 'off', ''], true)) {
                 $this->merge([$field => false]);
             }
         }
+
+        GroupProposalRules::normalize($this);
     }
 
     public function authorize(): bool
@@ -60,6 +63,12 @@ class UpdatePoemRequest extends FormRequest
                 'integer',
                 Rule::exists('poem_types', 'id')->where('is_active', true),
             ],
+            ...GroupProposalRules::rules(),
         ];
+    }
+
+    public function withValidator($validator): void
+    {
+        $validator->after(fn ($validator) => GroupProposalRules::validate($this, $validator));
     }
 }

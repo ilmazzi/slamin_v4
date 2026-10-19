@@ -13,6 +13,7 @@ class GroupMemberResource extends JsonResource
         return [
             'id' => $this->id,
             'role' => $this->role?->value,
+            'requested_role' => $this->requested_role?->value,
             'status' => $this->status?->value,
             'joined_at' => $this->joined_at?->toISOString(),
             'handled_at' => $this->handled_at?->toISOString(),

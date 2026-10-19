@@ -10,7 +10,9 @@ use Domain\Event\Enums\EventDeliveryMode;
 use Domain\Event\Enums\EventScheduleMode;
 use Domain\Event\Enums\EventStatus;
 use Domain\Gig\Models\Gig;
+use Domain\Group\Enums\GroupContentType;
 use Domain\Group\Models\Group;
+use Domain\Group\Models\GroupContentLink;
 use Domain\Moderation\Models\ModerationDecision;
 use Domain\PoetrySlam\Models\PoetrySlam;
 use Domain\Report\Models\Report;
@@ -42,7 +44,7 @@ class Event extends Model
         'availabilityOptions.votes',
         'venueDetail',
         'onlineDetail',
-        'groupLinks',
+        'groupLinks.group.category.translations',
         'participantInvites',
         'audienceInvites.user.profile',
     ];
@@ -157,12 +159,15 @@ class Event extends Model
 
     public function groupLinks(): HasMany
     {
-        return $this->hasMany(EventGroupLink::class);
+        return $this->hasMany(GroupContentLink::class, 'content_id')
+            ->where('content_type', GroupContentType::Event);
     }
 
     public function groups(): BelongsToMany
     {
-        return $this->belongsToMany(Group::class, 'event_group')
+        return $this->belongsToMany(Group::class, 'group_content_links', 'content_id', 'group_id')
+            ->where('group_content_links.content_type', GroupContentType::Event->value)
+            ->where('group_content_links.status', 'accepted')
             ->withTimestamps();
     }
 

@@ -2,7 +2,6 @@
 
 namespace Domain\Group\Actions;
 
-use Domain\Chat\Actions\EnsureGroupChatThreadAction;
 use Domain\Group\DTOs\StoreGroupData;
 use Domain\Group\Enums\GroupMemberRole;
 use Domain\Group\Enums\GroupMemberStatus;
@@ -13,7 +12,7 @@ use Illuminate\Support\Str;
 class StoreGroupAction
 {
     public function __construct(
-        private readonly EnsureGroupChatThreadAction $ensureGroupChatThreadAction,
+        private readonly UpdateGroupChatThreadsAction $updateGroupChatThreadsAction,
     ) {
     }
 
@@ -28,6 +27,9 @@ class StoreGroupAction
                 'description' => $data->description,
                 'image_path' => $imagePath,
                 'visibility' => $data->visibility,
+                'is_listed' => $data->isListed,
+                'auto_accept_events' => $data->autoAcceptEvents,
+                'group_category_id' => $data->groupCategoryId,
                 'website_url' => $data->websiteUrl,
                 'facebook_url' => $data->facebookUrl,
                 'instagram_url' => $data->instagramUrl,
@@ -37,14 +39,16 @@ class StoreGroupAction
 
             $group->members()->create([
                 'user_id' => $data->userId,
-                'role' => GroupMemberRole::Owner,
+                'role' => GroupMemberRole::Admin,
                 'status' => GroupMemberStatus::Active,
                 'joined_at' => now(),
                 'handled_by_user_id' => $data->userId,
                 'handled_at' => now(),
             ]);
 
-            $this->ensureGroupChatThreadAction->execute($group, $data->userId);
+            if ($data->chatAudiences !== []) {
+                $this->updateGroupChatThreadsAction->execute($group, $data->chatAudiences, $data->userId);
+            }
 
             audit()->log(
                 event: 'group.created',
@@ -60,7 +64,7 @@ class StoreGroupAction
                 ],
             );
 
-            return $group->load(['members.user.profile']);
+            return $group->load(['members.user.profile', 'category.translations']);
         });
     }
 

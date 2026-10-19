@@ -10,20 +10,7 @@ class ShowEventQuery
     public function execute(string $slug, ?int $authUserId = null): Event
     {
         return Event::query()
-            ->with([
-                'user.profile',
-                'category.translations',
-                'festival',
-                'occurrences',
-                'recurrence',
-                'availabilityPoll',
-                'availabilityOptions.votes',
-                'venueDetail',
-                'onlineDetail',
-                'groupLinks',
-                'participantInvites.user.profile',
-                'audienceInvites.user.profile',
-            ])
+            ->with(Event::RESOURCE_RELATIONS)
             ->withEngagement($authUserId)
             ->withFollowState($authUserId)
             ->where('slug', $slug)

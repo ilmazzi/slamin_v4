@@ -8,6 +8,9 @@ use Domain\ContentTranslation\Contracts\TranslatableContent;
 use Domain\Engagement\Models\Bookmark;
 use Domain\Engagement\Models\Like;
 use Domain\Gig\Models\Gig;
+use Domain\Group\Enums\GroupContentType;
+use Domain\Group\Models\Group;
+use Domain\Group\Models\GroupContentLink;
 use Domain\Gig\Models\TranslationJob;
 use Domain\Moderation\Models\ModerationDecision;
 use Domain\Poetry\Enums\PoemStatus;
@@ -17,6 +20,7 @@ use Domain\User\Models\User;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -117,5 +121,19 @@ class Poem extends Model implements TranslatableContent
     public function translationJobs(): HasMany
     {
         return $this->hasMany(TranslationJob::class);
+    }
+
+    public function groupLinks(): HasMany
+    {
+        return $this->hasMany(GroupContentLink::class, 'content_id')
+            ->where('content_type', GroupContentType::Poem);
+    }
+
+    public function groups(): BelongsToMany
+    {
+        return $this->belongsToMany(Group::class, 'group_content_links', 'content_id', 'group_id')
+            ->where('group_content_links.content_type', GroupContentType::Poem->value)
+            ->where('group_content_links.status', 'accepted')
+            ->withTimestamps();
     }
 }

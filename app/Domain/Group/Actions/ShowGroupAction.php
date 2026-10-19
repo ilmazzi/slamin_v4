@@ -13,21 +13,23 @@ class ShowGroupAction
     {
         $group = Group::query()
             ->with([
+                'category.translations',
+                'chatThreads',
                 'members' => fn ($query) => $authUserId
                     ? $query->where('user_id', $authUserId)->with('user.profile', 'handledBy.profile')
                     : $query->whereRaw('1=0'),
             ])
             ->withCount([
                 'activeMembers as active_members_count',
-                'members as owners_count' => fn ($query) => $query
-                    ->where('role', 'owner')
+                'members as admins_count' => fn ($query) => $query
+                    ->where('role', 'admin')
                     ->where('status', 'active'),
             ])
             ->where('slug', $slug)
             ->where('is_active', true)
             ->firstOrFail();
 
-        if ($group->visibility === GroupVisibility::PublicOpen) {
+        if ($group->visibility === GroupVisibility::Public || $group->is_listed) {
             return $group;
         }
 

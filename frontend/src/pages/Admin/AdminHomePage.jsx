@@ -62,6 +62,13 @@ export default function AdminHomePage() {
       ready: true,
     } : null,
     canManageSettings ? {
+      id: 'group-categories',
+      href: '/admin/group-categories',
+      title: t('admin.hub.group_categories_title'),
+      description: t('admin.hub.group_categories_description'),
+      ready: true,
+    } : null,
+    canManageSettings ? {
       id: 'email-tests',
       href: '/admin/email-tests',
       title: t('admin.hub.email_tests_title'),

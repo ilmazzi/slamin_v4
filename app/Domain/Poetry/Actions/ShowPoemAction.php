@@ -9,7 +9,7 @@ class ShowPoemAction
     public function execute(string $slug, ?int $authUserId = null): Poem
     {
         $query = Poem::query()
-            ->with(['user.profile', 'category.translations', 'type.translations'])
+            ->with(['user.profile', 'category.translations', 'type.translations', 'groupLinks.group.category.translations'])
             ->withCount(['likes', 'bookmarks'])
             ->where('slug', $slug)
             ->visibleTo($authUserId);

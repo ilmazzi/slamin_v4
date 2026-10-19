@@ -24,9 +24,9 @@ class LeaveGroupAction
                 ->where('status', GroupMemberStatus::Active)
                 ->firstOrFail();
 
-            if ($member->role === GroupMemberRole::Owner && $group->activeOwnersCount() <= 1) {
+            if ($member->role === GroupMemberRole::Admin && $group->activeAdminsCount() <= 1) {
                 throw ValidationException::withMessages([
-                    'group' => [__('group.errors.last_owner')],
+                    'group' => [__('group.errors.last_admin')],
                 ]);
             }
 

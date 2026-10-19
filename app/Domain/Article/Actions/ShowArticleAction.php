@@ -9,7 +9,7 @@ class ShowArticleAction
     public function execute(string $slug, ?int $authUserId = null): Article
     {
         $query = Article::query()
-            ->with(['user.profile', 'category.translations'])
+            ->with(['user.profile', 'category.translations', 'groupLinks.group.category.translations'])
             ->withCount(['likes', 'bookmarks'])
             ->where('slug', $slug)
             ->visibleTo($authUserId);

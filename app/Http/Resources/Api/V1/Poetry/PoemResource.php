@@ -3,6 +3,7 @@
 namespace App\Http\Resources\Api\V1\Poetry;
 
 use App\Http\Resources\Api\V1\ContentTranslation\ContentTranslationResource;
+use Domain\Group\Support\VisibleAcceptedGroups;
 use Domain\Poetry\Enums\PoemStatus;
 use Domain\Poetry\Models\Poem;
 use Domain\Share\Support\SharePublicUrl;
@@ -17,6 +18,8 @@ class PoemResource extends JsonResource
     public function toArray(Request $request): array
     {
         $disk = Storage::disk('public'); /** @var FilesystemAdapter $disk */
+        $authUserId = $request->user()?->id;
+        $isOwner = $authUserId && (int) $this->user_id === (int) $authUserId;
 
         return [
             'id' => $this->id,
@@ -73,6 +76,23 @@ class PoemResource extends JsonResource
                 ? new ContentTranslationResource($this->currentTranslation)
                 : null),
 
+            'groups' => $this->relationLoaded('groupLinks')
+                ? VisibleAcceptedGroups::map($this->groupLinks, $authUserId, $disk)
+                : [],
+            'group_ids' => $this->when($isOwner && $this->relationLoaded('groupLinks'), fn () => $this->groupLinks
+                ->filter(fn ($link) => ! in_array($link->status?->value, ['rejected', 'removed'], true))
+                ->pluck('group_id')
+                ->values()),
+            'group_affiliations' => $this->when($isOwner && $this->relationLoaded('groupLinks'), fn () => $this->groupLinks->map(fn ($link) => [
+                'id' => $link->id,
+                'group_id' => $link->group_id,
+                'status' => $link->status?->value,
+                'group' => $link->group ? [
+                    'id' => $link->group->id,
+                    'slug' => $link->group->slug,
+                    'name' => $link->group->name,
+                ] : null,
+            ])->values()),
             'author' => [
                 'id' => $this->user?->id,
                 'public_id' => $this->user?->public_id,

@@ -15,6 +15,7 @@ return [
     'login' => 'Accedi',
     'events' => 'Eventi',
     'gigs' => 'Ingaggi',
+    'groups' => 'Gruppi',
     'poems' => 'Poesie',
     'articles' => 'Articoli',
     'media' => 'Media',

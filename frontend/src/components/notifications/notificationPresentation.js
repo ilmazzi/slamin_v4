@@ -82,6 +82,9 @@ export function notificationLink(notification) {
   if (data.commentable_type === 'media' && data.commentable_id) {
     return `/media/${data.commentable_id}`
   }
+  if (String(notification?.type ?? '').startsWith('group_') && data.group_slug) {
+    return `/groups/${encodeURIComponent(data.group_slug)}`
+  }
   if (data.event_slug) {
     return `/events/${encodeURIComponent(data.event_slug)}`
   }

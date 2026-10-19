@@ -4,6 +4,7 @@ import L from 'leaflet'
 import { MapContainer, Marker, useMap } from 'react-leaflet'
 import OsmTileLayer from '../../app/maps/OsmTileLayer.jsx'
 import { createEvent, getEventDetail, listEventCategories, listRecentEventPlaces, searchEventInviteUsers, updateEvent } from '../../app/api/events.js'
+import { searchProposeableGroups } from '../../app/api/groups.js'
 import { useAuth } from '../../app/hooks/useAuth.js'
 import { useI18n } from '../../app/hooks/useI18n.js'
 import { mapEventToFormValues } from '../../app/utils/eventForm.js'
@@ -224,6 +225,10 @@ export default function EventCreateForm({ eventSlug = null }) {
   const [audienceUserQuery, setAudienceUserQuery] = useState('')
   const [audienceUserResults, setAudienceUserResults] = useState([])
   const [audienceSearchLoading, setAudienceSearchLoading] = useState(false)
+  const [groupQuery, setGroupQuery] = useState('')
+  const [groupResults, setGroupResults] = useState([])
+  const [isSearchingGroups, setIsSearchingGroups] = useState(false)
+  const [isGroupSearchOpen, setIsGroupSearchOpen] = useState(false)
   const [showGigs, setShowGigs] = useState(false)
   const [registrationDeadlineEnabled, setRegistrationDeadlineEnabled] = useState(false)
   const [openSections, setOpenSections] = useState(() => new Set(['basic']))
@@ -266,7 +271,7 @@ export default function EventCreateForm({ eventSlug = null }) {
       longitude: '',
     },
     online: { meeting_url: '', timezone: 'Europe/Rome' },
-    group_ids_text: '',
+    selectedGroups: [],
     audience_invites: [],
     participant_invites: [emptyInvite],
     gigs: [emptyGig],
@@ -322,6 +327,34 @@ export default function EventCreateForm({ eventSlug = null }) {
       controller.abort()
     }
   }, [audienceUserQuery, token])
+
+  useEffect(() => {
+    const query = groupQuery.trim()
+    if (!token || query.length < 2) {
+      setGroupResults([])
+      setIsSearchingGroups(false)
+      return undefined
+    }
+
+    const controller = new AbortController()
+    const timer = window.setTimeout(async () => {
+      setIsSearchingGroups(true)
+      try {
+        const groups = await searchProposeableGroups(query, { token, signal: controller.signal })
+        const selectedIds = new Set((v.selectedGroups || []).map((group) => group.id))
+        setGroupResults(groups.filter((group) => !selectedIds.has(group.id)))
+      } catch (searchError) {
+        if (searchError?.name !== 'AbortError') setGroupResults([])
+      } finally {
+        if (!controller.signal.aborted) setIsSearchingGroups(false)
+      }
+    }, 300)
+
+    return () => {
+      window.clearTimeout(timer)
+      controller.abort()
+    }
+  }, [groupQuery, token, v.selectedGroups])
 
   useEffect(() => {
     if (!isEdit || !eventSlug) {
@@ -618,13 +651,6 @@ export default function EventCreateForm({ eventSlug = null }) {
     })
   }
 
-  function parseIdList(text) {
-    return String(text || '')
-      .split(',')
-      .map((item) => Number(item.trim()))
-      .filter((item) => Number.isInteger(item) && item > 0)
-  }
-
   function applyRecentPlace(place) {
     if (!place) return
     setV((prev) => ({
@@ -727,7 +753,7 @@ export default function EventCreateForm({ eventSlug = null }) {
           }
         : null,
       online: isOnline ? v.online : null,
-      group_ids: parseIdList(v.group_ids_text),
+      group_ids: (v.selectedGroups || []).map((group) => group.id),
       audience_invites: v.audience_invites
         .filter((invite) => invite.invite_type === 'internal' || showAudienceEmailInvites)
         .filter((invite) => invite.invite_type === 'internal'
@@ -1218,7 +1244,67 @@ export default function EventCreateForm({ eventSlug = null }) {
         </div>
 
         <Field label={t('events.create_page.ui.linked_to_group')} full>
-          <input className={styles.input} name="group_ids_text" placeholder={t('events.create_page.ui.group_placeholder')} value={v.group_ids_text} onChange={setField} />
+          <div className={styles.userCombobox}>
+            <input
+              className={styles.input}
+              value={groupQuery}
+              onChange={(event) => {
+                setGroupQuery(event.target.value)
+                setIsGroupSearchOpen(true)
+              }}
+              onFocus={() => setIsGroupSearchOpen(true)}
+              onBlur={() => window.setTimeout(() => setIsGroupSearchOpen(false), 120)}
+              placeholder={t('group.ui.propose_search')}
+              autoComplete="off"
+            />
+            {isGroupSearchOpen && groupQuery.trim().length >= 2 ? (
+              <div className={styles.userSuggestions} role="listbox">
+                {isSearchingGroups ? (
+                  <p className={styles.userSuggestionStatus}>{t('common.loading')}</p>
+                ) : groupResults.length === 0 ? (
+                  <p className={styles.userSuggestionStatus}>{t('group.ui.propose_empty')}</p>
+                ) : (
+                  groupResults.map((group) => (
+                    <button
+                      key={group.id}
+                      type="button"
+                      className={styles.userSuggestion}
+                      onMouseDown={(event) => event.preventDefault()}
+                      onClick={() => {
+                        setV((current) => ({
+                          ...current,
+                          selectedGroups: [...(current.selectedGroups || []), group],
+                        }))
+                        setGroupQuery('')
+                        setGroupResults([])
+                        setIsGroupSearchOpen(false)
+                      }}
+                    >
+                      <strong>{group.name}</strong>
+                      {group.category?.name ? <small>{group.category.name}</small> : null}
+                    </button>
+                  ))
+                )}
+              </div>
+            ) : null}
+          </div>
+          {(v.selectedGroups || []).length > 0 ? (
+            <div className={styles.inviteRow} style={{ marginTop: 12 }}>
+              {(v.selectedGroups || []).map((group) => (
+                <button
+                  key={group.id}
+                  type="button"
+                  className={styles.choiceButton}
+                  onClick={() => setV((current) => ({
+                    ...current,
+                    selectedGroups: (current.selectedGroups || []).filter((item) => item.id !== group.id),
+                  }))}
+                >
+                  {group.name} ×
+                </button>
+              ))}
+            </div>
+          ) : null}
         </Field>
 
         <Field label={t('events.create_page.ui.part_of_festival')} full>

@@ -24,19 +24,21 @@ function chatPoetOrganizer(): User
     return User::factory()->poetOrganizer()->create();
 }
 
-function createChatGroupWithOwner(User $owner, GroupVisibility $visibility = GroupVisibility::PublicOpen): Group
+function createChatGroupWithOwner(User $owner, GroupVisibility $visibility = GroupVisibility::Public): Group
 {
     $group = Group::query()->create([
         'name' => fake()->company(),
         'slug' => fake()->unique()->slug(),
         'description' => fake()->sentence(),
         'visibility' => $visibility,
+        'is_listed' => true,
+        'group_category_id' => groupTestCategory()->id,
         'is_active' => true,
     ]);
 
     $group->members()->create([
         'user_id' => $owner->id,
-        'role' => GroupMemberRole::Owner,
+        'role' => GroupMemberRole::Admin,
         'status' => GroupMemberStatus::Active,
         'joined_at' => now(),
         'handled_by_user_id' => $owner->id,
@@ -379,7 +381,9 @@ it('prevents manual member management on group attached threads', function () {
     $groupResponse = $this->postJson('/api/v1/groups', [
         'name' => 'Chat Group Test',
         'description' => 'Gruppo con chat',
-        'visibility' => 'public_open',
+        'visibility' => 'public',
+        'group_category_id' => groupTestCategory()->id,
+        'chat_audiences' => ['public'],
     ])->assertOk();
 
     $threadId = ChatThread::query()->where('group_id', $groupResponse->json('data.group.id'))->value('id');
@@ -390,14 +394,32 @@ it('prevents manual member management on group attached threads', function () {
         ->assertForbidden();
 });
 
-it('auto creates a group chat thread when a group is created', function () {
+it('does not auto create a group chat thread when a group is created', function () {
+    $owner = chatPoetOrganizer();
+    Sanctum::actingAs($owner);
+
+    $response = $this->postJson('/api/v1/groups', [
+        'name' => 'Chat Group Test',
+        'description' => 'Gruppo senza chat',
+        'visibility' => 'public',
+        'group_category_id' => groupTestCategory()->id,
+    ]);
+
+    $response->assertOk();
+
+    expect(ChatThread::query()->where('group_id', $response->json('data.group.id'))->count())->toBe(0);
+});
+
+it('creates selected group chat audiences when a group is created', function () {
     $owner = chatPoetOrganizer();
     Sanctum::actingAs($owner);
 
     $response = $this->postJson('/api/v1/groups', [
         'name' => 'Chat Group Test',
         'description' => 'Gruppo con chat',
-        'visibility' => 'public_open',
+        'visibility' => 'public',
+        'group_category_id' => groupTestCategory()->id,
+        'chat_audiences' => ['admin', 'public'],
     ]);
 
     $response->assertOk();
@@ -406,45 +428,64 @@ it('auto creates a group chat thread when a group is created', function () {
 
     $this->assertDatabaseHas('chat_threads', [
         'group_id' => $groupId,
-        'type' => 'group',
+        'audience' => 'admin',
+        'is_enabled' => true,
     ]);
+    $this->assertDatabaseHas('chat_threads', [
+        'group_id' => $groupId,
+        'audience' => 'public',
+        'is_enabled' => true,
+    ]);
+    expect(ChatThread::query()->where('group_id', $groupId)->where('audience', 'editor')->exists())->toBeFalse();
 
+    $adminThreadId = ChatThread::query()->where('group_id', $groupId)->where('audience', 'admin')->value('id');
     $this->assertDatabaseHas('chat_thread_members', [
-        'chat_thread_id' => ChatThread::query()->where('group_id', $groupId)->value('id'),
+        'chat_thread_id' => $adminThreadId,
         'user_id' => $owner->id,
     ]);
 });
 
-it('returns the same group thread from the explicit create endpoint', function () {
+it('enables group chat audiences from the staff endpoint', function () {
     $owner = chatPoetOrganizer();
     Sanctum::actingAs($owner);
 
     $groupResponse = $this->postJson('/api/v1/groups', [
         'name' => 'Thread Esplicito',
         'description' => 'Gruppo con thread idempotente',
-        'visibility' => 'public_open',
+        'visibility' => 'public',
+        'group_category_id' => groupTestCategory()->id,
     ])->assertOk();
 
     $group = Group::query()->findOrFail($groupResponse->json('data.group.id'));
-    $existingThreadId = ChatThread::query()->where('group_id', $group->id)->value('id');
 
-    $this->postJson("/api/v1/groups/{$group->slug}/chat-thread")
-        ->assertCreated()
-        ->assertJsonPath('data.thread.id', $existingThreadId);
+    $first = $this->patchJson("/api/v1/groups/{$group->slug}/chat-threads", [
+        'audiences' => ['public'],
+    ])->assertOk();
+
+    $threadId = $first->json('data.threads.0.id');
+
+    $this->patchJson("/api/v1/groups/{$group->slug}/chat-threads", [
+        'audiences' => ['public'],
+    ])
+        ->assertOk()
+        ->assertJsonPath('data.threads.0.id', $threadId);
 });
 
-it('adds active public joiners to the group chat thread', function () {
+it('adds active public joiners to the public group chat thread', function () {
     $owner = chatPoetOrganizer();
     Sanctum::actingAs($owner);
 
     $groupResponse = $this->postJson('/api/v1/groups', [
         'name' => 'Join Chat Group',
         'description' => 'Gruppo con join e chat',
-        'visibility' => 'public_open',
+        'visibility' => 'public',
+        'group_category_id' => groupTestCategory()->id,
+        'chat_audiences' => ['admin', 'public'],
     ])->assertOk();
 
     $group = Group::query()->findOrFail($groupResponse->json('data.group.id'));
-    $threadId = ChatThread::query()->where('group_id', $group->id)->value('id');
+    $threadId = ChatThread::query()->where('group_id', $group->id)->where('audience', 'public')->value('id');
+    $adminThreadId = ChatThread::query()->where('group_id', $group->id)->where('audience', 'admin')->value('id');
 
     $member = User::factory()->create();
     Sanctum::actingAs($member);
@@ -455,6 +496,10 @@ it('adds active public joiners to the group chat thread', function () {
 
     $this->assertDatabaseHas('chat_thread_members', [
         'chat_thread_id' => $threadId,
+        'user_id' => $member->id,
+    ]);
+    $this->assertDatabaseMissing('chat_thread_members', [
+        'chat_thread_id' => $adminThreadId,
         'user_id' => $member->id,
     ]);
 
@@ -480,8 +525,9 @@ it('prevents outsiders from reading a group thread', function () {
     $group = createChatGroupWithOwner($owner);
 
     Sanctum::actingAs($owner);
-    $threadId = $this->postJson("/api/v1/groups/{$group->slug}/chat-thread")
-        ->json('data.thread.id');
+    $threadId = $this->patchJson("/api/v1/groups/{$group->slug}/chat-threads", [
+        'audiences' => ['public'],
+    ])->json('data.threads.0.id');
 
     Sanctum::actingAs($outsider);
 
@@ -489,22 +535,88 @@ it('prevents outsiders from reading a group thread', function () {
         ->assertForbidden();
 });
 
-it('does not list group attached threads for users without active group membership', function () {
+it('does not list admin group chats to followers', function () {
     $owner = chatPoetOrganizer();
-    $outsider = User::factory()->create();
     $group = createChatGroupWithOwner($owner);
 
     Sanctum::actingAs($owner);
-    $this->postJson("/api/v1/groups/{$group->slug}/chat-thread")->assertCreated();
+    $this->patchJson("/api/v1/groups/{$group->slug}/chat-threads", [
+        'audiences' => ['admin', 'public'],
+    ])->assertOk();
 
-    $thread = ChatThread::query()->where('group_id', $group->id)->firstOrFail();
-    $thread->memberRecords()->firstOrCreate([
-        'user_id' => $outsider->id,
-    ], [
-        'joined_at' => now(),
+    $follower = User::factory()->create();
+    Sanctum::actingAs($follower);
+    $this->postJson("/api/v1/groups/{$group->slug}/join")->assertOk();
+
+    $listedIds = collect($this->getJson('/api/v1/chat/threads')->assertOk()->json('data.threads'))
+        ->pluck('audience')
+        ->all();
+
+    expect($listedIds)->toContain('public')
+        ->not->toContain('admin');
+});
+
+it('adds child group admins to the parent affiliates chat', function () {
+    $parentOwner = chatPoetOrganizer();
+    $childOwner = chatPoetOrganizer();
+    $parent = createChatGroupWithOwner($parentOwner);
+    $child = createChatGroupWithOwner($childOwner);
+
+    Sanctum::actingAs($parentOwner);
+    $this->patchJson("/api/v1/groups/{$parent->slug}/chat-threads", [
+        'audiences' => ['affiliates'],
+    ])->assertOk();
+
+    Sanctum::actingAs($childOwner);
+    $this->postJson("/api/v1/groups/{$child->slug}/affiliations", [
+        'parent_group_id' => $parent->id,
+    ])->assertOk();
+
+    $affiliationId = \Domain\Group\Models\GroupAffiliation::query()
+        ->where('parent_group_id', $parent->id)
+        ->where('child_group_id', $child->id)
+        ->value('id');
+
+    Sanctum::actingAs($parentOwner);
+    $this->postJson("/api/v1/groups/{$parent->slug}/affiliations/{$affiliationId}/accept")
+        ->assertOk();
+
+    $threadId = ChatThread::query()
+        ->where('group_id', $parent->id)
+        ->where('audience', 'affiliates')
+        ->value('id');
+
+    $this->assertDatabaseHas('chat_thread_members', [
+        'chat_thread_id' => $threadId,
+        'user_id' => $parentOwner->id,
+    ]);
+    $this->assertDatabaseHas('chat_thread_members', [
+        'chat_thread_id' => $threadId,
+        'user_id' => $childOwner->id,
     ]);
 
-    Sanctum::actingAs($outsider);
+    Sanctum::actingAs($childOwner);
+    $this->getJson('/api/v1/chat/threads')
+        ->assertOk()
+        ->assertJsonPath('data.threads.0.id', $threadId);
+});
+
+it('hides a group chat when the audience is disabled', function () {
+    $owner = chatPoetOrganizer();
+    $group = createChatGroupWithOwner($owner);
+
+    Sanctum::actingAs($owner);
+    $this->patchJson("/api/v1/groups/{$group->slug}/chat-threads", [
+        'audiences' => ['public'],
+    ])->assertOk();
+
+    $this->getJson('/api/v1/chat/threads')
+        ->assertOk()
+        ->assertJsonCount(1, 'data.threads');
+
+    $this->patchJson("/api/v1/groups/{$group->slug}/chat-threads", [
+        'audiences' => [],
+    ])->assertOk();
 
     $this->getJson('/api/v1/chat/threads')
         ->assertOk()

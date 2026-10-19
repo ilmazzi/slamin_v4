@@ -25,6 +25,7 @@ return [
         'external_audience_email_required' => 'Per un invitato esterno del pubblico l\'email è obbligatoria.',
         'external_audience_name_required' => 'Per un invitato esterno del pubblico il nome è obbligatorio.',
         'group_management_required' => 'Puoi collegare solo gruppi in cui sei owner, admin o moderator attivo.',
+        'group_proposal_required' => 'Puoi proporre l\'evento solo a gruppi pubblici, listed, o a cui hai accesso.',
         'festival_parent_must_be_festival' => 'Il festival selezionato deve essere un evento con categoria festival.',
         'festival_self_link_not_allowed' => 'Un evento non può essere il proprio festival.',
         'festival_cannot_have_parent_festival' => 'Un evento con categoria festival non può appartenere a un altro festival.',

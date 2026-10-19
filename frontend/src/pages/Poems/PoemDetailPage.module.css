@@ -2,6 +2,16 @@
   width: 100%;
 }
 
+.groupsBand {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 20px clamp(20px, 5.7vw, 110px) 40px;
+}
+
+.groupsBand > * {
+  max-width: 1700px;
+}
+
 .commentsBand {
   width: 100%;
   max-width: 1700px;

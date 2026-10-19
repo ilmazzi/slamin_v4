@@ -28,6 +28,15 @@ function buildPoemPayload(poem) {
       return
     }
 
+    if (key === 'selectedGroups') {
+      return
+    }
+
+    if (key === 'group_ids' && Array.isArray(value)) {
+      value.forEach((id) => formData.append('group_ids[]', String(id)))
+      return
+    }
+
     if (isUploadableFile(value)) {
       formData.append(key, value)
       return

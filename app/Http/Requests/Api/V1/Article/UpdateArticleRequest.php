@@ -4,6 +4,7 @@ namespace App\Http\Requests\Api\V1\Article;
 
 use App\Rules\RichTextContent;
 use Domain\Article\Enums\ArticleStatus;
+use Domain\Group\Support\GroupProposalRules;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -12,6 +13,11 @@ class UpdateArticleRequest extends FormRequest
     public function authorize(): bool
     {
         return true;
+    }
+
+    protected function prepareForValidation(): void
+    {
+        GroupProposalRules::normalize($this);
     }
 
     public function rules(): array
@@ -31,6 +37,12 @@ class UpdateArticleRequest extends FormRequest
                 'integer',
                 Rule::exists('article_categories', 'id')->where('is_active', true),
             ],
+            ...GroupProposalRules::rules(),
         ];
+    }
+
+    public function withValidator($validator): void
+    {
+        $validator->after(fn ($validator) => GroupProposalRules::validate($this, $validator));
     }
 }

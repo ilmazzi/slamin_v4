@@ -11,6 +11,7 @@ import { useAuth } from '../../app/hooks/useAuth.js'
 import { useI18n } from '../../app/hooks/useI18n.js'
 import AppToast from '../shared/AppToast.jsx'
 import RichTextEditor from '../shared/RichTextEditor.jsx'
+import GroupProposeField, { selectedFromContent } from '../groups/GroupProposeField.jsx'
 import styles from './ArticleForm.module.css'
 
 export default function ArticleForm({ slug = null }) {
@@ -25,6 +26,7 @@ export default function ArticleForm({ slug = null }) {
     article_category_id: '',
     language: 'it',
     cover_image: null,
+    selectedGroups: [],
   })
   const [categories, setCategories] = useState([])
   const [editingArticle, setEditingArticle] = useState(null)
@@ -62,6 +64,7 @@ export default function ArticleForm({ slug = null }) {
             article_category_id: article.article_category_id ?? '',
             language: article.language ?? 'it',
             cover_image: null,
+            selectedGroups: selectedFromContent(article),
           })
         }
       } catch (error) {
@@ -113,11 +116,13 @@ export default function ArticleForm({ slug = null }) {
     const status = requestedStatus === 'published' ? 'published' : 'draft'
 
     try {
+      const { selectedGroups, ...fields } = formValues
       const payload = {
-        ...formValues,
+        ...fields,
         status,
         is_public: true,
         article_category_id: formValues.article_category_id || null,
+        group_ids: (selectedGroups || []).map((group) => group.id),
       }
       const savedArticle = isEditing
         ? await updateArticle(editingArticle.id, payload, { token })
@@ -209,6 +214,15 @@ export default function ArticleForm({ slug = null }) {
               ariaLabel={t('articles.form.label_content')}
               minHeight="360px"
               onChange={(content) => setFormValues((prev) => ({ ...prev, content }))}
+            />
+          </div>
+
+          <div className={`${styles.field} ${styles.full}`}>
+            <GroupProposeField
+              token={token}
+              t={t}
+              selectedGroups={formValues.selectedGroups}
+              onChange={(selectedGroups) => setFormValues((prev) => ({ ...prev, selectedGroups }))}
             />
           </div>
 

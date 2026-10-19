@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import styles from './ArticleDetailPage.module.css'
 import MainLayout from '../../components/layout/MainLayout.jsx'
 import ArticleCard from '../../components/news/ArticleCard.jsx'
+import EventGroupsHighlight from '../../components/groups/EventGroupsHighlight.jsx'
 import { useLocation, useParams } from 'react-router-dom'
 import shellStyles from '../shared/ContentPageShell.module.css'
 import { listArticles } from '../../app/api/articles.js'
@@ -87,6 +88,14 @@ export default function ArticleDetailPage() {
             onLoaded={setArticleDetail}
             onComments={() => commentsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
           />
+          <div className={styles.groupsBand}>
+            <EventGroupsHighlight
+              groups={articleDetail?.groups}
+              t={t}
+              contentType="article"
+              variant="inset"
+            />
+          </div>
         </div>
         <div id="comments" ref={commentsRef} style={{ scrollMarginTop: 104 }}>
           <CommentsThread contentType="article" contentId={articleDetail?.id ?? null} />

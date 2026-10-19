@@ -14,6 +14,15 @@ function buildArticlePayload(article) {
       return
     }
 
+    if (key === 'selectedGroups') {
+      return
+    }
+
+    if (key === 'group_ids' && Array.isArray(value)) {
+      value.forEach((id) => formData.append('group_ids[]', String(id)))
+      return
+    }
+
     if (value instanceof Blob) {
       formData.append(key, value)
       return

@@ -9,9 +9,8 @@ class ChatThreadPolicy
 {
     public function view(User $user, ChatThread $thread): bool
     {
-        if ($thread->isAttachedGroup()) {
-            return $thread->group?->hasActiveMember($user->id)
-                ?? false;
+        if ($thread->isAttachedGroup() && ! $thread->isEnabledAttachedGroup()) {
+            return false;
         }
 
         return $thread->memberRecords()

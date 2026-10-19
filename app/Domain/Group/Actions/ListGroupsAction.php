@@ -12,25 +12,22 @@ class ListGroupsAction
     {
         $query = Group::query()
             ->with([
+                'category.translations',
                 'members' => fn ($query) => $authUserId
                     ? $query->where('user_id', $authUserId)
                     : $query->whereRaw('1=0'),
             ])
             ->withCount([
                 'activeMembers as active_members_count',
-                'members as owners_count' => fn ($query) => $query
-                    ->where('role', 'owner')
+                'members as admins_count' => fn ($query) => $query
+                    ->where('role', 'admin')
                     ->where('status', 'active'),
             ])
-            ->visibleToPublic()
+            ->listed()
             ->orderBy('name');
 
         if ($data->query) {
-            $search = $data->query;
-            $query->where(function ($query) use ($search) {
-                $query->where('name', 'like', "%{$search}%")
-                    ->orWhere('description', 'like', "%{$search}%");
-            });
+            $query->search($data->query);
         }
 
         return $query->paginate($data->perPage);

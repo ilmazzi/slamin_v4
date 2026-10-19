@@ -18,14 +18,18 @@ class RejectGroupRequestAction
     public function execute(Group $group, GroupMember $member, int $actorUserId): GroupMember
     {
         return DB::transaction(function () use ($group, $member, $actorUserId) {
-            if ($member->group_id !== $group->id || $member->status !== GroupMemberStatus::Pending) {
+            $isPendingEntry = $member->status === GroupMemberStatus::Pending;
+            $isRoleUpgrade = $member->status === GroupMemberStatus::Active && $member->requested_role !== null;
+
+            if ($member->group_id !== $group->id || (! $isPendingEntry && ! $isRoleUpgrade)) {
                 throw ValidationException::withMessages([
                     'group' => [__('group.errors.request_not_pending')],
                 ]);
             }
 
             $member->update([
-                'status' => GroupMemberStatus::Rejected,
+                'requested_role' => null,
+                'status' => $isPendingEntry ? GroupMemberStatus::Rejected : $member->status,
                 'handled_by_user_id' => $actorUserId,
                 'handled_at' => now(),
             ]);

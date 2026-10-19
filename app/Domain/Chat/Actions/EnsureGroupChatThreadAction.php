@@ -4,49 +4,43 @@ namespace Domain\Chat\Actions;
 
 use Domain\Chat\Enums\ChatThreadType;
 use Domain\Chat\Models\ChatThread;
-use Domain\Group\Enums\GroupMemberStatus;
+use Domain\Group\Enums\GroupChatAudience;
 use Domain\Group\Models\Group;
+use Domain\Group\Support\GroupChatAudienceRules;
 use Illuminate\Support\Facades\DB;
 
 class EnsureGroupChatThreadAction
 {
-    public function execute(Group $group, ?int $actorUserId = null): ChatThread
+    public function __construct(
+        private readonly SyncGroupChatMembersAction $syncGroupChatMembersAction,
+    ) {}
+
+    public function execute(Group $group, GroupChatAudience $audience, ?int $actorUserId = null): ChatThread
     {
-        return DB::transaction(function () use ($group, $actorUserId) {
+        return DB::transaction(function () use ($group, $audience, $actorUserId) {
             $thread = ChatThread::query()->firstOrCreate(
                 [
                     'group_id' => $group->id,
+                    'audience' => $audience->value,
                 ],
                 [
                     'type' => ChatThreadType::Group,
+                    'title' => GroupChatAudienceRules::title($group, $audience),
+                    'is_enabled' => true,
                     'created_by_user_id' => $actorUserId,
                 ],
             );
 
-            $activeMemberIds = $group->members()
-                ->where('status', GroupMemberStatus::Active)
-                ->pluck('user_id');
-
-            foreach ($activeMemberIds as $memberId) {
-                $thread->memberRecords()->firstOrCreate(
-                    ['user_id' => (int) $memberId],
-                    ['joined_at' => now()],
-                );
+            if (! $thread->is_enabled) {
+                $thread->update([
+                    'is_enabled' => true,
+                    'title' => GroupChatAudienceRules::title($group, $audience),
+                ]);
             }
 
-            audit()->log(
-                event: 'chat.group_thread_ensured',
-                userId: $actorUserId,
-                auditable: $group,
-                newValues: [
-                    'chat_thread_id' => $thread->id,
-                ],
-                metadata: [
-                    'source' => 'group_chat_thread_ensure',
-                ],
-            );
+            $this->syncGroupChatMembersAction->execute($group, false);
 
-            return $thread->load(['group', 'members.profile', 'latestMessage.user.profile']);
+            return $thread->fresh(['group', 'members.profile', 'latestMessage.user.profile']);
         });
     }
 }

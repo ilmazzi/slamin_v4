@@ -18,6 +18,7 @@ export default function MainLayout({
     poems: 'var(--color-poems)',
     articles: 'var(--color-articles)',
     gigs: 'var(--color-gigs)',
+    groups: 'var(--color-groups)',
     red: 'var(--color-red)',
     black: 'var(--color-black)',
     media: 'var(--color-media)',

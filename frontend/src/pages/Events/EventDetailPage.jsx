@@ -29,6 +29,7 @@ import HomeDashboardPromo from '../../components/home/HomeDashboardPromo.jsx'
 import EventConfirmedPeople from '../../components/gigs/EventConfirmedPeople.jsx'
 import EventOrganizer from '../../components/events/EventOrganizer.jsx'
 import EventGigsHighlight from '../../components/gigs/EventGigsHighlight.jsx'
+import EventGroupsHighlight from '../../components/groups/EventGroupsHighlight.jsx'
 import {
   ArticleIcon,
   CalendarIcon,
@@ -434,6 +435,7 @@ function EventDetailContent({ t, locale, token, user, isAuthenticated }) {
               </div>
             </div>
 
+            <EventGroupsHighlight groups={event.groups} t={t} />
             <EventGigsHighlight eventId={event.id} token={token} t={t} locale={locale} />
             <EventConfirmedPeople eventId={event.id} token={token} t={t} />
 

@@ -132,6 +132,14 @@ export default function DashboardPage({ user }) {
               )
             }
 
+            if (card.id === 'groups') {
+              return (
+                <Link key={card.id} to="/groups?mine=1" className={styles.communityCard}>
+                  {cardBody}
+                </Link>
+              )
+            }
+
             return (
               <article key={card.id} className={styles.communityCard}>
                 {cardBody}

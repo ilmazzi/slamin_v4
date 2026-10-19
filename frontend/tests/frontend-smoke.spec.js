@@ -23,6 +23,7 @@ const authRoutes = [
   '/poems',
   '/articles',
   '/gigs',
+  '/groups',
   '/media',
   '/profile',
   '/profile/edit',

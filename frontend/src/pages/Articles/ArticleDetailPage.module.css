@@ -10,3 +10,9 @@
   gap: 1rem;
 }
 
+.groupsBand {
+  width: 100%;
+  max-width: 1280px;
+  margin: 8px auto 24px;
+}
+

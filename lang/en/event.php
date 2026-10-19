@@ -25,6 +25,7 @@ return [
         'external_audience_email_required' => 'An external audience invite requires an email address.',
         'external_audience_name_required' => 'An external audience invite requires a recipient name.',
         'group_management_required' => 'You can link an event only to groups where you are an active owner, admin, or moderator.',
+        'group_proposal_required' => 'You can propose the event only to public, listed, or accessible groups.',
         'festival_parent_must_be_festival' => 'The selected festival must be an event with festival category.',
         'festival_self_link_not_allowed' => 'An event cannot be its own festival.',
         'festival_cannot_have_parent_festival' => 'An event with festival category cannot belong to another festival.',

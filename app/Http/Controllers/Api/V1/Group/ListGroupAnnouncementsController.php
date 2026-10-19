@@ -18,7 +18,7 @@ class ListGroupAnnouncementsController extends Controller
 
     public function __invoke(Group $group): JsonResponse
     {
-        $this->authorize('view', $group);
+        $this->authorize('viewFeed', $group);
 
         $announcements = $this->action->execute($group);
 

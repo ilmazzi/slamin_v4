@@ -12,7 +12,7 @@ class ListGroupMembersAction
         return $group->members()
             ->with(['user.profile', 'handledBy.profile'])
             ->where('status', 'active')
-            ->orderByRaw("case when role = 'owner' then 0 when role = 'admin' then 1 when role = 'moderator' then 2 else 3 end")
+            ->orderByRaw("case when role = 'admin' then 0 when role = 'editor' then 1 else 2 end")
             ->orderBy('created_at')
             ->get();
     }

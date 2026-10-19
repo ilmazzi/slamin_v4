@@ -45,9 +45,24 @@ expect()->extend('toBeOne', function () {
 |
 */
 
-function something()
+function groupTestCategory(): \Domain\Group\Models\GroupCategory
 {
-    // ..
+    $category = \Domain\Group\Models\GroupCategory::query()->firstOrCreate(
+        ['slug' => 'progetto-artistico'],
+        [
+            'is_active' => true,
+            'sort_order' => 1,
+        ],
+    );
+
+    if ($category->translations()->doesntExist()) {
+        $category->translations()->createMany([
+            ['locale' => 'it', 'name' => 'Progetto artistico'],
+            ['locale' => 'en', 'name' => 'Artistic project'],
+        ]);
+    }
+
+    return $category;
 }
 
 /**

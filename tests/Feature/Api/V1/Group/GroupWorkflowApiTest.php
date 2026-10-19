@@ -29,7 +29,7 @@ function groupWorkflowUser(): User
 
 function groupWorkflowCreateWithOwner(
     User $owner,
-    GroupVisibility $visibility = GroupVisibility::PublicOpen,
+    GroupVisibility $visibility = GroupVisibility::Public,
     ?string $slug = null
 ): Group {
     /** @var Group $group */
@@ -38,12 +38,14 @@ function groupWorkflowCreateWithOwner(
         'slug' => $slug ?? fake()->unique()->slug(),
         'description' => 'Descrizione gruppo',
         'visibility' => $visibility,
+        'is_listed' => true,
+        'group_category_id' => groupTestCategory()->id,
         'is_active' => true,
     ]);
 
     $group->members()->create([
         'user_id' => $owner->id,
-        'role' => GroupMemberRole::Owner,
+        'role' => GroupMemberRole::Admin,
         'status' => GroupMemberStatus::Active,
         'joined_at' => now(),
         'handled_by_user_id' => $owner->id,
@@ -53,14 +55,22 @@ function groupWorkflowCreateWithOwner(
     return $group;
 }
 
-it('lists only public active groups and supports search query', function () {
+it('requires authentication to list groups', function () {
+    $this->getJson('/api/v1/groups')->assertUnauthorized();
+    $this->getJson('/api/v1/groups/slam-rome')->assertUnauthorized();
+});
+
+it('lists listed groups and supports search query', function () {
     $owner = groupWorkflowOwner();
-    $publicGroup = groupWorkflowCreateWithOwner($owner, GroupVisibility::PublicOpen, 'slam-rome');
+    $publicGroup = groupWorkflowCreateWithOwner($owner, GroupVisibility::Public, 'slam-rome');
     $publicGroup->update([
         'name' => 'Slam Rome Centro',
         'description' => 'Open mic poetry',
     ]);
-    groupWorkflowCreateWithOwner($owner, GroupVisibility::PrivateApproval, 'private-slam');
+    $unlisted = groupWorkflowCreateWithOwner($owner, GroupVisibility::Private, 'private-slam');
+    $unlisted->update(['is_listed' => false]);
+
+    Sanctum::actingAs($owner);
 
     $response = $this->getJson('/api/v1/groups?q=rome');
 
@@ -70,30 +80,33 @@ it('lists only public active groups and supports search query', function () {
         ->assertJsonPath('data.groups.0.slug', 'slam-rome');
 });
 
-it('shows private group only to active members', function () {
+it('shows listed private groups to authenticated users and hides unlisted ones', function () {
     $owner = groupWorkflowOwner();
     $other = groupWorkflowUser();
-    $group = groupWorkflowCreateWithOwner($owner, GroupVisibility::PrivateApproval, 'private-visible-group');
+    $listed = groupWorkflowCreateWithOwner($owner, GroupVisibility::Private, 'private-listed-group');
+    $unlisted = groupWorkflowCreateWithOwner($owner, GroupVisibility::Private, 'private-unlisted-group');
+    $unlisted->update(['is_listed' => false]);
 
-    // Non member cannot see private group.
     Sanctum::actingAs($other);
-    $this->getJson('/api/v1/groups/private-visible-group')->assertNotFound();
-
-    // Active member can see private group.
-    Sanctum::actingAs($owner);
-    $this->getJson('/api/v1/groups/private-visible-group')
+    $this->getJson('/api/v1/groups/private-listed-group')
         ->assertOk()
-        ->assertJsonPath('data.group.slug', $group->slug);
+        ->assertJsonPath('data.group.slug', $listed->slug);
+    $this->getJson('/api/v1/groups/private-unlisted-group')->assertNotFound();
+
+    Sanctum::actingAs($owner);
+    $this->getJson('/api/v1/groups/private-unlisted-group')
+        ->assertOk()
+        ->assertJsonPath('data.group.slug', $unlisted->slug);
 });
 
 it('lists my groups including pending memberships', function () {
     $owner = groupWorkflowOwner();
     $user = groupWorkflowUser();
-    $group = groupWorkflowCreateWithOwner($owner, GroupVisibility::PrivateApproval);
+    $group = groupWorkflowCreateWithOwner($owner, GroupVisibility::Private);
 
     $group->members()->create([
         'user_id' => $user->id,
-        'role' => GroupMemberRole::Member,
+        'role' => GroupMemberRole::Follower,
         'status' => GroupMemberStatus::Pending,
     ]);
 
@@ -104,25 +117,25 @@ it('lists my groups including pending memberships', function () {
         ->assertJsonPath('data.groups.0.current_user_membership.status', 'pending');
 });
 
-it('rejects leave for last active owner', function () {
+it('rejects leave for last active admin', function () {
     $owner = groupWorkflowOwner();
     $group = groupWorkflowCreateWithOwner($owner);
 
     Sanctum::actingAs($owner);
     $this->postJson("/api/v1/groups/{$group->slug}/leave")
         ->assertStatus(422)
-        ->assertJsonPath('errors.fields.group.0', __('group.errors.last_owner'));
+        ->assertJsonPath('errors.fields.group.0', __('group.errors.last_admin'));
 });
 
 it('lists pending requests and supports reject flow by owner', function () {
     $owner = groupWorkflowOwner();
     $requester = groupWorkflowUser();
-    $group = groupWorkflowCreateWithOwner($owner, GroupVisibility::PrivateApproval);
+    $group = groupWorkflowCreateWithOwner($owner, GroupVisibility::Private);
 
     /** @var GroupMember $membership */
     $membership = $group->members()->create([
         'user_id' => $requester->id,
-        'role' => GroupMemberRole::Member,
+        'role' => GroupMemberRole::Follower,
         'status' => GroupMemberStatus::Pending,
     ]);
 
@@ -146,7 +159,7 @@ it('removes a member and notifies them', function () {
     /** @var GroupMember $membership */
     $membership = $group->members()->create([
         'user_id' => $member->id,
-        'role' => GroupMemberRole::Member,
+        'role' => GroupMemberRole::Follower,
         'status' => GroupMemberStatus::Active,
         'joined_at' => now(),
     ]);
@@ -169,7 +182,7 @@ it('supports list and delete for announcements', function () {
 
     $group->members()->create([
         'user_id' => $moderator->id,
-        'role' => GroupMemberRole::Moderator,
+        'role' => GroupMemberRole::Editor,
         'status' => GroupMemberStatus::Active,
         'joined_at' => now(),
         'handled_by_user_id' => $owner->id,
@@ -201,8 +214,8 @@ it('supports list and delete for announcements', function () {
 
 it('returns 404 when announcement does not belong to the group route', function () {
     $owner = groupWorkflowOwner();
-    $groupA = groupWorkflowCreateWithOwner($owner, GroupVisibility::PublicOpen, 'group-a');
-    $groupB = groupWorkflowCreateWithOwner($owner, GroupVisibility::PublicOpen, 'group-b');
+    $groupA = groupWorkflowCreateWithOwner($owner, GroupVisibility::Public, 'group-a');
+    $groupB = groupWorkflowCreateWithOwner($owner, GroupVisibility::Public, 'group-b');
 
     /** @var GroupAnnouncement $announcement */
     $announcement = $groupA->announcements()->create([
@@ -233,13 +246,15 @@ it('ensures group chat thread and includes active members', function () {
     ]);
 
     Sanctum::actingAs($owner);
-    $response = $this->postJson("/api/v1/groups/{$group->slug}/chat-thread");
+    $response = $this->patchJson("/api/v1/groups/{$group->slug}/chat-threads", [
+        'audiences' => ['public'],
+    ]);
 
     $response
-        ->assertCreated()
-        ->assertJsonPath('data.thread.group.slug', $group->slug);
+        ->assertOk()
+        ->assertJsonPath('data.threads.0.group.slug', $group->slug);
 
-    $threadId = $response->json('data.thread.id');
+    $threadId = $response->json('data.threads.0.id');
     $thread = ChatThread::query()->with('memberRecords')->findOrFail($threadId);
 
     expect($thread->memberRecords->pluck('user_id')->sort()->values()->all())

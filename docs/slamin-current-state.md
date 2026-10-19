@@ -776,6 +776,8 @@ Concetto:
 - `type`
 - `direct_key`
 - `group_id`
+- `audience`
+- `is_enabled`
 - `title`
 - `created_by_user_id`
 - `last_message_at`
@@ -811,14 +813,14 @@ API disponibili:
 - `POST /chat/group-threads`
 - `GET /chat/threads/{thread}`
 - `POST /chat/threads/{thread}/read`
-- `POST /groups/{group}/chat-thread`
+- `PATCH /groups/{group}/chat-threads`
 
 Comportamento:
 
 - direct chat unica per coppia utenti
 - free group chat create liberamente nel dominio `Chat`
-- attached group chat auto-create alla creazione del gruppo
-- endpoint esplicito per assicurare il thread di gruppo se manca
+- attached group chat opt-in per audience (`admin`, `editor`, `affiliates`, `public`)
+- nessuna chat unica creata in automatico alla creazione del gruppo
 
 ### Messaggi, reply e reaction
 
@@ -1016,19 +1018,66 @@ Usato su:
 
 Stato:
 
-- completo
+- operativo come pagina della community (non più modello club)
 
-Copertura:
+Documento complementare:
 
-- CRUD
-- membership
-- ruoli `owner`, `admin`, `moderator`, `member`
-- join / approval
-- staff panel
-- announcements
-- notifiche
-- integrazione con `Event`
-- audit
+- [gruppi.md](gruppi.md)
+- [group-domain-blueprint.md](group-domain-blueprint.md)
+
+Concetto:
+
+`Group -> staff (admin/editor) + follower`
+
+`Group -> bacheca + calendario`
+
+`Group <-> Group` (affiliazione padre/figlio)
+
+`Group -> chat opzionali per audience`
+
+### Visibilità e ruoli
+
+- sezione `/groups` solo autenticati
+- `visibility`: `public` | `private`
+- `is_listed`: i pubblici sono sempre listed; i privati unlisted restano fuori da elenco e catalogo
+- ruoli: `admin`, `editor`, `follower`
+- staff implica follow; vincolo almeno un admin attivo
+
+### Contenuti
+
+- `group_content_links` unica fonte per evento, poesia, articolo
+- stati `pending` | `accepted` | `rejected` | `removed`
+- proposte dalla community; auto-accept solo per eventi se attivo
+- inoltro one-hop degli eventi accepted dal figlio al padre
+- feed nativo (`group_announcements`) + calendario accepted
+
+### Chat collegate
+
+- niente auto-create unica
+- fino a quattro thread: `admin`, `editor`, `affiliates`, `public`
+- `PATCH /groups/{group}/chat-threads`
+- membership sincronizzata dal ruolo
+- le chat libere in `/chat` restano nel dominio Chat
+
+### Catalogo
+
+- i gruppi listed compaiono in `GET /search` per utenti verificati
+- “vedi tutti” va a `/groups?q=`
+
+### Test Group
+
+Stato:
+
+- verdi
+
+Copertura principale:
+
+- CRUD e visibilità
+- follow / inviti / ruoli
+- feed e proposte evento, poesia, articolo
+- gerarchia e inoltro eventi
+- chat per audience
+- catalogo listed / unlisted
 
 ## Traduzioni
 
@@ -1070,4 +1119,4 @@ Oggi e gia un sistema multi-dominio con:
 - audit
 - relazioni complesse tra `Event`, `PoetrySlam`, `Gig`, `Poem`, utenti e gruppi
 
-`PoetrySlam`, `Gig` e `Chat` sono ora sottodomini backend realmente operativi, mentre `Media` è stato definito a livello di blueprint e regole stabili.
+`PoetrySlam`, `Gig`, `Chat`, `Media` e `Group` sono sottodomini operativi. Il gruppo è una pagina (staff, follower, feed, calendario, chat opt-in, catalogo).
