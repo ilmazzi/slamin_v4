@@ -49,7 +49,15 @@ export default function ContentReportModal({
   const resolvedItemTitle = itemTitle ?? item?.title ?? ''
 
   return (
-    <div className={styles.overlay} role="presentation" onClick={onClose}>
+    <div
+      className={styles.overlay}
+      role="presentation"
+      onClick={(event) => {
+        if (event.target === event.currentTarget && !isSubmitting) {
+          onClose()
+        }
+      }}
+    >
       <section
         className={styles.modal}
         role="dialog"

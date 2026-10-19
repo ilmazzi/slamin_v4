@@ -69,7 +69,7 @@ export default function ArticleDetailPage() {
     shareSentMessage: t('articles.actions.share_sent'),
     shareFailedMessage: t('articles.actions.share_failed'),
     reportSubmittedMessage: t('articles.actions.report_submitted'),
-    reportFailedMessage: t('common.no_results'),
+    reportFailedMessage: t('report.ui.submit_error'),
     submitReport: async (item, { reason, details }) => {
       const target = item?.id || item?.slug || articleDetail?.id || null
       if (!target) {

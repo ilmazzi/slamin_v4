@@ -52,7 +52,7 @@ export default function PoemDetailPage() {
     shareSentMessage: t('poems.actions.share_sent'),
     shareFailedMessage: t('poems.actions.share_failed'),
     reportSubmittedMessage: t('poems.actions.report_submitted'),
-    reportFailedMessage: t('common.no_results'),
+    reportFailedMessage: t('report.ui.submit_error'),
     submitReport: async (item, { reason, details }) => {
       const target = item?.id || item?.slug || poemDetail?.id || null
       if (!target) {

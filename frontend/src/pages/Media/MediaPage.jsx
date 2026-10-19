@@ -115,7 +115,7 @@ export default function MediaPage() {
     shareSentMessage: t('media.ui.share_sent'),
     shareFailedMessage: t('media.ui.share_failed'),
     reportSubmittedMessage: t('media.ui.report_submitted'),
-    reportFailedMessage: t('common.no_results'),
+    reportFailedMessage: t('report.ui.submit_error'),
     submitReport: async (item, { reason, details }) => {
       const target = item?.id ?? null
       if (!target) {

@@ -25,6 +25,8 @@ return [
         'reason' => 'Reason',
         'details' => 'Details (optional)',
         'details_placeholder' => 'Add useful details',
+        'submitted' => 'Report submitted.',
+        'submit_error' => 'Unable to submit the report.',
         'reasons' => [
             'spam' => 'Spam',
             'abuse' => 'Abuse',

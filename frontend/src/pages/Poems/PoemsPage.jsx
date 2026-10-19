@@ -9,6 +9,7 @@ import { usePaginatedApiList } from '../../app/hooks/usePaginatedApiList.js'
 import { usePoemPageSearchParams } from '../../app/hooks/usePoemPageSearchParams.js'
 import { useContentFeedbackUi } from '../../app/hooks/useContentFeedbackUi.js'
 import { listPoemCategories, listPoems } from '../../app/api/poems.js'
+import { createPoemReport } from '../../app/api/reports.js'
 import AllPoemsSection from '../../components/poems/AllPoemsSection.jsx'
 import PoemsFilterBar from '../../components/poems/PoemsFilterBar.jsx'
 import HomeDashboardPromoSection from '../../components/home/HomeDashboardPromoSection.jsx'
@@ -22,7 +23,7 @@ const SEARCH_DEBOUNCE_MS = 300
 
 export default function PoemsPage() {
   const { t, locale, availableLocales } = useI18n()
-  const { user } = useAuth()
+  const { user, token } = useAuth()
   const canCreatePoem = user?.account_type === 'poet_organizer'
   const {
     search,
@@ -139,6 +140,7 @@ export default function PoemsPage() {
   const {
     reportModalItem,
     toastMessage,
+    isSubmittingReport,
     setReportModalItem,
     setToastMessage,
     handleReportConfirm,
@@ -150,6 +152,14 @@ export default function PoemsPage() {
     shareSentMessage: t('poems.actions.share_sent'),
     shareFailedMessage: t('poems.actions.share_failed'),
     reportSubmittedMessage: t('poems.actions.report_submitted'),
+    reportFailedMessage: t('report.ui.submit_error'),
+    submitReport: async (item, { reason, details }) => {
+      const target = item?.id || item?.slug || null
+      if (!target) {
+        throw new Error(t('common.no_results'))
+      }
+      await createPoemReport(target, { reason: reason || 'spam', details: details || null }, { token })
+    },
   })
 
   return (
@@ -223,6 +233,7 @@ export default function PoemsPage() {
         description={t('poems.actions.report_description')}
         cancelLabel={t('poems.actions.report_cancel')}
         confirmLabel={t('poems.actions.report_confirm')}
+        isSubmitting={isSubmittingReport}
         onClose={() => setReportModalItem(null)}
         onConfirm={handleReportConfirm}
       />

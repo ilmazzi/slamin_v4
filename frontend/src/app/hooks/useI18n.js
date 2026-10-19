@@ -26,6 +26,12 @@ const staticFallbacks = {
       no_results: 'Nessun risultato',
       groups: 'Gruppi',
     },
+    report: {
+      ui: {
+        submitted: 'Segnalazione inviata.',
+        submit_error: 'Impossibile inviare la segnalazione.',
+      },
+    },
     statistics: {
       title: 'Le tue statistiche',
       subtitle: 'Scopri come la community interagisce con ciò che pubblichi.',
@@ -60,6 +66,9 @@ const staticFallbacks = {
         error_updating_poem: 'Impossibile aggiornare la poesia.',
         success_updating_poem: 'Poesia aggiornata con successo.',
       },
+      actions: {
+        report_submitted: 'Segnalazione inviata.',
+      },
     },
     articles: {
       form: {
@@ -68,6 +77,9 @@ const staticFallbacks = {
         error_not_owner: 'Non puoi modificare questo articolo.',
         error_updating_article: 'Impossibile aggiornare l’articolo.',
         success_updating_article: 'Articolo aggiornato con successo.',
+      },
+      actions: {
+        report_submitted: 'Segnalazione inviata.',
       },
     },
     contact: {
@@ -330,6 +342,12 @@ const staticFallbacks = {
       no_results: 'No results',
       groups: 'Groups',
     },
+    report: {
+      ui: {
+        submitted: 'Report submitted.',
+        submit_error: 'Unable to submit the report.',
+      },
+    },
     statistics: {
       title: 'Your statistics',
       subtitle: 'See how the community interacts with the things you publish.',
@@ -364,6 +382,9 @@ const staticFallbacks = {
         error_updating_poem: 'Unable to update the poem.',
         success_updating_poem: 'Poem updated successfully.',
       },
+      actions: {
+        report_submitted: 'Report submitted.',
+      },
     },
     articles: {
       form: {
@@ -372,6 +393,9 @@ const staticFallbacks = {
         error_not_owner: 'You cannot edit this article.',
         error_updating_article: 'Unable to update the article.',
         success_updating_article: 'Article updated successfully.',
+      },
+      actions: {
+        report_submitted: 'Report submitted.',
       },
     },
     contact: {
@@ -698,17 +722,17 @@ function useI18nState() {
 
   const t = (key, replacements) => {
     const value = resolveKeyPath(translations, key)
-    if (typeof value === 'string') {
+    if (typeof value === 'string' && value.trim() !== '') {
       return applyReplacements(value, replacements)
     }
 
     const localeFallback = resolveKeyPath(staticFallbacks[locale] || {}, key)
-    if (typeof localeFallback === 'string') {
+    if (typeof localeFallback === 'string' && localeFallback.trim() !== '') {
       return applyReplacements(localeFallback, replacements)
     }
 
     const defaultFallback = resolveKeyPath(staticFallbacks[fallbackLocale] || {}, key)
-    if (typeof defaultFallback === 'string') {
+    if (typeof defaultFallback === 'string' && defaultFallback.trim() !== '') {
       return applyReplacements(defaultFallback, replacements)
     }
 

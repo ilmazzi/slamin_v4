@@ -38,7 +38,7 @@ export default function EventPage() {
     shareSentMessage: t('events.ui.share_sent'),
     shareFailedMessage: t('events.ui.share_failed'),
     reportSubmittedMessage: t('events.ui.report_submitted'),
-    reportFailedMessage: t('common.no_results'),
+    reportFailedMessage: t('report.ui.submit_error'),
     submitReport: async (item, { reason, details }) => {
       const target = item?.id ?? null
       if (!target) {

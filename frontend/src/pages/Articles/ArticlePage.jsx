@@ -1,5 +1,6 @@
 import { useEffect, useMemo } from 'react'
 import { listArticles } from '../../app/api/articles.js'
+import { createArticleReport } from '../../app/api/reports.js'
 import { usePaginatedApiList } from '../../app/hooks/usePaginatedApiList.js'
 import MainLayout from '../../components/layout/MainLayout.jsx'
 import PageHero from '../../components/PageHero.jsx'
@@ -24,7 +25,7 @@ const API_PER_PAGE = 5
 
 export default function ArticlePage() {
   const { t, locale } = useI18n()
-  const { user } = useAuth()
+  const { user, token } = useAuth()
   const canCreateArticle = user?.account_type === 'poet_organizer'
   const {
     categorySlug,
@@ -111,6 +112,7 @@ export default function ArticlePage() {
   const {
     reportModalItem,
     toastMessage,
+    isSubmittingReport,
     setReportModalItem,
     setToastMessage,
     handleReportConfirm,
@@ -122,6 +124,14 @@ export default function ArticlePage() {
     shareSentMessage: t('articles.actions.share_sent'),
     shareFailedMessage: t('articles.actions.share_failed'),
     reportSubmittedMessage: t('articles.actions.report_submitted'),
+    reportFailedMessage: t('report.ui.submit_error'),
+    submitReport: async (item, { reason, details }) => {
+      const target = item?.id || item?.slug || null
+      if (!target) {
+        throw new Error(t('common.no_results'))
+      }
+      await createArticleReport(target, { reason: reason || 'spam', details: details || null }, { token })
+    },
   })
 
   return (
@@ -190,6 +200,7 @@ export default function ArticlePage() {
           description={t('articles.actions.report_description')}
           cancelLabel={t('articles.actions.report_cancel')}
           confirmLabel={t('articles.actions.report_confirm')}
+          isSubmitting={isSubmittingReport}
           onClose={() => setReportModalItem(null)}
           onConfirm={handleReportConfirm}
         />

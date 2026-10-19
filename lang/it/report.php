@@ -25,6 +25,8 @@ return [
         'reason' => 'Motivo',
         'details' => 'Dettagli (opzionale)',
         'details_placeholder' => 'Aggiungi dettagli utili',
+        'submitted' => 'Segnalazione inviata.',
+        'submit_error' => 'Impossibile inviare la segnalazione.',
         'reasons' => [
             'spam' => 'Spam',
             'abuse' => 'Abuso',

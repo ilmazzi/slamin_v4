@@ -90,9 +90,11 @@ export function useContentFeedbackUi({
   }, [contentType, knownItems, reportSubmittedMessage, shareCopiedMessage, shareFailedMessage, shareSentMessage])
 
   const handleReportConfirm = async ({ reason, details } = {}) => {
+    const successMessage = String(reportSubmittedMessage || '').trim() || 'Segnalazione inviata.'
+    const failureMessage = String(reportFailedMessage || '').trim() || 'Impossibile inviare la segnalazione.'
+
     if (!reportModalItem || typeof submitReport !== 'function') {
-      setReportModalItem(null)
-      setToastMessage(reportSubmittedMessage)
+      setToastMessage(failureMessage)
       return
     }
 
@@ -100,12 +102,11 @@ export function useContentFeedbackUi({
       setIsSubmittingReport(true)
       await submitReport(reportModalItem, { reason, details })
       setReportModalItem(null)
-      setToastMessage(reportSubmittedMessage)
+      setToastMessage(successMessage)
     } catch (error) {
-      const fallback = reportFailedMessage || 'Unable to submit report'
       const message = typeof error?.message === 'string' && error.message.trim() !== ''
         ? error.message
-        : fallback
+        : failureMessage
       setToastMessage(message)
     } finally {
       setIsSubmittingReport(false)

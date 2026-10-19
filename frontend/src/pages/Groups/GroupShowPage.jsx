@@ -90,7 +90,7 @@ export default function GroupShowPage() {
     shareSentMessage: t('group.ui.share_sent'),
     shareFailedMessage: t('group.ui.share_failed'),
     reportSubmittedMessage: t('group.ui.report_submitted'),
-    reportFailedMessage: t('common.no_results'),
+    reportFailedMessage: t('report.ui.submit_error'),
     submitReport: async (item, { reason, details }) => {
       const target = item?.id ?? group?.id ?? null
       if (!target) {
