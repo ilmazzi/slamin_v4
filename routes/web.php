@@ -16,6 +16,7 @@ use Domain\Share\Support\ShareCardFormat;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/sitemap.xml', ShowSitemapController::class)->name('sitemap');
+Route::get('/share/sitemap.xml', ShowSitemapController::class)->name('share.sitemap');
 Route::get('/robots.txt', ShowRobotsController::class)->name('robots');
 
 Route::get('/share/poems/{slug}/card.png', ShowPoemShareCardController::class)

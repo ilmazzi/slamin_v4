@@ -98,6 +98,11 @@ it('exposes a sitemap of public pages and published content', function () {
         ->assertHeader('Content-Type', 'application/xml; charset=UTF-8')
         ->assertSee('https://slamin.it/events/slam-pubblico', false);
 
+    $this->get('/share/sitemap.xml')
+        ->assertOk()
+        ->assertHeader('Content-Type', 'application/xml; charset=UTF-8')
+        ->assertSee('https://slamin.it/events/slam-pubblico', false);
+
     $this->get('/sitemap.xml')
         ->assertOk()
         ->assertHeader('Content-Type', 'application/xml; charset=UTF-8')
@@ -122,5 +127,17 @@ it('points robots.txt at the public sitemap', function () {
     $this->get('/robots.txt')
         ->assertOk()
         ->assertHeader('Content-Type', 'text/plain; charset=UTF-8')
-        ->assertSee('Sitemap: https://slamin.it/api/v1/sitemap.xml', false);
+        ->assertSee('Sitemap: https://slamin.it/share/sitemap.xml', false);
+});
+
+it('writes a static sitemap file', function () {
+    config(['app.frontend_url' => 'https://slamin.it']);
+    $path = storage_path('framework/testing/sitemap.xml');
+
+    $this->artisan('sitemap:generate', ['--path' => $path])
+        ->assertSuccessful();
+
+    expect(file_get_contents($path))
+        ->toContain('https://slamin.it/events')
+        ->toContain('<urlset');
 });

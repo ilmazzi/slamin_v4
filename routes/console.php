@@ -47,3 +47,9 @@ Schedule::command('backup:monitor')
     ->timezone('Europe/Rome')
     ->withoutOverlapping()
     ->onOneServer();
+
+Schedule::command('sitemap:generate')
+    ->everyFiveMinutes()
+    ->timezone('Europe/Rome')
+    ->withoutOverlapping()
+    ->onOneServer();
