@@ -9,7 +9,7 @@ class ShowRobotsController extends Controller
 {
     public function __invoke(): Response
     {
-        $sitemap = rtrim((string) (config('app.frontend_url') ?: config('app.url')), '/').'/sitemap.xml';
+        $sitemap = rtrim((string) (config('app.frontend_url') ?: config('app.url')), '/').'/api/v1/sitemap.xml';
 
         return response(
             "User-agent: *\nDisallow:\n\nSitemap: {$sitemap}\n",

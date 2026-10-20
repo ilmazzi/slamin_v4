@@ -93,6 +93,11 @@ it('exposes a sitemap of public pages and published content', function () {
     $hidden = User::factory()->create();
     $hidden->profile()->update(['nickname' => 'nascosto', 'is_public' => false]);
 
+    $this->get('/api/v1/sitemap.xml')
+        ->assertOk()
+        ->assertHeader('Content-Type', 'application/xml; charset=UTF-8')
+        ->assertSee('https://slamin.it/events/slam-pubblico', false);
+
     $this->get('/sitemap.xml')
         ->assertOk()
         ->assertHeader('Content-Type', 'application/xml; charset=UTF-8')
@@ -117,5 +122,5 @@ it('points robots.txt at the public sitemap', function () {
     $this->get('/robots.txt')
         ->assertOk()
         ->assertHeader('Content-Type', 'text/plain; charset=UTF-8')
-        ->assertSee('Sitemap: https://slamin.it/sitemap.xml', false);
+        ->assertSee('Sitemap: https://slamin.it/api/v1/sitemap.xml', false);
 });

@@ -18,6 +18,7 @@ Route::prefix('v1')->group(function (): void {
     require __DIR__.'/api/v1/users.php';
     require __DIR__.'/api/v1/profiles.php';
     require __DIR__.'/api/v1/home.php';
+    require __DIR__.'/api/v1/seo.php';
     require __DIR__.'/api/v1/poems.php';
     require __DIR__.'/api/v1/articles.php';
     require __DIR__.'/api/v1/events.php';
