@@ -1,5 +1,7 @@
 <?php
 
+use App\Http\Controllers\Seo\ShowRobotsController;
+use App\Http\Controllers\Seo\ShowSitemapController;
 use App\Http\Controllers\Share\ShowArticleShareCardController;
 use App\Http\Controllers\Share\ShowArticleSharePageController;
 use App\Http\Controllers\Share\ShowEventShareCardController;
@@ -12,6 +14,9 @@ use App\Http\Controllers\Share\ShowPoemShareCardController;
 use App\Http\Controllers\Share\ShowPoemSharePageController;
 use Domain\Share\Support\ShareCardFormat;
 use Illuminate\Support\Facades\Route;
+
+Route::get('/sitemap.xml', ShowSitemapController::class)->name('sitemap');
+Route::get('/robots.txt', ShowRobotsController::class)->name('robots');
 
 Route::get('/share/poems/{slug}/card.png', ShowPoemShareCardController::class)
     ->name('share.poems.card');

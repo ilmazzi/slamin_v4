@@ -116,6 +116,22 @@ export default defineConfig(({ mode }) => {
             Host: apiProxyHost,
           },
         },
+        '/sitemap.xml': {
+          target: apiProxyTarget,
+          changeOrigin: true,
+          secure: false,
+          headers: {
+            Host: apiProxyHost,
+          },
+        },
+        '/robots.txt': {
+          target: apiProxyTarget,
+          changeOrigin: true,
+          secure: false,
+          headers: {
+            Host: apiProxyHost,
+          },
+        },
       },
     },
   }
