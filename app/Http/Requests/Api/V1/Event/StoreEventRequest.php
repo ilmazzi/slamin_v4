@@ -183,8 +183,6 @@ class StoreEventRequest extends FormRequest
             'gigs.*.status' => ['nullable', 'string', Rule::in([
                 GigStatus::Draft->value,
                 GigStatus::Open->value,
-                GigStatus::Closed->value,
-                GigStatus::Cancelled->value,
             ])],
 
             'occurrence.starts_at' => ['nullable', 'date'],

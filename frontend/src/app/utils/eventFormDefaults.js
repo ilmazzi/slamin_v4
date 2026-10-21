@@ -1,7 +1,7 @@
 export const emptyGig = {
   type: 'poet_artist',
   quantity: 1,
-  status: 'draft',
+  status: 'open',
   language: '',
   hospitality_required: false,
   description: '',

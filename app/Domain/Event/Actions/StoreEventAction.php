@@ -177,9 +177,9 @@ class StoreEventAction
                     'travel_expenses_max' => ! empty($gig['travel_expenses_enabled']) ? ($gig['travel_expenses_max'] ?? null) : null,
                     'accommodation_enabled' => (bool) ($gig['accommodation_enabled'] ?? false),
                     'accommodation_details' => ! empty($gig['accommodation_enabled']) ? ($gig['accommodation_details'] ?? null) : null,
-                    'status' => $gig['status'] ?? 'draft',
-                    'opened_at' => ($gig['status'] ?? 'draft') === 'open' ? $now : null,
-                    'closed_at' => in_array(($gig['status'] ?? 'draft'), ['closed', 'cancelled'], true) ? $now : null,
+                    'status' => $gig['status'] ?? 'open',
+                    'opened_at' => ($gig['status'] ?? 'open') === 'open' ? $now : null,
+                    'closed_at' => in_array(($gig['status'] ?? 'open'), ['closed', 'cancelled'], true) ? $now : null,
                     'created_by_user_id' => $data->userId,
                     'updated_by_user_id' => $data->userId,
                 ])->all()

@@ -39,8 +39,6 @@ class StoreEventGigRequest extends FormRequest
             'status' => ['nullable', 'string', Rule::in([
                 GigStatus::Draft->value,
                 GigStatus::Open->value,
-                GigStatus::Closed->value,
-                GigStatus::Cancelled->value,
             ])],
         ];
     }

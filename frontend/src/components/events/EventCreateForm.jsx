@@ -165,6 +165,13 @@ function PublishActions({ status, saving, disabled, t }) {
   )
 }
 
+const GIG_CREATE_STATUSES = ['draft', 'open']
+const GIG_MANAGE_STATUSES = ['draft', 'open', 'closed', 'cancelled']
+
+function gigStatusOptions(gig) {
+  return gig?.id ? GIG_MANAGE_STATUSES : GIG_CREATE_STATUSES
+}
+
 function SummaryCard({ title, items }) {
   return (
     <div className={styles.summaryCard}>
@@ -1501,10 +1508,11 @@ export default function EventCreateForm({ eventSlug = null }) {
                 value={gig.status}
                 onChange={(event) => setRow('gigs', index, 'status', event.target.value)}
               >
-                <option value="draft">{t('events.create_page.ui.status_draft')}</option>
-                <option value="open">{t('events.create_page.ui.status_open')}</option>
-                <option value="closed">{t('events.create_page.ui.status_closed')}</option>
-                <option value="cancelled">{t('events.create_page.ui.status_cancelled')}</option>
+                {gigStatusOptions(gig).map((status) => (
+                  <option key={status} value={status}>
+                    {t(`events.create_page.ui.status_${status}`)}
+                  </option>
+                ))}
               </select>
 
               <input

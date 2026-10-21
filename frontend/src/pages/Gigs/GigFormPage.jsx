@@ -18,6 +18,7 @@ import {
 } from '../../app/api/gigs.js'
 
 const EVENT_GIG_TYPES = ['poet_artist', 'mc_host', 'technical_support', 'volunteer']
+const CREATE_STATUSES = ['draft', 'open']
 const EDITABLE_STATUSES = ['draft', 'open', 'closed', 'cancelled']
 const CURRENCIES = ['EUR', 'USD', 'GBP', 'CHF']
 
@@ -229,7 +230,11 @@ export default function GigFormPage() {
   }
 
   const parentOptions = parents[source]
-  const statusOptions = source === 'poem' && isEdit ? [...EDITABLE_STATUSES.slice(0, 2), 'filled', ...EDITABLE_STATUSES.slice(2)] : EDITABLE_STATUSES
+  const statusOptions = isEdit
+    ? (source === 'poem'
+      ? [...CREATE_STATUSES, 'filled', 'closed', 'cancelled']
+      : EDITABLE_STATUSES)
+    : CREATE_STATUSES
   const isPoem = source === 'poem'
 
   return (
