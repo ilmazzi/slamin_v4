@@ -23,6 +23,8 @@
 }
 
 .accordion {
+  position: relative;
+  z-index: 1;
   border-bottom: 4px solid #e30613;
 }
 
@@ -55,6 +57,10 @@
   transition: transform 180ms ease;
 }
 
+.accordionOpen {
+  z-index: 4;
+}
+
 .accordionOpen .accordionChevron {
   transform: rotate(180deg);
 }
@@ -76,6 +82,11 @@
 .accordionContent {
   min-height: 0;
   overflow: hidden;
+}
+
+.accordionOpen .accordionClip,
+.accordionOpen .accordionContent {
+  overflow: visible;
 }
 
 .accordionOpen .accordionContent {
@@ -504,7 +515,7 @@
 
 .userSuggestions {
   position: absolute;
-  z-index: 1000;
+  z-index: 5;
   top: calc(100% + 6px);
   left: 0;
   width: 100%;
