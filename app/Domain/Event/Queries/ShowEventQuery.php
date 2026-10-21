@@ -17,6 +17,10 @@ class ShowEventQuery
             ->where(function ($query) use ($authUserId) {
                 if ($authUserId) {
                     $query->where('user_id', $authUserId)
+                        ->orWhereHas(
+                            'collaborators',
+                            fn ($collaborators) => $collaborators->where('users.id', $authUserId),
+                        )
                         ->orWhere(function ($query) {
                             $query->where('status', EventStatus::Published)
                                 ->where('is_public', true);

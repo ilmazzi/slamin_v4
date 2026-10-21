@@ -11,6 +11,8 @@ use Domain\Event\Models\EventCategory;
 use Domain\Gig\Enums\GigStatus;
 use Domain\Gig\Enums\GigType;
 use Domain\Group\Models\Group;
+use Domain\User\Enums\AccountType;
+use Domain\User\Models\User;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -42,6 +44,7 @@ class StoreEventRequest extends FormRequest
             'gigs',
             'group_ids',
             'audience_invite_user_ids',
+            'collaborator_user_ids',
         ];
 
         $updates = [];
@@ -154,6 +157,8 @@ class StoreEventRequest extends FormRequest
             'participant_invites.*.status' => ['nullable', Rule::in(['pending', 'sent', 'accepted', 'declined'])],
             'audience_invite_user_ids' => ['nullable', 'array'],
             'audience_invite_user_ids.*' => ['integer', 'distinct', 'exists:users,id'],
+            'collaborator_user_ids' => ['nullable', 'array'],
+            'collaborator_user_ids.*' => ['integer', 'distinct', 'exists:users,id'],
             'audience_invites' => ['nullable', 'array'],
             'audience_invites.*.user_id' => ['nullable', 'integer', 'exists:users,id'],
             'audience_invites.*.name' => ['nullable', 'string', 'max:255'],
@@ -408,6 +413,40 @@ class StoreEventRequest extends FormRequest
                     );
 
                     return;
+                }
+            }
+
+            $collaboratorIds = collect($this->input('collaborator_user_ids', []))
+                ->filter(fn ($id): bool => is_numeric($id))
+                ->map(fn ($id): int => (int) $id)
+                ->unique()
+                ->values();
+
+            if ($collaboratorIds->isNotEmpty()) {
+                $ownerId = (int) ($this->route('event')?->user_id ?? $this->user()?->id);
+
+                if ($collaboratorIds->contains($ownerId)) {
+                    $validator->errors()->add(
+                        'collaborator_user_ids',
+                        __('event.validation.collaborator_cannot_be_owner')
+                    );
+                }
+
+                $invalidCollaboratorsExist = User::query()
+                    ->whereIn('id', $collaboratorIds->all())
+                    ->where(function ($query): void {
+                        $query
+                            ->where('account_type', '!=', AccountType::PoetOrganizer)
+                            ->orWhere('status', '!=', 'active')
+                            ->orWhereNull('email_verified_at');
+                    })
+                    ->exists();
+
+                if ($invalidCollaboratorsExist) {
+                    $validator->errors()->add(
+                        'collaborator_user_ids',
+                        __('event.validation.collaborator_must_be_poet_organizer')
+                    );
                 }
             }
 

@@ -3,10 +3,12 @@
 namespace App\Http\Controllers\Api\V1\Event;
 
 use App\Http\Controllers\Controller;
+use Domain\User\Enums\AccountType;
 use Domain\User\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Validation\Rule;
 
 class SearchEventInviteUsersController extends Controller
 {
@@ -14,6 +16,7 @@ class SearchEventInviteUsersController extends Controller
     {
         $validated = $request->validate([
             'q' => ['required', 'string', 'min:2', 'max:100'],
+            'account_type' => ['nullable', Rule::in(array_column(AccountType::cases(), 'value'))],
         ]);
 
         $query = mb_strtolower(trim($validated['q']));
@@ -22,6 +25,10 @@ class SearchEventInviteUsersController extends Controller
             ->with('profile')
             ->where('status', 'active')
             ->whereNotNull('email_verified_at')
+            ->when(
+                filled($validated['account_type'] ?? null),
+                fn ($builder) => $builder->where('account_type', $validated['account_type']),
+            )
             ->whereKeyNot($request->user()->id)
             ->whereHas('profile', function ($profileQuery) use ($query): void {
                 $profileQuery

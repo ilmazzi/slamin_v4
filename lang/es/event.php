@@ -31,6 +31,8 @@ return [
         'festival_cannot_have_parent_festival' => 'Un evento con categoría festival no puede pertenecer a otro festival.',
         'festival_with_children_cannot_change_category' => 'No puedes cambiar la categoría de un festival que tiene eventos vinculados.',
         'festival_with_children_cannot_be_deleted' => 'No puedes eliminar un festival que tiene eventos vinculados.',
+        'collaborator_cannot_be_owner' => 'El propietario del evento no puede añadirse como colaborador.',
+        'collaborator_must_be_poet_organizer' => 'Los colaboradores deben ser cuentas de organizador verificadas.',
     ],
     'notifications' => [
         'availability_finalized_title' => 'Fecha del evento confirmada',

@@ -22,6 +22,7 @@ class StoreEventAction
         private readonly NotifyEventInvitesAction $notifyEventInvitesAction,
         private readonly SyncEventOccurrencesAction $syncEventOccurrencesAction,
         private readonly ProposeEventToGroupsAction $proposeEventToGroupsAction,
+        private readonly SyncEventCollaboratorsAction $syncEventCollaboratorsAction,
     ) {}
 
     public function execute(StoreEventData $data): Event
@@ -156,6 +157,8 @@ class StoreEventAction
         if ($data->audienceInvites !== []) {
             $event->audienceInvites()->createMany($data->audienceInvites);
         }
+
+        $this->syncEventCollaboratorsAction->execute($event, $data->collaboratorUserIds);
 
         if ($data->gigs !== []) {
             $now = now();

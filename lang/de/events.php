@@ -81,6 +81,7 @@ return [
             'write' => 'Organisation anschreiben',
             'login_to_write' => 'Melde dich an, um die Organisation anzuschreiben',
             'write_error' => 'Der Chat konnte nicht geöffnet werden.',
+            'collaborators_label' => 'Mitarbeitende',
         ],
         'actions' => [
             'join_online' => 'Online teilnehmen',
@@ -421,6 +422,10 @@ return [
             'registration_deadline' => 'Anmeldefrist',
             'registration_deadline_hint' => 'Setze eine Frist für Anmeldungen',
             'time' => 'Uhrzeit',
+            'collaborators' => 'Mitarbeitende',
+            'collaborators_hint' => 'Können das Event wie du bearbeiten und verwalten. Nur Organisator-Konten der Plattform.',
+            'collaborators_search_placeholder' => 'Organisatorinnen auf der Plattform suchen',
+            'remove_collaborator' => 'Mitarbeitende Person entfernen',
             'invite_audience' => 'Publikum einladen',
             'audience_search_placeholder' => 'Personen auf der Plattform suchen',
             'searching_users' => 'Suche läuft…',

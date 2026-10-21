@@ -14,6 +14,7 @@ import {
   flattenEventForDetail,
   formatDisplayValue,
   hasEventCoordinates,
+  canManageEvent,
   isEventOwner,
 } from '../../app/utils/eventDetail.js'
 import MainLayout from '../../components/layout/MainLayout.jsx'
@@ -338,6 +339,7 @@ function EventDetailContent({ t, locale, token, user, isAuthenticated }) {
   }, [event, locale, t])
 
   const isOwner = useMemo(() => isEventOwner(user, event), [event, user])
+  const canManage = useMemo(() => canManageEvent(user, event), [event, user])
   const [followOverride, setFollowOverride] = useState(null)
   const [isFollowBusy, setIsFollowBusy] = useState(false)
   const isFollowing = followOverride && followOverride.eventId === event?.id
@@ -388,7 +390,13 @@ function EventDetailContent({ t, locale, token, user, isAuthenticated }) {
                   <h1 className={styles.title}>{event.title || `${t('events.event')} ${eventId}`}</h1>
                   {event.subtitle ? <p className={styles.subtitle}>{event.subtitle}</p> : null}
                   <p className={styles.description}>{event.description || t('events.detail_page.messages.no_description')}</p>
-                  <EventOrganizer author={event.author} isOwner={isOwner} token={token} t={t} />
+                  <EventOrganizer
+                    author={event.author}
+                    collaborators={event.collaborators}
+                    isOwner={isOwner}
+                    token={token}
+                    t={t}
+                  />
                 </div>
 
                 <div className={styles.heroActions}>
@@ -423,7 +431,7 @@ function EventDetailContent({ t, locale, token, user, isAuthenticated }) {
                       icon={isFollowing ? 'minus' : 'plus'}
                     />
                   ) : null}
-                  {isOwner ? (
+                  {canManage ? (
                     <PillButton
                       label={t('events.detail_page.actions.edit')}
                       href={`/events/${event.slug || eventId}/edit`}

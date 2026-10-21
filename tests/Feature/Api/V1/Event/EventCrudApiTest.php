@@ -322,3 +322,79 @@ it('forbids another user from updating an event', function () {
         'title' => 'Titolo rubato',
     ])->assertForbidden();
 });
+
+it('stores collaborators and lets them manage the event like the owner', function () {
+    $owner = eventCrudAuthor();
+    $collaborator = eventCrudAuthor();
+    $collaborator->profile()->update([
+        'display_name' => 'Ada Collabora',
+        'nickname' => 'ada-collab',
+        'is_public' => true,
+    ]);
+    Sanctum::actingAs($owner);
+    $category = eventCrudCategory();
+
+    $response = $this->postJson('/api/v1/events', [
+        ...eventCrudPayload($category->id),
+        'collaborator_user_ids' => [$collaborator->id],
+    ]);
+
+    $response
+        ->assertOk()
+        ->assertJsonPath('data.event.is_owner', true)
+        ->assertJsonPath('data.event.can_manage', true)
+        ->assertJsonPath('data.event.collaborators.0.id', $collaborator->id)
+        ->assertJsonPath('data.event.collaborators.0.display_name', 'Ada Collabora');
+
+    $eventId = (int) $response->json('data.event.id');
+    $slug = $response->json('data.event.slug');
+
+    $this->assertDatabaseHas('event_collaborators', [
+        'event_id' => $eventId,
+        'user_id' => $collaborator->id,
+    ]);
+
+    Sanctum::actingAs($collaborator);
+    $this->getJson("/api/v1/events/{$slug}")
+        ->assertOk()
+        ->assertJsonPath('data.event.is_owner', false)
+        ->assertJsonPath('data.event.can_manage', true)
+        ->assertJsonPath('data.event.collaborators.0.id', $collaborator->id);
+
+    $this->getJson('/api/v1/my/events')
+        ->assertOk()
+        ->assertJsonPath('data.0.slug', $slug);
+
+    $this->patchJson("/api/v1/events/{$eventId}", [
+        ...eventCrudPayload($category->id),
+        'title' => 'Evento co-gestito',
+        'collaborator_user_ids' => [$collaborator->id],
+    ])
+        ->assertOk()
+        ->assertJsonPath('data.event.title', 'Evento co-gestito')
+        ->assertJsonPath('data.event.is_owner', false)
+        ->assertJsonPath('data.event.can_manage', true);
+
+    $this->deleteJson("/api/v1/events/{$eventId}")->assertForbidden();
+});
+
+it('rejects audience users and the owner as event collaborators', function () {
+    $owner = eventCrudAuthor();
+    $audience = User::factory()->create(['email_verified_at' => now()]);
+    Sanctum::actingAs($owner);
+    $category = eventCrudCategory();
+
+    $this->postJson('/api/v1/events', [
+        ...eventCrudPayload($category->id),
+        'collaborator_user_ids' => [$audience->id],
+    ])
+        ->assertUnprocessable()
+        ->assertJsonPath('errors.fields.collaborator_user_ids.0', __('event.validation.collaborator_must_be_poet_organizer'));
+
+    $this->postJson('/api/v1/events', [
+        ...eventCrudPayload($category->id),
+        'collaborator_user_ids' => [$owner->id],
+    ])
+        ->assertUnprocessable()
+        ->assertJsonPath('errors.fields.collaborator_user_ids.0', __('event.validation.collaborator_cannot_be_owner'));
+});

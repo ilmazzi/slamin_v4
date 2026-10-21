@@ -43,6 +43,7 @@ class UpdateEventData extends StoreEventData
         array $availabilityOptions,
         ?array $venue,
         ?array $online,
+        array $collaboratorUserIds,
         public readonly bool $removeCoverImage,
         public readonly bool $syncGroupLinks,
     ) {
@@ -79,6 +80,7 @@ class UpdateEventData extends StoreEventData
             $availabilityOptions,
             $venue,
             $online,
+            $collaboratorUserIds,
         );
     }
 
@@ -120,6 +122,7 @@ class UpdateEventData extends StoreEventData
             $base->availabilityOptions,
             $base->venue,
             $base->online,
+            $base->collaboratorUserIds,
             (bool) $request->validated('remove_cover_image', false),
             $request->exists('group_ids'),
         );

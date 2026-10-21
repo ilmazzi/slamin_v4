@@ -10,8 +10,15 @@ import styles from './DashboardPublications.module.css'
 const KINDS = ['poems', 'events', 'articles', 'media']
 const PAGE_SIZE = 50
 
-function isOwnedEvent(item) {
-  return Boolean(item?.is_owner)
+const CREATE_BY_KIND = {
+  poems: { href: '/poems/create', labelKey: 'profile.works.create_poem' },
+  events: { href: '/events/create', labelKey: 'profile.works.create_event' },
+  articles: { href: '/articles/create', labelKey: 'profile.works.create_article' },
+  media: { href: '/media/upload', labelKey: 'profile.works.create_media' },
+}
+
+function isManagedEvent(item) {
+  return Boolean(item?.is_owner || item?.can_manage)
 }
 
 function isPublishedItem(kind, item) {
@@ -97,7 +104,7 @@ async function loadOwned(kind, token, signal) {
   }
   if (kind === 'events') {
     const items = await listMyEvents({ token, signal, perPage: PAGE_SIZE })
-    return { items: Array.isArray(items) ? items.filter(isOwnedEvent) : [] }
+    return { items: Array.isArray(items) ? items.filter(isManagedEvent) : [] }
   }
   if (kind === 'articles') {
     return listMyArticles({ perPage: PAGE_SIZE, page: 1 }, { token, signal })
@@ -209,6 +216,8 @@ export default function DashboardPublications({ nickname, canManage = false, tok
     return items.filter((item) => !isPublishedItem(kind, item))
   }, [bucket, canManage, items, kind])
 
+  const createAction = CREATE_BY_KIND[kind]
+
   async function handlePublish(item) {
     if (!canManage || !token || busyId) {
       return
@@ -286,6 +295,12 @@ export default function DashboardPublications({ nickname, canManage = false, tok
             </button>
           </div>
         ) : null}
+        {canManage && createAction ? (
+          <Link className={styles.create} data-kind={kind} to={createAction.href}>
+            <span className={styles.createMark} aria-hidden="true">+</span>
+            {t(createAction.labelKey)}
+          </Link>
+        ) : null}
       </div>
 
       <div className={styles.kinds} role="tablist" aria-label={t('profile.works.title')}>
@@ -354,7 +369,7 @@ export default function DashboardPublications({ nickname, canManage = false, tok
                         : t('profile.works.publish')}
                     </button>
                   ) : null}
-                  {canManage ? (
+                  {canManage && (kind !== 'events' || item?.is_owner) ? (
                     <button
                       type="button"
                       className={styles.danger}

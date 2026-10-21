@@ -8,7 +8,7 @@ import { searchProposeableGroups } from '../../app/api/groups.js'
 import { useAuth } from '../../app/hooks/useAuth.js'
 import { useI18n } from '../../app/hooks/useI18n.js'
 import { mapEventToFormValues } from '../../app/utils/eventForm.js'
-import { isEventOwner } from '../../app/utils/eventDetail.js'
+import { canManageEvent } from '../../app/utils/eventDetail.js'
 import { emptyAvailability, emptyGig, emptyInvite } from '../../app/utils/eventFormDefaults.js'
 import { gigOfferFlags, gigToFormRow, snapshotGigRows, syncEventGigs } from '../../app/utils/eventGigForm.js'
 import { listEventGigs } from '../../app/api/gigs.js'
@@ -234,6 +234,9 @@ export default function EventCreateForm({ eventSlug = null }) {
   const [audienceUserQuery, setAudienceUserQuery] = useState('')
   const [audienceUserResults, setAudienceUserResults] = useState([])
   const [audienceSearchLoading, setAudienceSearchLoading] = useState(false)
+  const [collaboratorQuery, setCollaboratorQuery] = useState('')
+  const [collaboratorResults, setCollaboratorResults] = useState([])
+  const [collaboratorSearchLoading, setCollaboratorSearchLoading] = useState(false)
   const [groupQuery, setGroupQuery] = useState('')
   const [groupResults, setGroupResults] = useState([])
   const [isSearchingGroups, setIsSearchingGroups] = useState(false)
@@ -281,6 +284,7 @@ export default function EventCreateForm({ eventSlug = null }) {
     },
     online: { meeting_url: '', timezone: 'Europe/Rome' },
     selectedGroups: [],
+    collaborators: [],
     audience_invites: [],
     participant_invites: [emptyInvite],
     gigs: [emptyGig],
@@ -367,6 +371,38 @@ export default function EventCreateForm({ eventSlug = null }) {
   }, [audienceUserQuery, token])
 
   useEffect(() => {
+    const query = collaboratorQuery.trim()
+    if (!token || query.length < 2) {
+      setCollaboratorResults([])
+      setCollaboratorSearchLoading(false)
+      return undefined
+    }
+
+    const controller = new AbortController()
+    const timer = window.setTimeout(async () => {
+      setCollaboratorSearchLoading(true)
+      try {
+        const result = await searchEventInviteUsers(query, {
+          token,
+          signal: controller.signal,
+          accountType: 'poet_organizer',
+        })
+        const selectedIds = new Set((v.collaborators || []).map((person) => Number(person.id)))
+        setCollaboratorResults(result.users.filter((person) => !selectedIds.has(Number(person.id))))
+      } catch (searchError) {
+        if (searchError?.name !== 'AbortError') setCollaboratorResults([])
+      } finally {
+        if (!controller.signal.aborted) setCollaboratorSearchLoading(false)
+      }
+    }, 300)
+
+    return () => {
+      window.clearTimeout(timer)
+      controller.abort()
+    }
+  }, [collaboratorQuery, token, v.collaborators])
+
+  useEffect(() => {
     const query = groupQuery.trim()
     if (!token || query.length < 2) {
       setGroupResults([])
@@ -422,7 +458,7 @@ export default function EventCreateForm({ eventSlug = null }) {
         }
 
         const loaded = result.data.event
-        if (user && !isEventOwner(user, loaded)) {
+        if (user && !canManageEvent(user, loaded)) {
           navigate(`/events/${loaded.slug || eventSlug}`, { replace: true })
           return
         }
@@ -759,6 +795,38 @@ export default function EventCreateForm({ eventSlug = null }) {
     return 'IT'
   }
 
+  function selectCollaborator(selectedUser) {
+    setV((prev) => {
+      const alreadySelected = prev.collaborators.some(
+        (person) => Number(person.id) === Number(selectedUser.id),
+      )
+      if (alreadySelected) return prev
+
+      return {
+        ...prev,
+        collaborators: [
+          ...prev.collaborators,
+          {
+            id: selectedUser.id,
+            public_id: selectedUser.public_id,
+            nickname: selectedUser.nickname,
+            display_name: selectedUser.display_name || selectedUser.nickname,
+            avatar_url: selectedUser.avatar_url,
+          },
+        ],
+      }
+    })
+    setCollaboratorQuery('')
+    setCollaboratorResults([])
+  }
+
+  function removeCollaborator(userId) {
+    setV((prev) => ({
+      ...prev,
+      collaborators: prev.collaborators.filter((person) => Number(person.id) !== Number(userId)),
+    }))
+  }
+
   function selectAudienceUser(selectedUser) {
     setV((prev) => {
       const alreadySelected = prev.audience_invites.some(
@@ -834,6 +902,9 @@ export default function EventCreateForm({ eventSlug = null }) {
         : null,
       online: isOnline ? v.online : null,
       group_ids: (v.selectedGroups || []).map((group) => group.id),
+      collaborator_user_ids: (v.collaborators || [])
+        .map((person) => Number(person.id))
+        .filter((id) => Number.isInteger(id) && id > 0),
       audience_invites: v.audience_invites
         .filter((invite) => invite.invite_type === 'internal' || showAudienceEmailInvites)
         .filter((invite) => invite.invite_type === 'internal'
@@ -1032,6 +1103,60 @@ export default function EventCreateForm({ eventSlug = null }) {
             onChange={setField}
           />
         </Field>
+
+        <Field
+          label={t('events.create_page.ui.collaborators')}
+          hint={t('events.create_page.ui.collaborators_hint')}
+          full
+        >
+          <div className={styles.userCombobox}>
+            <input
+              className={styles.input}
+              value={collaboratorQuery}
+              onChange={(event) => setCollaboratorQuery(event.target.value)}
+              placeholder={t('events.create_page.ui.collaborators_search_placeholder')}
+              autoComplete="off"
+            />
+            {collaboratorQuery.trim().length >= 2 ? (
+              <div className={styles.userSuggestions}>
+                {collaboratorSearchLoading ? (
+                  <div className={styles.userSuggestionStatus}>{t('events.create_page.ui.searching_users')}</div>
+                ) : collaboratorResults.length ? (
+                  collaboratorResults.map((result) => (
+                    <button
+                      type="button"
+                      key={result.id}
+                      className={styles.userSuggestion}
+                      onClick={() => selectCollaborator(result)}
+                    >
+                      <span>{result.display_name || result.nickname}</span>
+                      {result.display_name && result.nickname ? <small>@{result.nickname}</small> : null}
+                    </button>
+                  ))
+                ) : (
+                  <div className={styles.userSuggestionStatus}>{t('events.create_page.ui.no_users_found')}</div>
+                )}
+              </div>
+            ) : null}
+          </div>
+        </Field>
+
+        {v.collaborators.length ? (
+          <div className={styles.selectedUsers}>
+            {v.collaborators.map((person) => (
+              <div className={styles.selectedUser} key={`collaborator-${person.id}`}>
+                <span>{person.display_name || person.nickname || `#${person.id}`}</span>
+                <button
+                  type="button"
+                  onClick={() => removeCollaborator(person.id)}
+                  aria-label={t('events.create_page.ui.remove_collaborator')}
+                >
+                  ×
+                </button>
+              </div>
+            ))}
+          </div>
+        ) : null}
       </section>
       </AccordionSection>
 

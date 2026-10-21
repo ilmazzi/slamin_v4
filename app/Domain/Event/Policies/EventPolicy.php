@@ -10,12 +10,12 @@ class EventPolicy
 {
     public function update(User $user, Event $event): bool
     {
-        return $event->user_id === $user->id;
+        return $event->isManagedBy($user->id);
     }
 
     public function delete(User $user, Event $event): bool
     {
-        return $event->user_id === $user->id;
+        return $event->isOwnedBy($user->id);
     }
 
     public function like(User $user, Event $event): bool
@@ -30,7 +30,7 @@ class EventPolicy
 
     public function follow(User $user, Event $event): bool
     {
-        return $event->user_id !== $user->id
+        return ! $event->isManagedBy($user->id)
             && $event->status === EventStatus::Published
             && $event->is_public === true;
     }
@@ -42,7 +42,7 @@ class EventPolicy
 
     public function voteAvailability(User $user, Event $event): bool
     {
-        if ($event->user_id === $user->id) {
+        if ($event->isManagedBy($user->id)) {
             return true;
         }
 
@@ -58,12 +58,12 @@ class EventPolicy
 
     public function finalizeAvailability(User $user, Event $event): bool
     {
-        return $event->user_id === $user->id;
+        return $event->isManagedBy($user->id);
     }
 
     private function canInteract(User $user, Event $event): bool
     {
-        if ($event->user_id === $user->id) {
+        if ($event->isManagedBy($user->id)) {
             return true;
         }
 

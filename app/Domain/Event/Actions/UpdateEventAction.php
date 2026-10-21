@@ -25,6 +25,7 @@ class UpdateEventAction
         private readonly NotifyEventUpdatedAction $notifyEventUpdatedAction,
         private readonly SyncEventOccurrencesAction $syncEventOccurrencesAction,
         private readonly ProposeEventToGroupsAction $proposeEventToGroupsAction,
+        private readonly SyncEventCollaboratorsAction $syncEventCollaboratorsAction,
     ) {}
 
     public function execute(Event $event, UpdateEventData $data): Event
@@ -254,24 +255,13 @@ class UpdateEventAction
         if ($data->audienceInvites !== []) {
             $event->audienceInvites()->createMany($data->audienceInvites);
         }
+
+        $this->syncEventCollaboratorsAction->execute($event, $data->collaboratorUserIds);
     }
 
     private function loadFullEvent(Event $event): Event
     {
-        return $event->fresh([
-            'user.profile',
-            'category.translations',
-            'festival',
-            'occurrences',
-            'recurrence',
-            'availabilityPoll',
-            'availabilityOptions.votes',
-            'venueDetail',
-            'onlineDetail',
-            'groupLinks',
-            'participantInvites.user.profile',
-            'audienceInvites.user.profile',
-        ]);
+        return $event->fresh(Event::RESOURCE_RELATIONS);
     }
 
     public function updatePublicationStatus(Event $event, EventStatus $requestedStatus, int $userId): Event

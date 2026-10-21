@@ -15,10 +15,10 @@ class ListEventConfirmedGigsAction
      */
     public function execute(Event $event, ?int $viewerId): Collection
     {
-        $isOwner = $viewerId !== null && (int) $event->user_id === $viewerId;
+        $canManage = $event->isManagedBy($viewerId);
         $isPublic = $event->status === EventStatus::Published && (bool) $event->is_public;
 
-        if (! $isOwner && ! $isPublic) {
+        if (! $canManage && ! $isPublic) {
             return new Collection;
         }
 

@@ -81,6 +81,7 @@ return [
             'write' => 'Écrire à l’organisateur',
             'login_to_write' => 'Connecte-toi pour écrire à l’organisateur',
             'write_error' => 'Impossible d’ouvrir le chat.',
+            'collaborators_label' => 'Collaborateurs',
         ],
         'actions' => [
             'join_online' => 'Rejoindre en ligne',
@@ -421,6 +422,10 @@ return [
             'registration_deadline' => 'Date limite d’inscription',
             'registration_deadline_hint' => 'Définis une date limite pour les inscriptions',
             'time' => 'Heure',
+            'collaborators' => 'Collaborateurs',
+            'collaborators_hint' => 'Ils peuvent modifier et gérer l’événement comme toi. Uniquement des comptes organisateurs de la plateforme.',
+            'collaborators_search_placeholder' => 'Chercher des organisateurs sur la plateforme',
+            'remove_collaborator' => 'Retirer le collaborateur',
             'invite_audience' => 'Inviter le public',
             'audience_search_placeholder' => 'Chercher des personnes sur la plateforme',
             'searching_users' => 'Recherche…',

@@ -43,6 +43,7 @@ class StoreEventData
         public readonly array $availabilityOptions,
         public readonly ?array $venue,
         public readonly ?array $online,
+        public readonly array $collaboratorUserIds = [],
     ) {}
 
     public static function fromRequest(StoreEventRequest $request): self
@@ -85,6 +86,12 @@ class StoreEventData
             availabilityOptions: $request->validated('availability_options', []),
             venue: $request->validated('venue'),
             online: $request->validated('online'),
+            collaboratorUserIds: collect($request->validated('collaborator_user_ids', []))
+                ->map(fn ($id): int => (int) $id)
+                ->filter(fn (int $id): bool => $id > 0)
+                ->unique()
+                ->values()
+                ->all(),
         );
     }
 

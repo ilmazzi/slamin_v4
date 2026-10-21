@@ -81,6 +81,7 @@ return [
             'write' => 'Message the organizer',
             'login_to_write' => 'Sign in to message the organizer',
             'write_error' => 'Unable to open the chat.',
+            'collaborators_label' => 'Collaborators',
         ],
         'actions' => [
             'join_online' => 'Join online',
@@ -421,6 +422,10 @@ return [
             'registration_deadline' => 'Registration deadline',
             'registration_deadline_hint' => 'Set a deadline for registrations',
             'time' => 'Time',
+            'collaborators' => 'Collaborators',
+            'collaborators_hint' => 'They can edit and manage the event like you. Site organizers only.',
+            'collaborators_search_placeholder' => 'Search organizers on the platform',
+            'remove_collaborator' => 'Remove collaborator',
             'invite_audience' => 'Invite audience',
             'audience_search_placeholder' => 'Search people on the platform',
             'searching_users' => 'Searching…',

@@ -81,6 +81,7 @@ return [
             'write' => 'Scrivi all\'organizzatore',
             'login_to_write' => 'Accedi per scrivere all\'organizzatore',
             'write_error' => 'Impossibile aprire la chat.',
+            'collaborators_label' => 'Collaboratori',
         ],
         'actions' => [
             'join_online' => 'Partecipa online',
@@ -421,6 +422,10 @@ return [
             'registration_deadline' => 'Scadenza registrazioni',
             'registration_deadline_hint' => 'Imposta una data limite per le registrazioni',
             'time' => 'Ora',
+            'collaborators' => 'Collaboratori',
+            'collaborators_hint' => 'Possono modificare e gestire l\'evento come te. Solo utenti della piattaforma con profilo organizzatore.',
+            'collaborators_search_placeholder' => 'Cerca organizzatori della piattaforma',
+            'remove_collaborator' => 'Rimuovi collaboratore',
             'invite_audience' => 'Invita pubblico',
             'audience_search_placeholder' => 'Cerca persone della piattaforma',
             'searching_users' => 'Ricerca in corso…',

@@ -147,6 +147,18 @@ export function isEventOwner(user, event) {
   return false
 }
 
+export function canManageEvent(user, event) {
+  if (!event) {
+    return false
+  }
+
+  if (event.can_manage === true) {
+    return true
+  }
+
+  return isEventOwner(user, event)
+}
+
 export function hasEventCoordinates(event) {
   if (!event) {
     return false

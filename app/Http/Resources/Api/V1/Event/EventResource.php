@@ -18,7 +18,9 @@ class EventResource extends JsonResource
     {
         $disk = Storage::disk('public'); /** @var FilesystemAdapter $disk */
         $authUserId = auth('sanctum')->id();
-        $isOwner = $authUserId !== null && (int) $authUserId === (int) $this->user_id;
+        $viewerId = $authUserId === null ? null : (int) $authUserId;
+        $isOwner = $this->resource->isOwnedBy($viewerId);
+        $canManage = $this->resource->isManagedBy($viewerId);
 
         return [
             'id' => $this->id,
@@ -111,11 +113,11 @@ class EventResource extends JsonResource
                 'timezone' => $this->onlineDetail->timezone,
             ] : null,
             'groups' => VisibleAcceptedGroups::map($this->groupLinks, $authUserId, $disk),
-            'group_ids' => $this->when($isOwner, fn () => $this->groupLinks
+            'group_ids' => $this->when($canManage, fn () => $this->groupLinks
                 ->filter(fn ($link) => ! in_array($link->status?->value, ['rejected', 'removed'], true))
                 ->pluck('group_id')
                 ->values()),
-            'group_affiliations' => $this->when($isOwner, fn () => $this->groupLinks->map(fn ($link) => [
+            'group_affiliations' => $this->when($canManage, fn () => $this->groupLinks->map(fn ($link) => [
                 'id' => $link->id,
                 'group_id' => $link->group_id,
                 'status' => $link->status?->value,
@@ -125,7 +127,7 @@ class EventResource extends JsonResource
                     'name' => $link->group->name,
                 ] : null,
             ])->values()),
-            'participant_invites' => $this->when($isOwner, fn () => $this->participantInvites->map(fn ($invite) => [
+            'participant_invites' => $this->when($canManage, fn () => $this->participantInvites->map(fn ($invite) => [
                 'id' => $invite->id,
                 'user_id' => $invite->user_id,
                 'name' => $invite->name,
@@ -134,7 +136,7 @@ class EventResource extends JsonResource
                 'invite_type' => $invite->invite_type,
                 'status' => $invite->status,
             ])->values()),
-            'audience_invites' => $this->when($isOwner, fn () => $this->audienceInvites->map(fn ($invite) => [
+            'audience_invites' => $this->when($canManage, fn () => $this->audienceInvites->map(fn ($invite) => [
                 'id' => $invite->id,
                 'user_id' => $invite->user_id,
                 'name' => $invite->name,
@@ -157,7 +159,17 @@ class EventResource extends JsonResource
                     ? $disk->url($this->user->profile->avatar_path)
                     : null,
             ],
+            'collaborators' => $this->whenLoaded('collaborators', fn () => $this->collaborators->map(fn ($collaborator) => [
+                'id' => $collaborator->id,
+                'public_id' => $collaborator->public_id,
+                'nickname' => $collaborator->profile?->nickname,
+                'display_name' => $collaborator->profile?->display_name,
+                'avatar_url' => $collaborator->profile?->avatar_path
+                    ? $disk->url($collaborator->profile->avatar_path)
+                    : null,
+            ])->values()),
             'is_owner' => $isOwner,
+            'can_manage' => $canManage,
             'likes_count' => (int) ($this->likes_count ?? 0),
             'comments_count' => (int) ($this->comments_count ?? 0),
             'bookmarks_count' => (int) ($this->bookmarks_count ?? 0),
@@ -169,5 +181,4 @@ class EventResource extends JsonResource
             ]),
         ];
     }
-
 }

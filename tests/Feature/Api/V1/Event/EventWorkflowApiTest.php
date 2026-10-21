@@ -530,6 +530,10 @@ it('searches verified platform users for event invitations without exposing emai
         ->assertJsonPath('data.0.id', $matching->id)
         ->assertJsonPath('data.0.display_name', 'Ada Test')
         ->assertJsonMissing(['email' => $matching->email]);
+
+    $this->getJson('/api/v1/events/invite-users?q=Ada&account_type=poet_organizer')
+        ->assertOk()
+        ->assertJsonCount(0, 'data');
 });
 
 it('lists my events for the authenticated organizer only', function () {

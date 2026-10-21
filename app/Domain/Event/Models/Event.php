@@ -47,6 +47,7 @@ class Event extends Model
         'groupLinks.group.category.translations',
         'participantInvites',
         'audienceInvites.user.profile',
+        'collaborators.profile',
     ];
 
     protected $fillable = [
@@ -90,6 +91,34 @@ class Event extends Model
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function collaborators(): BelongsToMany
+    {
+        return $this->belongsToMany(User::class, 'event_collaborators')
+            ->withTimestamps();
+    }
+
+    public function isOwnedBy(?int $userId): bool
+    {
+        return $userId !== null && (int) $this->user_id === $userId;
+    }
+
+    public function isManagedBy(?int $userId): bool
+    {
+        if ($this->isOwnedBy($userId)) {
+            return true;
+        }
+
+        if ($userId === null) {
+            return false;
+        }
+
+        if ($this->relationLoaded('collaborators')) {
+            return $this->collaborators->contains(fn (User $collaborator): bool => (int) $collaborator->id === $userId);
+        }
+
+        return $this->collaborators()->where('users.id', $userId)->exists();
     }
 
     public function category(): BelongsTo

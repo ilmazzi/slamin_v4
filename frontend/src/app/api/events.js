@@ -254,8 +254,11 @@ export async function listRecentEventPlaces({ token, signal, query } = {}) {
   return { places }
 }
 
-export async function searchEventInviteUsers(query, { token, signal } = {}) {
+export async function searchEventInviteUsers(query, { token, signal, accountType } = {}) {
   const params = new URLSearchParams({ q: String(query ?? '').trim() })
+  if (accountType) {
+    params.set('account_type', String(accountType))
+  }
   const { data } = await authApiGet(`/api/v1/events/invite-users?${params.toString()}`, {
     token,
     signal,

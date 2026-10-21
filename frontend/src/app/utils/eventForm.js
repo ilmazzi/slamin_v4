@@ -92,6 +92,17 @@ export function mapEventToFormValues(event) {
       timezone: online?.timezone || occurrence?.timezone || 'Europe/Rome',
     },
     selectedGroups,
+    collaborators: Array.isArray(event?.collaborators)
+      ? event.collaborators
+        .filter((person) => person?.id)
+        .map((person) => ({
+          id: Number(person.id),
+          public_id: person.public_id || '',
+          nickname: person.nickname || '',
+          display_name: person.display_name || person.nickname || '',
+          avatar_url: person.avatar_url || '',
+        }))
+      : [],
     audience_invites: audienceInvites.map((invite) => ({
       invite_type: invite?.invite_type || (invite?.user_id ? 'internal' : 'external'),
       user_id: invite?.user_id ? Number(invite.user_id) : null,

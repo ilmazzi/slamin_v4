@@ -130,6 +130,12 @@ class Gig extends Model
 
     public function isManagedBy(?int $userId): bool
     {
+        $parent = $this->giggable;
+
+        if ($parent instanceof Event) {
+            return $parent->isManagedBy($userId);
+        }
+
         return $userId !== null && $this->ownerUserId() === $userId;
     }
 
