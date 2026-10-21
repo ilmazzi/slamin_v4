@@ -1592,7 +1592,7 @@ export default function EventCreateForm({ eventSlug = null }) {
         </Field>
 
         <div className={styles.fieldLabel}>{t('events.create_page.ui.publication_status')}</div>
-        <PublishActions status={v.status} saving={saving} disabled={submitDisabled} t={t} />
+        
       </section>
       </AccordionSection>
 
