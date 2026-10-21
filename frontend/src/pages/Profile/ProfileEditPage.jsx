@@ -15,6 +15,7 @@ import { useAuth } from '../../app/hooks/useAuth.js'
 import { useI18n } from '../../app/hooks/useI18n.js'
 import AppToast from '../../components/shared/AppToast.jsx'
 import MainLayout from '../../components/layout/MainLayout.jsx'
+import ChangePasswordForm from './ChangePasswordForm.jsx'
 import NotificationEmailPreferences from './NotificationEmailPreferences.jsx'
 import styles from './ProfilePage.module.css'
 
@@ -528,6 +529,7 @@ export default function ProfileEditPage() {
             </button>
           </div>
         </form>
+        <ChangePasswordForm onMessage={setToastMessage} />
         <div className={`${styles.form} ${styles.settingsCard}`}>
           <NotificationEmailPreferences onMessage={setToastMessage} />
         </div>

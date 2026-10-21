@@ -8,6 +8,7 @@ return array_merge(
         'too_many_attempts' => 'Zu viele Versuche. Bitte versuche es später erneut.',
         'forgot_password_sent' => 'Falls die E-Mail existiert, erhältst du Anweisungen zum Zurücksetzen deines Passworts.',
         'password_reset_success' => 'Passwort erfolgreich zurückgesetzt.',
+        'password_updated' => 'Passwort erfolgreich aktualisiert.',
         'email_verified' => 'E-Mail erfolgreich bestätigt.',
         'invalid_verification_link' => 'Der Bestätigungslink ist ungültig oder abgelaufen.',
         'user_not_found' => 'Benutzer nicht gefunden.',

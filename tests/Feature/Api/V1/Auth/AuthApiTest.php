@@ -220,6 +220,45 @@ it('logs out the current token only', function () {
     expect($user->fresh()->tokens()->count())->toBe(1);
 });
 
+it('updates the authenticated user password and revokes other tokens', function () {
+    $user = User::factory()->create([
+        'password' => Hash::make('old-password-123'),
+    ]);
+    $currentToken = $user->createToken('current')->plainTextToken;
+    $user->createToken('second');
+
+    $response = $this->withHeader('Authorization', "Bearer {$currentToken}")
+        ->patchJson('/api/v1/me/password', [
+            'current_password' => 'old-password-123',
+            'password' => 'new-password-123',
+            'password_confirmation' => 'new-password-123',
+        ]);
+
+    $response
+        ->assertOk()
+        ->assertJsonPath('data.message', __('auth.password_updated'))
+        ->assertJsonPath('errors', null);
+
+    expect(Hash::check('new-password-123', $user->fresh()->password))->toBeTrue();
+    expect($user->fresh()->tokens()->count())->toBe(1);
+});
+
+it('rejects a password change with the wrong current password', function () {
+    $user = User::factory()->create([
+        'password' => Hash::make('old-password-123'),
+    ]);
+    $token = $user->createToken('auth_token')->plainTextToken;
+
+    $this->withHeader('Authorization', "Bearer {$token}")
+        ->patchJson('/api/v1/me/password', [
+            'current_password' => 'not-the-password',
+            'password' => 'new-password-123',
+            'password_confirmation' => 'new-password-123',
+        ])
+        ->assertUnprocessable()
+        ->assertJsonPath('errors.fields.current_password.0', __('validation.current_password'));
+});
+
 it('sends password reset link for an existing user', function () {
     Notification::fake();
     $user = User::factory()->create([

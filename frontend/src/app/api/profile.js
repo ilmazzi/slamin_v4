@@ -202,3 +202,13 @@ export async function updateMyProfile(values, { token, signal } = {}) {
 
   return result.data?.profile ?? null
 }
+
+export async function updateMyPassword(values, { token, signal } = {}) {
+  const { data } = await authApiPatch('/api/v1/me/password', values, {
+    token,
+    signal,
+    fallbackMessage: 'Unable to update password.',
+  })
+
+  return data?.message ?? null
+}

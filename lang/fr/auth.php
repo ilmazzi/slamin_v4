@@ -8,6 +8,7 @@ return array_merge(
         'too_many_attempts' => 'Trop de tentatives. Réessaie plus tard.',
         'forgot_password_sent' => 'Si l’email existe, tu recevras les instructions pour réinitialiser ton mot de passe.',
         'password_reset_success' => 'Mot de passe réinitialisé avec succès.',
+        'password_updated' => 'Mot de passe mis à jour avec succès.',
         'email_verified' => 'Email vérifié avec succès.',
         'invalid_verification_link' => 'Le lien de vérification est invalide ou a expiré.',
         'user_not_found' => 'Utilisateur introuvable.',

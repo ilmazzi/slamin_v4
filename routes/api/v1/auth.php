@@ -9,6 +9,7 @@ use App\Http\Controllers\Api\V1\Auth\MeController;
 use App\Http\Controllers\Api\V1\Auth\RegisterController;
 use App\Http\Controllers\Api\V1\Auth\ResetPasswordController;
 use App\Http\Controllers\Api\V1\Auth\SendEmailVerificationController;
+use App\Http\Controllers\Api\V1\Auth\UpdatePasswordController;
 use App\Http\Controllers\Api\V1\Auth\VerifyEmailController;
 use Illuminate\Support\Facades\Route;
 
@@ -57,6 +58,9 @@ Route::middleware('auth:sanctum')->group(function () {
      * Get the authenticated user
      */
     Route::get('/me', MeController::class)->name('api.v1.me');
+    Route::patch('/me/password', UpdatePasswordController::class)
+        ->middleware('throttle:update-password')
+        ->name('api.v1.me.password');
     Route::get('/me/dashboard-widgets', GetDashboardWidgetsController::class)->name('api.v1.me.dashboard-widgets');
     Route::get('/me/statistics', GetPersonalStatisticsController::class)->name('api.v1.me.statistics');
     Route::middleware(['throttle:verification-notification'])->group(function () {

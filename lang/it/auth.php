@@ -11,6 +11,7 @@ return array_merge(
         'too_many_attempts' => 'Troppi tentativi. Riprova tra poco.',
         'forgot_password_sent' => 'Se l\'email esiste, riceverai istruzioni per reimpostare la password.',
         'password_reset_success' => 'Password reimpostata correttamente.',
+        'password_updated' => 'Password aggiornata correttamente.',
         'email_verified' => 'Email verificata correttamente.',
         'invalid_verification_link' => 'Il link di verifica non è valido o è scaduto.',
         'user_not_found' => 'Utente non trovato.',

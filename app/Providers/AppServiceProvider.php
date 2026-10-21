@@ -112,6 +112,17 @@ class AppServiceProvider extends ServiceProvider
                 ]);
         });
 
+        RateLimiter::for('update-password', function (Request $request) {
+            return Limit::perMinute(5)
+                ->by((string) ($request->user()?->id ?: $request->ip()))
+                ->response(function () {
+                    return ApiResponse::error(
+                        message: __('auth.too_many_attempts'),
+                        status: 429
+                    );
+                });
+        });
+
         RateLimiter::for('reset-password', function (Request $request) {
             return Limit::perMinute(3)
                 ->by($request->ip())
