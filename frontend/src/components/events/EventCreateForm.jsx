@@ -1591,7 +1591,7 @@ export default function EventCreateForm({ eventSlug = null }) {
           <input className={styles.input} type="number" min="1" name="audience_capacity" value={v.audience_capacity} onChange={setField} />
         </Field>
 
-        <div className={styles.fieldLabel}>{t('events.create_page.ui.publication_status')}</div>
+    
         
       </section>
       </AccordionSection>
