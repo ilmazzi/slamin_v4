@@ -228,15 +228,30 @@ function buildEventPayload(eventData) {
   return fd
 }
 
-export async function listRecentEventPlaces({ token, signal } = {}) {
+export async function listRecentEventPlaces({ token, signal, query } = {}) {
   if (!token) return { places: [] }
-  const { data } = await authApiGet('/api/v1/events/recent-places', {
+
+  const params = new URLSearchParams()
+  const search = String(query ?? '').trim()
+  if (search) {
+    params.set('q', search)
+  }
+
+  const queryString = params.toString()
+  const path = queryString
+    ? `/api/v1/events/recent-places?${queryString}`
+    : '/api/v1/events/recent-places'
+  const { data } = await authApiGet(path, {
     token,
     signal,
     fallbackMessage: 'Failed to fetch recent places',
     allowStatuses: [403, 404],
   })
-  return { places: Array.isArray(data) ? data : [] }
+  const places = Array.isArray(data?.places)
+    ? data.places
+    : (Array.isArray(data) ? data : [])
+
+  return { places }
 }
 
 export async function searchEventInviteUsers(query, { token, signal } = {}) {

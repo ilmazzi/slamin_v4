@@ -375,6 +375,61 @@ it('stores and lists recent places from in person events', function () {
         ->assertJsonPath('data.places.0.city', 'Milano');
 });
 
+it('searches platform venues when typing a place name', function () {
+    $owner = eventWorkflowOrganizer();
+    $other = eventWorkflowOrganizer();
+    $category = eventWorkflowCategory();
+
+    $publicEvent = Event::query()->create([
+        'user_id' => $other->id,
+        'event_category_id' => $category->id,
+        'title' => 'Slam Assago',
+        'slug' => 'slam-assago',
+        'description' => 'Evento pubblico',
+        'schedule_mode' => 'fixed',
+        'delivery_mode' => 'in_person',
+        'status' => 'published',
+        'is_public' => true,
+        'language' => 'it',
+    ]);
+    $publicEvent->venueDetail()->create([
+        'place_name' => 'Forum di Assago',
+        'country_code' => 'IT',
+        'city' => 'Assago',
+        'postal_code' => '20057',
+        'address_line' => 'Via Giuseppe Di Vittorio 6',
+        'latitude' => 45.4012,
+        'longitude' => 9.1438,
+    ]);
+
+    $draftEvent = Event::query()->create([
+        'user_id' => $other->id,
+        'event_category_id' => $category->id,
+        'title' => 'Bozza segreta',
+        'slug' => 'bozza-segreta',
+        'description' => 'Non deve apparire',
+        'schedule_mode' => 'fixed',
+        'delivery_mode' => 'in_person',
+        'status' => 'draft',
+        'is_public' => false,
+        'language' => 'it',
+    ]);
+    $draftEvent->venueDetail()->create([
+        'place_name' => 'Forum Privato',
+        'country_code' => 'IT',
+        'city' => 'Milano',
+    ]);
+
+    Sanctum::actingAs($owner);
+
+    $this->getJson('/api/v1/events/recent-places?q=Forum%20di%20A')
+        ->assertOk()
+        ->assertJsonPath('data.places.0.place_name', 'Forum di Assago')
+        ->assertJsonPath('data.places.0.city', 'Assago')
+        ->assertJsonPath('data.places.0.address_line', 'Via Giuseppe Di Vittorio 6')
+        ->assertJsonMissing(['place_name' => 'Forum Privato']);
+});
+
 it('sends external participant invite mail and marks invite as sent', function () {
     Mail::fake();
 

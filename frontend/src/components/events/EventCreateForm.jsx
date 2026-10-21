@@ -13,6 +13,7 @@ import { emptyAvailability, emptyGig, emptyInvite } from '../../app/utils/eventF
 import { gigOfferFlags, gigToFormRow, snapshotGigRows, syncEventGigs } from '../../app/utils/eventGigForm.js'
 import { listEventGigs } from '../../app/api/gigs.js'
 import { EventLocationIcon } from '../icons/ActionIcons.jsx'
+import CreateFormHeader from '../shared/CreateFormHeader.jsx'
 import styles from './EventCreateForm.module.css'
 
 const createMarkerSvg = (fill) => `
@@ -220,6 +221,7 @@ export default function EventCreateForm({ eventSlug = null }) {
   const [loadingEvent, setLoadingEvent] = useState(isEdit)
   const [geoStatus, setGeoStatus] = useState({ loading: false, error: '' })
   const [showPlaceSuggestions, setShowPlaceSuggestions] = useState(false)
+  const [activePlaceIndex, setActivePlaceIndex] = useState(-1)
   const [showEmailInvites, setShowEmailInvites] = useState(false)
   const [showAudienceEmailInvites, setShowAudienceEmailInvites] = useState(false)
   const [audienceUserQuery, setAudienceUserQuery] = useState('')
@@ -297,9 +299,38 @@ export default function EventCreateForm({ eventSlug = null }) {
   }, [])
 
   useEffect(() => {
-    if (!token) return
-    listRecentEventPlaces({ token }).then((r) => setRecentPlaces(r.places)).catch(() => {})
-  }, [token])
+    if (!token) {
+      setRecentPlaces([])
+      return undefined
+    }
+
+    const query = String(v.venue.place_name || '').trim()
+    if (query.length < 2) {
+      setRecentPlaces([])
+      setActivePlaceIndex(-1)
+      return undefined
+    }
+
+    const controller = new AbortController()
+    const timer = window.setTimeout(async () => {
+      try {
+        const result = await listRecentEventPlaces({ token, signal: controller.signal, query })
+        if (!controller.signal.aborted) {
+          setRecentPlaces(Array.isArray(result.places) ? result.places : [])
+          setActivePlaceIndex(-1)
+        }
+      } catch (searchError) {
+        if (searchError?.name !== 'AbortError') {
+          setRecentPlaces([])
+        }
+      }
+    }, 250)
+
+    return () => {
+      window.clearTimeout(timer)
+      controller.abort()
+    }
+  }, [token, v.venue.place_name])
 
   useEffect(() => {
     const query = audienceUserQuery.trim()
@@ -434,13 +465,7 @@ export default function EventCreateForm({ eventSlug = null }) {
   const isAvailability = v.schedule_mode === 'availability'
   const isInPerson = v.delivery_mode === 'in_person'
   const isOnline = v.delivery_mode === 'online'
-  const placeQuery = String(v.venue.place_name || '').trim().toLowerCase()
-  const matchingRecentPlaces = placeQuery
-    ? recentPlaces
-        .filter((place) => [place.place_name, place.city, place.address_line]
-          .some((value) => String(value || '').toLowerCase().includes(placeQuery)))
-        .slice(0, 6)
-    : []
+  const matchingRecentPlaces = recentPlaces.slice(0, 8)
   const latRaw = String(v.venue.latitude ?? '').trim()
   const lonRaw = String(v.venue.longitude ?? '').trim()
   const latNum = latRaw ? Number(latRaw) : NaN
@@ -653,20 +678,68 @@ export default function EventCreateForm({ eventSlug = null }) {
 
   function applyRecentPlace(place) {
     if (!place) return
+
+    const placeName = String(place.place_name ?? '').trim()
+    const addressLine = String(place.address_line ?? '').trim()
+    const postalCode = String(place.postal_code ?? '').trim()
+    const city = String(place.city ?? '').trim()
+    const rawCountry = String(place.country_code ?? '').trim()
+    const countryCode = rawCountry
+      ? (rawCountry.length === 2 ? rawCountry.toUpperCase() : 'IT')
+      : 'IT'
+    const latitude = place.latitude == null || place.latitude === '' ? '' : String(place.latitude)
+    const longitude = place.longitude == null || place.longitude === '' ? '' : String(place.longitude)
+
+    if (latitude && longitude) {
+      lastGeocodeKeyRef.current = [placeName, addressLine, postalCode, city, countryCode].join('|')
+    }
+
     setV((prev) => ({
       ...prev,
       venue: {
         ...prev.venue,
-        place_name: place.place_name ?? '',
-        country_code: place.country_code ?? 'IT',
-        city: place.city ?? '',
-        postal_code: place.postal_code ?? '',
-        address_line: place.address_line ?? '',
-        latitude: place.latitude ?? '',
-        longitude: place.longitude ?? '',
+        place_name: placeName,
+        country_code: countryCode,
+        city,
+        postal_code: postalCode,
+        address_line: addressLine,
+        latitude,
+        longitude,
       },
     }))
     setShowPlaceSuggestions(false)
+    setActivePlaceIndex(-1)
+  }
+
+  function handlePlaceNameKeyDown(event) {
+    if (!showPlaceSuggestions || matchingRecentPlaces.length === 0) {
+      return
+    }
+
+    if (event.key === 'ArrowDown') {
+      event.preventDefault()
+      setActivePlaceIndex((current) => (current + 1) % matchingRecentPlaces.length)
+      return
+    }
+
+    if (event.key === 'ArrowUp') {
+      event.preventDefault()
+      setActivePlaceIndex((current) => (
+        current <= 0 ? matchingRecentPlaces.length - 1 : current - 1
+      ))
+      return
+    }
+
+    if (event.key === 'Enter' && activePlaceIndex >= 0) {
+      event.preventDefault()
+      applyRecentPlace(matchingRecentPlaces[activePlaceIndex])
+      return
+    }
+
+    if (event.key === 'Escape') {
+      setShowPlaceSuggestions(false)
+      setActivePlaceIndex(-1)
+    }
   }
 
   function normalizeCountryCode(raw) {
@@ -874,12 +947,10 @@ export default function EventCreateForm({ eventSlug = null }) {
       {error ? <p className={styles.error}>{error}</p> : null}
       {loadingEvent ? <p className={styles.error}>{t('events.detail_page.messages.loading')}</p> : null}
 
-      <section className={styles.hero}>
-        <h1 className={styles.heroTitle}>{isEdit ? t('events.edit_page.hero_title') : t('events.create_page.hero_title')}</h1>
-        <p className={styles.heroLead}>
-          {t('events.create_page.summary_hint')}
-        </p>
-      </section>
+      <CreateFormHeader
+        title={isEdit ? t('events.edit_page.hero_title') : t('events.create_page.hero_title')}
+        lead={t('events.create_page.summary_hint')}
+      />
 
       <AccordionSection
         id="basic"
@@ -1117,9 +1188,13 @@ export default function EventCreateForm({ eventSlug = null }) {
                     }}
                     onFocus={() => setShowPlaceSuggestions(true)}
                     onBlur={() => setShowPlaceSuggestions(false)}
+                    onKeyDown={handlePlaceNameKeyDown}
                     autoComplete="off"
                     aria-autocomplete="list"
                     aria-expanded={showPlaceSuggestions && matchingRecentPlaces.length > 0}
+                    aria-activedescendant={
+                      activePlaceIndex >= 0 ? `place-suggestion-${activePlaceIndex}` : undefined
+                    }
                     required
                   />
                   {showPlaceSuggestions && matchingRecentPlaces.length > 0 ? (
@@ -1128,7 +1203,10 @@ export default function EventCreateForm({ eventSlug = null }) {
                         <button
                           type="button"
                           role="option"
+                          id={`place-suggestion-${index}`}
                           className={styles.placeSuggestion}
+                          data-active={activePlaceIndex === index ? 'true' : undefined}
+                          aria-selected={activePlaceIndex === index}
                           key={`${place.place_name}-${place.city}-${index}`}
                           onMouseDown={(event) => event.preventDefault()}
                           onClick={() => applyRecentPlace(place)}

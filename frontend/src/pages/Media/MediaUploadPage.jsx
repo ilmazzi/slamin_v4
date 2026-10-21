@@ -4,6 +4,7 @@ import { getMyMediaLimits, uploadPhotoMedia, uploadVideoMedia } from '../../app/
 import { useAuth } from '../../app/hooks/useAuth.js'
 import { useI18n } from '../../app/hooks/useI18n.js'
 import AppToast from '../../components/shared/AppToast.jsx'
+import CreateFormHeader from '../../components/shared/CreateFormHeader.jsx'
 import MainLayout from '../../components/layout/MainLayout.jsx'
 import pageStyles from '../shared/ContentPageShell.module.css'
 import styles from './MediaUploadPage.module.css'
@@ -287,13 +288,12 @@ export default function MediaUploadPage() {
     <MainLayout themeTone="media" syncHeaderWithTheme={false}>
       <div className={pageStyles.mediaPage}>
         <form className={styles.form} onSubmit={handleSubmit}>
-          <header className={styles.header}>
+          <div className={styles.header}>
             <p className={styles.back}>
               <Link to="/media">{t('media.title')}</Link>
             </p>
-            <h1 className={styles.title}>{t('media.upload.title')}</h1>
-            <p className={styles.lead}>{t('media.upload.lead')}</p>
-          </header>
+            <CreateFormHeader title={t('media.upload.title')} lead={t('media.upload.lead')} />
+          </div>
 
           {!canUpload ? (
             <p className={styles.error}>{t('media.upload.error_forbidden')}</p>

@@ -361,7 +361,7 @@ return [
             'recent_places' => 'Lieux récents',
             'select_recent_place' => 'Choisir parmi les lieux récents',
             'place_name' => 'Nom du lieu *',
-            'place_name_placeholder' => 'Nom du lieu',
+            'place_name_placeholder' => 'Commence à écrire un lieu',
             'country_required' => 'Pays *',
             'city_required' => 'Ville *',
             'city_placeholder' => 'Ville',

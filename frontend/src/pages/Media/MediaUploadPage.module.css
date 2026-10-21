@@ -9,11 +9,12 @@
 
 .header {
   display: grid;
-  gap: 8px;
+  gap: 12px;
 }
 
 .back {
   margin: 0;
+  text-align: center;
 }
 
 .back a {
@@ -26,14 +27,6 @@
   color: var(--color-black);
 }
 
-.title {
-  margin: 0;
-  font-size: clamp(2rem, 4vw, 3rem);
-  line-height: 1.1;
-  font-weight: 800;
-}
-
-.lead,
 .limits,
 .loading {
   margin: 0;

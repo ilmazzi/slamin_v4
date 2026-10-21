@@ -361,7 +361,7 @@ return [
             'recent_places' => 'Letzte Orte',
             'select_recent_place' => 'Aus letzten Orten wählen',
             'place_name' => 'Ortsname *',
-            'place_name_placeholder' => 'Ortsname',
+            'place_name_placeholder' => 'Ort eingeben',
             'country_required' => 'Land *',
             'city_required' => 'Stadt *',
             'city_placeholder' => 'Stadt',

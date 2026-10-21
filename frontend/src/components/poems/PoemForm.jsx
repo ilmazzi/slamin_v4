@@ -11,6 +11,7 @@ import { isRichTextEmpty } from '../../app/content/richText.js'
 import { useAuth } from '../../app/hooks/useAuth.js'
 import { useI18n } from '../../app/hooks/useI18n.js'
 import AppToast from '../shared/AppToast.jsx'
+import CreateFormHeader from '../shared/CreateFormHeader.jsx'
 import RichTextEditor from '../shared/RichTextEditor.jsx'
 import GroupProposeField, { selectedFromContent } from '../groups/GroupProposeField.jsx'
 import styles from './PoemForm.module.css'
@@ -160,10 +161,10 @@ export default function PoemForm({ slug = null }) {
   return (
     <>
       <form className={styles.form} onSubmit={handleSubmit}>
-        <div className={styles.header}>
-          <h2 className={styles.title}>{t(isEditing ? 'poems.form.edit_title' : 'poems.form.title')}</h2>
-          <p className={styles.lead}>{t(isEditing ? 'poems.form.edit_lead' : 'poems.form.lead')}</p>
-        </div>
+        <CreateFormHeader
+          title={t(isEditing ? 'poems.form.edit_title' : 'poems.form.title')}
+          lead={t(isEditing ? 'poems.form.edit_lead' : 'poems.form.lead')}
+        />
 
         {errorMessage ? <p className={styles.error}>{errorMessage}</p> : null}
         {isLoadingLookups ? <p className={styles.loading}>{loadingLabel}</p> : null}
