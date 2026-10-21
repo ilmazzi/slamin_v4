@@ -1801,9 +1801,6 @@ export default function EventCreateForm({ eventSlug = null }) {
         <Field label={t('events.create_page.ui.capacity_limit')} full>
           <input className={styles.input} type="number" min="1" name="audience_capacity" value={v.audience_capacity} onChange={setField} />
         </Field>
-
-    
-        
       </section>
       </AccordionSection>
 
