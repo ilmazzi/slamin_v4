@@ -76,20 +76,25 @@
 
 .title {
   margin: 0;
+  max-width: 100%;
   color: #fff;
   font-size: 110px;
   font-weight: 800;
   line-height: 1.02;
   letter-spacing: -0.03em;
   text-transform: lowercase;
+  white-space: nowrap;
+  overflow: hidden;
 }
 
 .desktopButton {
   display: block;
+  flex: 0 0 auto;
 }
 
 .mobileButton {
   display: none;
+  flex: 0 0 auto;
 }
 
 @media (max-width: 768px) {
@@ -112,6 +117,8 @@
   }
 
   .title {
+    flex: 1 1 0;
+    min-width: 0;
     font-size: 40px;
     line-height: 1;
   }
