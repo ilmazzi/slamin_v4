@@ -32,6 +32,7 @@ export default function HeaderActions(props) {
           editProfileLabel={t('header.profile_menu.edit')}
           chatLabel={t('header.profile_menu.chat')}
           logoutLabel={t('header.profile_menu.logout')}
+          createGroupLabel={t('header.quick_actions.create_group')}
         />
       ) : (
         <HeaderGuestActions

@@ -13,6 +13,7 @@ return [
         'create_event' => 'Criar evento',
         'upload_video' => 'Carregar vídeo',
         'publish_article' => 'Publicar artigo',
+        'create_group' => 'Criar grupo',
     ],
     'profile_menu' => [
         'profile' => 'O meu perfil',

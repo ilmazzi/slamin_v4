@@ -13,6 +13,7 @@ return [
         'create_event' => 'Create event',
         'upload_video' => 'Upload video',
         'publish_article' => 'Publish article',
+        'create_group' => 'Create group',
     ],
     'profile_menu' => [
         'profile' => 'My profile',

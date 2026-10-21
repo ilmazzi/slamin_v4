@@ -26,6 +26,7 @@ export default function HeaderAuthActions({
   createEventLabel = 'Organizza evento',
   uploadVideoLabel = 'Carica video',
   publishArticleLabel = 'Pubblica articolo',
+  createGroupLabel = 'Crea gruppo',
   myProfileLabel = 'Il mio profilo',
   editProfileLabel = 'Modifica profilo',
   chatLabel = 'Chat',
@@ -271,6 +272,18 @@ export default function HeaderAuthActions({
             >
               <span className={styles.authMenuArrow} aria-hidden="true">›</span>
               <span>{publishArticleLabel}</span>
+            </Link>
+          ) : null}
+          {canPublish ? (
+            <Link
+              to="/groups/create"
+              className={styles.authMenuLink}
+              data-tone="groups"
+              role="menuitem"
+              onClick={() => setIsQuickActionsOpen(false)}
+            >
+              <span className={styles.authMenuArrow} aria-hidden="true">›</span>
+              <span>{createGroupLabel}</span>
             </Link>
           ) : null}
         </div>
