@@ -9,6 +9,7 @@ import { createEvent, getEventDetail, listEventCategories, listRecentEventPlaces
 import { searchProposeableGroups } from '../../app/api/groups.js'
 import { useAuth } from '../../app/hooks/useAuth.js'
 import { useI18n } from '../../app/hooks/useI18n.js'
+import { languageName } from '../../app/i18n/contentLanguages.js'
 import { mapEventToFormValues } from '../../app/utils/eventForm.js'
 import { canManageEvent } from '../../app/utils/eventDetail.js'
 import { emptyAvailability, emptyGig, emptyInvite } from '../../app/utils/eventFormDefaults.js'
@@ -209,7 +210,8 @@ export default function EventCreateForm({ eventSlug = null }) {
   const { token, user } = useAuth()
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
-  const { t } = useI18n()
+  const { t, locale } = useI18n()
+  const eventLanguageOptions = ['it', 'en', 'es', 'fr', 'de', 'pt']
   const isEdit = Boolean(eventSlug)
   const [eventRecordId, setEventRecordId] = useState(null)
   const [categories, setCategories] = useState([])
@@ -253,6 +255,7 @@ export default function EventCreateForm({ eventSlug = null }) {
     price: '',
     currency: 'EUR',
     promo_video_url: '',
+    external_link_url: '',
     registration_deadline: '',
     public_invite_enabled: false,
     audience_capacity_enabled: false,
@@ -280,6 +283,9 @@ export default function EventCreateForm({ eventSlug = null }) {
     participant_invites: [emptyInvite],
     gigs: [emptyGig],
     cover_image: null,
+    gallery_images: [],
+    existing_gallery: [],
+    remove_gallery_paths: [],
   }))
 
   function toggleSection(id, forceOpen = false) {
@@ -837,6 +843,11 @@ export default function EventCreateForm({ eventSlug = null }) {
   const payload = useMemo(
     () => ({
       ...v,
+      promo_video_url: String(v.promo_video_url || '').trim() || null,
+      external_link_url: String(v.external_link_url || '').trim() || null,
+      gallery_images: Array.isArray(v.gallery_images) ? v.gallery_images : [],
+      remove_gallery_paths: Array.isArray(v.remove_gallery_paths) ? v.remove_gallery_paths : [],
+      existing_gallery: undefined,
       occurrence: {
         ...v.occurrence,
         ends_at: v.occurrence?.ends_at ? v.occurrence.ends_at : null,
@@ -995,7 +1006,7 @@ export default function EventCreateForm({ eventSlug = null }) {
 
       <AccordionSection
         id="basic"
-        title={t('events.create_page.summary.basic_title')}
+        title={t('events.create_page.basic_title')}
         isOpen={openSections.has('basic')}
         onToggle={toggleSection}
       >
@@ -1046,6 +1057,16 @@ export default function EventCreateForm({ eventSlug = null }) {
           </div>
         </div>
 
+        <Field label={t('events.create_page.fields.language')}>
+          <select className={styles.input} name="language" value={v.language} onChange={setField}>
+            {eventLanguageOptions.map((code) => (
+              <option key={code} value={code}>
+                {languageName(code, locale)}
+              </option>
+            ))}
+          </select>
+        </Field>
+
         <Field label={`${t('events.create_page.fields.description')} *`} full>
           <textarea
             className={styles.textarea}
@@ -1067,65 +1088,84 @@ export default function EventCreateForm({ eventSlug = null }) {
           />
         </Field>
 
-        <Field
-          label={t('events.create_page.ui.collaborators')}
-          hint={t('events.create_page.ui.collaborators_hint')}
-          full
-        >
-          <div className={styles.userCombobox}>
-            <input
-              className={styles.input}
-              value={collaboratorQuery}
-              onChange={(event) => setCollaboratorQuery(event.target.value)}
-              placeholder={t('events.create_page.ui.collaborators_search_placeholder')}
-              autoComplete="off"
-            />
-            {collaboratorQuery.trim().length >= 2 ? (
-              <div className={styles.userSuggestions}>
-                {collaboratorSearchLoading ? (
-                  <div className={styles.userSuggestionStatus}>{t('events.create_page.ui.searching_users')}</div>
-                ) : collaboratorResults.length ? (
-                  collaboratorResults.map((result) => (
-                    <button
-                      type="button"
-                      key={result.id}
-                      className={styles.userSuggestion}
-                      onClick={() => selectCollaborator(result)}
-                    >
-                      <span>{result.display_name || result.nickname}</span>
-                      {result.display_name && result.nickname ? <small>@{result.nickname}</small> : null}
-                    </button>
-                  ))
-                ) : (
-                  <div className={styles.userSuggestionStatus}>{t('events.create_page.ui.no_users_found')}</div>
-                )}
+        <div className={styles.twoColsTight}>
+          <Field label={t('events.create_page.fields.cover_image')}>
+            <div className={styles.mediaBox}>
+              <input className={styles.fileInput} name="cover_image" type="file" accept="image/jpeg,image/png,image/webp" onChange={setField} />
+            </div>
+            <span className={styles.fieldHint}>{t('events.create_page.ui.media_hint')}</span>
+          </Field>
+          <div>
+            <Field label={t('events.create_page.fields.additional_images')}>
+              <div className={styles.mediaBox}>
+                <input
+                  className={styles.fileInput}
+                  name="gallery_images"
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp"
+                  multiple
+                  onChange={(event) => {
+                    const files = Array.from(event.target.files || [])
+                    setV((prev) => ({ ...prev, gallery_images: files }))
+                  }}
+                />
+              </div>
+              <span className={styles.fieldHint}>{t('events.create_page.ui.media_hint')}</span>
+            </Field>
+            {(v.existing_gallery || []).filter((image) => !(v.remove_gallery_paths || []).includes(image.path)).length ? (
+              <div className={styles.galleryPreview}>
+                {(v.existing_gallery || [])
+                  .filter((image) => !(v.remove_gallery_paths || []).includes(image.path))
+                  .map((image) => (
+                    <div className={styles.galleryThumb} key={image.path}>
+                      <img src={image.url} alt="" />
+                      <button
+                        type="button"
+                        onClick={() => setV((prev) => ({
+                          ...prev,
+                          remove_gallery_paths: [...new Set([...(prev.remove_gallery_paths || []), image.path])],
+                        }))}
+                        aria-label={t('events.create_page.ui.remove_gallery_image')}
+                      >
+                        ×
+                      </button>
+                    </div>
+                  ))}
               </div>
             ) : null}
           </div>
-        </Field>
+        </div>
 
-        {v.collaborators.length ? (
-          <div className={styles.selectedUsers}>
-            {v.collaborators.map((person) => (
-              <div className={styles.selectedUser} key={`collaborator-${person.id}`}>
-                <span>{person.display_name || person.nickname || `#${person.id}`}</span>
-                <button
-                  type="button"
-                  onClick={() => removeCollaborator(person.id)}
-                  aria-label={t('events.create_page.ui.remove_collaborator')}
-                >
-                  ×
-                </button>
-              </div>
-            ))}
-          </div>
-        ) : null}
+        <div className={styles.twoColsTight}>
+          <Field label={t('events.create_page.fields.external_link')}>
+            <input
+              className={styles.input}
+              name="external_link_url"
+              type="url"
+              placeholder={t('events.create_page.placeholders.external_link')}
+              value={v.external_link_url || ''}
+              onChange={setField}
+            />
+            <span className={styles.fieldHint}>{t('events.create_page.ui.external_link_hint')}</span>
+          </Field>
+          <Field label={t('events.create_page.fields.external_video')}>
+            <input
+              className={styles.input}
+              name="promo_video_url"
+              type="url"
+              placeholder={t('events.create_page.placeholders.promo_video')}
+              value={v.promo_video_url}
+              onChange={setField}
+            />
+            <span className={styles.fieldHint}>{t('events.create_page.ui.promo_video_hint')}</span>
+          </Field>
+        </div>
       </section>
       </AccordionSection>
 
       <AccordionSection
         id="schedule"
-        title={t('events.create_page.summary.schedule_title')}
+        title={t('events.create_page.schedule_title')}
         isOpen={openSections.has('schedule')}
         onToggle={toggleSection}
       >
@@ -1379,42 +1419,129 @@ export default function EventCreateForm({ eventSlug = null }) {
       </AccordionSection>
 
       <AccordionSection
-        id="media"
-        title={t('events.create_page.summary.tickets_title')}
-        isOpen={openSections.has('media')}
+        id="participants"
+        title={t('events.create_page.people_title')}
+        isOpen={openSections.has('participants')}
         onToggle={toggleSection}
       >
       <section className={styles.sectionBlock}>
-        <div className={styles.twoColsTight}>
-          <Field label={t('events.create_page.ui.media')}>
-            <div className={styles.mediaBox}>
-              <input className={styles.fileInput} name="cover_image" type="file" accept="image/*" onChange={setField} />
-            </div>
-            <span className={styles.fieldHint}>{t('events.create_page.ui.media_hint')}</span>
-          </Field>
+        <Field label={t('events.create_page.ui.audience')} full>
+          <input className={styles.input} type="number" min="1" name="audience_capacity" value={v.audience_capacity} placeholder={t('events.create_page.ui.capacity_limit')} onChange={setField} />
+        </Field>
 
-          <div>
-            <div className={styles.fieldLabel}>{t('events.create_page.ui.tickets')}</div>
-            <div className={styles.choiceGroup}>
-              <ChoiceButton active={!v.has_cost} onClick={() => setV((prev) => ({ ...prev, has_cost: false }))}>
-                {t('events.create_page.ui.free_event')}
-              </ChoiceButton>
-              <ChoiceButton active={v.has_cost} onClick={() => setV((prev) => ({ ...prev, has_cost: true }))}>
-                {t('events.create_page.ui.paid_event')}
-              </ChoiceButton>
+        <div>
+          <div className={styles.fieldLabel}>{t('events.create_page.ui.cost')}</div>
+          <div className={styles.choiceGroup}>
+            <ChoiceButton active={!v.has_cost} onClick={() => setV((prev) => ({ ...prev, has_cost: false }))}>
+              {t('events.create_page.ui.free_event')}
+            </ChoiceButton>
+            <ChoiceButton active={v.has_cost} onClick={() => setV((prev) => ({ ...prev, has_cost: true }))}>
+              {t('events.create_page.ui.paid_event')}
+            </ChoiceButton>
+          </div>
+          {v.has_cost ? (
+            <div className={styles.twoCols}>
+              <input className={styles.input} name="price" placeholder={t('events.create_page.fields.price')} value={v.price} onChange={setField} />
+              <select className={styles.input} name="currency" value={v.currency} onChange={setField}>
+                <option value="EUR">{t('events.create_page.ui.currency')}</option>
+                <option value="EUR">EUR</option>
+                <option value="USD">USD</option>
+              </select>
             </div>
-            {v.has_cost ? (
-              <div className={styles.twoCols}>
-                <input className={styles.input} name="price" placeholder={t('events.create_page.fields.price')} value={v.price} onChange={setField} />
-                <select className={styles.input} name="currency" value={v.currency} onChange={setField}>
-                  <option value="EUR">{t('events.create_page.ui.currency')}</option>
-                  <option value="EUR">EUR</option>
-                  <option value="USD">USD</option>
-                </select>
+          ) : null}
+        </div>
+
+        <div>
+          <div className={styles.toggleRow}>
+            <span>{t('events.create_page.ui.public_invites')}</span>
+            <Toggle
+              checked={v.public_invite_enabled}
+              onChange={(checked) => setV((prev) => ({ ...prev, public_invite_enabled: checked }))}
+            />
+          </div>
+          <p className={styles.microCopy}>{t('events.create_page.ui.public_invites_hint')}</p>
+        </div>
+
+        <div className={styles.toggleRow}>
+          <span>{t('events.create_page.ui.registration_deadline')}</span>
+          <Toggle
+            checked={registrationDeadlineEnabled}
+            onChange={(checked) => {
+              setRegistrationDeadlineEnabled(checked)
+              if (checked) {
+                setV((prev) => ({
+                  ...prev,
+                  registration_deadline: prev.registration_deadline
+                    || prev.occurrence.starts_at
+                    || prev.availability_poll.response_deadline
+                    || currentLocalDateTime(),
+                }))
+              }
+            }}
+          />
+        </div>
+        <p className={styles.microCopy}>{t('events.create_page.ui.registration_deadline_hint')}</p>
+
+        {registrationDeadlineEnabled ? (
+          <div className={styles.twoCols}>
+            <input className={styles.input} type="date" value={registrationParts.date} onChange={(event) => setRegistrationDate(event.target.value)} />
+            <input className={styles.input} type="time" value={registrationParts.time} onChange={(event) => setRegistrationTime(event.target.value)} placeholder={t('events.create_page.ui.time')} />
+          </div>
+        ) : null}
+
+        <Field
+          label={t('events.create_page.ui.collaborators')}
+          hint={t('events.create_page.ui.collaborators_hint')}
+          full
+        >
+          <div className={styles.userCombobox}>
+            <input
+              className={styles.input}
+              value={collaboratorQuery}
+              onChange={(event) => setCollaboratorQuery(event.target.value)}
+              placeholder={t('events.create_page.ui.collaborators_search_placeholder')}
+              autoComplete="off"
+            />
+            {collaboratorQuery.trim().length >= 2 ? (
+              <div className={styles.userSuggestions}>
+                {collaboratorSearchLoading ? (
+                  <div className={styles.userSuggestionStatus}>{t('events.create_page.ui.searching_users')}</div>
+                ) : collaboratorResults.length ? (
+                  collaboratorResults.map((result) => (
+                    <button
+                      type="button"
+                      key={result.id}
+                      className={styles.userSuggestion}
+                      onClick={() => selectCollaborator(result)}
+                    >
+                      <span>{result.display_name || result.nickname}</span>
+                      {result.display_name && result.nickname ? <small>@{result.nickname}</small> : null}
+                    </button>
+                  ))
+                ) : (
+                  <div className={styles.userSuggestionStatus}>{t('events.create_page.ui.no_users_found')}</div>
+                )}
               </div>
             ) : null}
           </div>
-        </div>
+        </Field>
+
+        {v.collaborators.length ? (
+          <div className={styles.selectedUsers}>
+            {v.collaborators.map((person) => (
+              <div className={styles.selectedUser} key={`collaborator-${person.id}`}>
+                <span>{person.display_name || person.nickname || `#${person.id}`}</span>
+                <button
+                  type="button"
+                  onClick={() => removeCollaborator(person.id)}
+                  aria-label={t('events.create_page.ui.remove_collaborator')}
+                >
+                  ×
+                </button>
+              </div>
+            ))}
+          </div>
+        ) : null}
 
         <Field label={t('events.create_page.ui.linked_to_group')} full>
           <div className={styles.userCombobox}>
@@ -1483,16 +1610,7 @@ export default function EventCreateForm({ eventSlug = null }) {
         <Field label={t('events.create_page.ui.part_of_festival')} full>
           <input className={styles.input} name="festival_event_id" placeholder={t('events.create_page.ui.festival_placeholder')} value={v.festival_event_id} onChange={setField} />
         </Field>
-      </section>
-      </AccordionSection>
 
-      <AccordionSection
-        id="participants"
-        title={t('events.create_page.ui.invite_participants')}
-        isOpen={openSections.has('participants')}
-        onToggle={toggleSection}
-      >
-      <section className={styles.sectionBlock}>
         <Field label={t('events.create_page.ui.invite_participants')} full>
           <input className={styles.input} placeholder={t('events.create_page.ui.invite_search_placeholder')} readOnly />
         </Field>
@@ -1667,33 +1785,6 @@ export default function EventCreateForm({ eventSlug = null }) {
           </div>
         ) : null}
 
-        <div className={styles.toggleRow}>
-          <span>{t('events.create_page.ui.registration_deadline')}</span>
-          <Toggle
-            checked={registrationDeadlineEnabled}
-            onChange={(checked) => {
-              setRegistrationDeadlineEnabled(checked)
-              if (checked) {
-                setV((prev) => ({
-                  ...prev,
-                  registration_deadline: prev.registration_deadline
-                    || prev.occurrence.starts_at
-                    || prev.availability_poll.response_deadline
-                    || currentLocalDateTime(),
-                }))
-              }
-            }}
-          />
-        </div>
-        <p className={styles.microCopy}>{t('events.create_page.ui.registration_deadline_hint')}</p>
-
-        {registrationDeadlineEnabled ? (
-          <div className={styles.twoCols}>
-            <input className={styles.input} type="date" value={registrationParts.date} onChange={(event) => setRegistrationDate(event.target.value)} />
-            <input className={styles.input} type="time" value={registrationParts.time} onChange={(event) => setRegistrationTime(event.target.value)} placeholder={t('events.create_page.ui.time')} />
-          </div>
-        ) : null}
-
         <Field label={t('events.create_page.ui.invite_audience')} full>
           <div className={styles.userCombobox}>
             <input
@@ -1760,10 +1851,6 @@ export default function EventCreateForm({ eventSlug = null }) {
             </button>
           </div>
         ) : null}
-
-        <Field label={t('events.create_page.ui.capacity_limit')} full>
-          <input className={styles.input} type="number" min="1" name="audience_capacity" value={v.audience_capacity} onChange={setField} />
-        </Field>
       </section>
       </AccordionSection>
 
@@ -1778,15 +1865,15 @@ export default function EventCreateForm({ eventSlug = null }) {
         <p className={styles.confirmSub}>{t('events.create_page.summary_hint')}</p>
 
         <SummaryCard
-          title={t('events.create_page.summary.basic_title')}
+          title={t('events.create_page.basic_title')}
           items={[
             { label: t('events.create_page.fields.title'), value: v.title },
-            { label: t('events.create_page.fields.category'), value: categoryName },
+            { label: t('events.create_page.fields.subtitle'), value: v.subtitle },
             { label: t('events.create_page.fields.public_event'), value: v.is_public ? t('events.create_page.visibility.public') : t('events.create_page.visibility.private') },
           ]}
         />
         <SummaryCard
-          title={t('events.create_page.summary.schedule_title')}
+          title={t('events.create_page.schedule_title')}
           items={[
             { label: t('events.create_page.fields.start_datetime'), value: v.occurrence.starts_at },
             { label: t('events.create_page.fields.end_datetime'), value: v.occurrence.ends_at },
@@ -1794,17 +1881,18 @@ export default function EventCreateForm({ eventSlug = null }) {
           ]}
         />
         <SummaryCard
-          title={t('events.create_page.summary.tickets_title')}
+          title={t('events.create_page.people_title')}
           items={[
-            { label: t('events.create_page.summary.tickets_type'), value: v.has_cost ? t('events.create_page.summary.paid') : t('events.create_page.free') },
-            { label: t('events.create_page.fields.price'), value: v.has_cost ? `${v.price || '-'} ${v.currency}` : '-' },
+            { label: t('events.create_page.ui.audience'), value: v.audience_capacity },
+            { label: t('events.create_page.ui.cost'), value: v.has_cost ? `${v.price || '-'} ${v.currency}` : t('events.create_page.free') },
+            { label: t('events.create_page.ui.collaborators'), value: String(v.collaborators.length) },
           ]}
         />
         <SummaryCard
-          title={t('events.create_page.ui.recurrence')}
+          title={t('events.create_page.summary.categories')}
           items={[
-            { label: t('events.create_page.fields.recurrence_type'), value: isRecurring ? v.recurrence.frequency : '-' },
-            { label: t('events.create_page.ui.every'), value: isRecurring ? String(v.recurrence.interval) : '-' },
+            { label: t('events.create_page.fields.category'), value: categoryName },
+            { label: t('events.create_page.fields.language'), value: languageName(v.language, locale) },
           ]}
         />
         <SummaryCard
@@ -1815,10 +1903,15 @@ export default function EventCreateForm({ eventSlug = null }) {
           }))}
         />
         <SummaryCard
-          title={t('events.create_page.ui.settings')}
+          title={t('events.create_page.summary.groups')}
           items={[
-            { label: t('events.create_page.ui.max_participants'), value: v.audience_capacity },
-            { label: t('events.create_page.fields.status'), value: v.status === 'published' ? t('events.create_page.ui.status_active') : t('events.create_page.ui.status_draft') },
+            { label: t('events.create_page.ui.linked_to_group'), value: (v.selectedGroups || []).map((group) => group.name).filter(Boolean).join(', ') },
+          ]}
+        />
+        <SummaryCard
+          title={t('events.create_page.summary.gigs')}
+          items={[
+            { label: t('events.create_page.ui.add_gigs'), value: gigsPanelVisible ? String(v.gigs.length) : t('events.detail_page.common.no') },
           ]}
         />
 

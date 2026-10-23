@@ -51,6 +51,28 @@ const createMarkerSvg = (fill) => `
 </svg>
 `
 
+function isHttpUrl(value) {
+  return typeof value === 'string' && /^https?:\/\//i.test(value.trim())
+}
+
+function DetailFactValue({ value, t }) {
+  const labels = {
+    yes: t('events.detail_page.common.yes'),
+    no: t('events.detail_page.common.no'),
+  }
+
+  if (isHttpUrl(value)) {
+    const href = value.trim()
+    return (
+      <a href={href} target="_blank" rel="noreferrer">
+        {href}
+      </a>
+    )
+  }
+
+  return formatDisplayValue(value, labels)
+}
+
 function DetailSectionIcon({ type, className }) {
   if (type === 'where') {
     return <EventLocationIcon className={className} />
@@ -301,6 +323,9 @@ function EventDetailContent({ t, locale, token, user, isAuthenticated }) {
     },
   })
   const coverImageUrl = resolvePublicUrl(event?.cover_image_url || event?.cover_image_path || event?.image_url || '')
+  const galleryImages = Array.isArray(event?.gallery_images)
+    ? event.gallery_images.filter((image) => image?.url)
+    : []
 
   const locationLines = useMemo(() => {
     return buildEventLocationLines(event)
@@ -441,6 +466,41 @@ function EventDetailContent({ t, locale, token, user, isAuthenticated }) {
                 ) : (
                   <div className={styles.posterFallback}>{t('events.detail_page.messages.no_poster')}</div>
                 )}
+                {galleryImages.length ? (
+                  <div className={styles.gallery}>
+                    {galleryImages.map((image) => (
+                      <a
+                        key={image.path || image.url}
+                        href={resolvePublicUrl(image.url)}
+                        target="_blank"
+                        rel="noreferrer"
+                        className={styles.galleryItem}
+                      >
+                        <img src={resolvePublicUrl(image.url)} alt="" className={styles.galleryImage} />
+                      </a>
+                    ))}
+                  </div>
+                ) : null}
+                {isHttpUrl(event.external_link_url) ? (
+                  <a
+                    href={event.external_link_url.trim()}
+                    target="_blank"
+                    rel="noreferrer"
+                    className={styles.promoVideoLink}
+                  >
+                    {t('events.detail_page.sections.useful.external_link')}
+                  </a>
+                ) : null}
+                {isHttpUrl(event.promo_video_url) ? (
+                  <a
+                    href={event.promo_video_url.trim()}
+                    target="_blank"
+                    rel="noreferrer"
+                    className={styles.promoVideoLink}
+                  >
+                    {t('events.detail_page.sections.useful.promo_video')}
+                  </a>
+                ) : null}
               </div>
 
               <div className={styles.topContent}>
@@ -578,10 +638,9 @@ function EventDetailContent({ t, locale, token, user, isAuthenticated }) {
                       {section.items.map((item) => (
                         <div key={`${section.id}-${item.label}`} className={styles.detailFact}>
                           <dt className={styles.detailFactLabel}>{item.label}</dt>
-                          <dd className={styles.detailFactValue}>{formatDisplayValue(item.value, {
-                            yes: t('events.detail_page.common.yes'),
-                            no: t('events.detail_page.common.no'),
-                          })}</dd>
+                          <dd className={styles.detailFactValue}>
+                            <DetailFactValue value={item.value} t={t} />
+                          </dd>
                         </div>
                       ))}
                     </dl>

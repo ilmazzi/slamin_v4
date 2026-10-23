@@ -44,6 +44,8 @@ class StoreEventData
         public readonly ?array $venue,
         public readonly ?array $online,
         public readonly array $collaboratorUserIds = [],
+        public readonly ?string $externalLinkUrl = null,
+        public readonly array $galleryImages = [],
     ) {}
 
     public static function fromRequest(StoreEventRequest $request): self
@@ -92,7 +94,22 @@ class StoreEventData
                 ->unique()
                 ->values()
                 ->all(),
+            externalLinkUrl: $request->validated('external_link_url'),
+            galleryImages: self::uploadedFiles($request, 'gallery_images'),
         );
+    }
+
+    private static function uploadedFiles(StoreEventRequest $request, string $key): array
+    {
+        $files = $request->file($key);
+        if ($files instanceof UploadedFile) {
+            return [$files];
+        }
+
+        return collect(is_array($files) ? $files : [])
+            ->filter(fn ($file) => $file instanceof UploadedFile)
+            ->values()
+            ->all();
     }
 
     private static function normalizeAudienceInvites(array $invites, array $legacyUserIds): array

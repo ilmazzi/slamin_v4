@@ -45,6 +45,13 @@ class EventResource extends JsonResource
             'delivery_mode' => $this->delivery_mode?->value,
             'cover_image_path' => $this->cover_image_path,
             'cover_image_url' => $this->cover_image_path ? $disk->url($this->cover_image_path) : null,
+            'gallery_images' => collect($this->gallery_image_paths ?? [])
+                ->filter(fn ($path) => is_string($path) && $path !== '')
+                ->map(fn ($path) => [
+                    'path' => $path,
+                    'url' => $disk->url($path),
+                ])
+                ->values(),
             'share_url' => $this->status === EventStatus::Published && $this->is_public
                 ? SharePublicUrl::event($this->slug)
                 : null,
@@ -55,6 +62,7 @@ class EventResource extends JsonResource
             'price' => $this->price,
             'currency' => $this->currency,
             'promo_video_url' => $this->promo_video_url,
+            'external_link_url' => $this->external_link_url,
             'registration_deadline' => $this->registration_deadline?->toISOString(),
             'public_invite_enabled' => $this->public_invite_enabled,
             'audience_capacity_enabled' => $this->audience_capacity_enabled,

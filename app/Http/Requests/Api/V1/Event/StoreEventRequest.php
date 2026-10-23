@@ -45,6 +45,7 @@ class StoreEventRequest extends FormRequest
             'group_ids',
             'audience_invite_user_ids',
             'collaborator_user_ids',
+            'remove_gallery_paths',
         ];
 
         $updates = [];
@@ -134,10 +135,15 @@ class StoreEventRequest extends FormRequest
             'schedule_mode' => ['required', Rule::in(array_column(EventScheduleMode::cases(), 'value'))],
             'delivery_mode' => ['required', Rule::in(array_column(EventDeliveryMode::cases(), 'value'))],
             'cover_image' => ['nullable', 'image', 'max:5120'],
+            'gallery_images' => ['nullable', 'array', 'max:8'],
+            'gallery_images.*' => ['image', 'max:5120'],
+            'remove_gallery_paths' => ['nullable', 'array', 'max:8'],
+            'remove_gallery_paths.*' => ['string', 'max:255'],
             'has_cost' => ['nullable', 'boolean'],
             'price' => ['nullable', 'numeric', 'min:0'],
             'currency' => ['nullable', 'string', 'size:3'],
             'promo_video_url' => ['nullable', 'url', 'max:1000'],
+            'external_link_url' => ['nullable', 'url', 'max:1000'],
             'registration_deadline' => ['nullable', 'date'],
             'public_invite_enabled' => ['nullable', 'boolean'],
             'audience_capacity_enabled' => ['nullable', 'boolean'],

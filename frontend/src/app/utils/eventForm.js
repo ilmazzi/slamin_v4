@@ -49,6 +49,7 @@ export function mapEventToFormValues(event) {
     price: event?.price != null ? String(event.price) : '',
     currency: event?.currency || 'EUR',
     promo_video_url: event?.promo_video_url ?? '',
+    external_link_url: event?.external_link_url ?? '',
     registration_deadline: toDatetimeLocalValue(event?.registration_deadline),
     public_invite_enabled: Boolean(event?.public_invite_enabled),
     audience_capacity_enabled: Boolean(event?.audience_capacity_enabled),
@@ -123,5 +124,12 @@ export function mapEventToFormValues(event) {
       : [{ ...emptyInvite }],
     gigs: [{ ...emptyGig }],
     cover_image: null,
+    gallery_images: [],
+    existing_gallery: Array.isArray(event?.gallery_images)
+      ? event.gallery_images
+        .filter((image) => image?.path && image?.url)
+        .map((image) => ({ path: image.path, url: image.url }))
+      : [],
+    remove_gallery_paths: [],
   }
 }

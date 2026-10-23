@@ -8,6 +8,7 @@ use Domain\Event\Enums\EventScheduleMode;
 use Domain\Event\Enums\EventStatus;
 use Domain\Event\Models\Event;
 use Domain\Event\Models\EventCategory;
+use Domain\Event\Support\EventGallery;
 use Domain\Group\Actions\ProposeEventToGroupsAction;
 use Domain\Shared\Enums\ContentType;
 use Domain\Shared\Enums\PublicationFlow;
@@ -115,10 +116,16 @@ class UpdateEventAction
                 'schedule_mode' => $data->scheduleMode,
                 'delivery_mode' => $data->deliveryMode,
                 'cover_image_path' => $coverImagePath,
+                'gallery_image_paths' => EventGallery::merge(
+                    $event->gallery_image_paths,
+                    $data->removeGalleryPaths,
+                    $data->galleryImages,
+                ),
                 'has_cost' => $data->hasCost,
                 'price' => $data->hasCost ? $data->price : null,
                 'currency' => $data->hasCost ? strtoupper((string) $data->currency) : null,
                 'promo_video_url' => $data->promoVideoUrl,
+                'external_link_url' => $data->externalLinkUrl,
                 'registration_deadline' => $data->registrationDeadline,
                 'public_invite_enabled' => $data->publicInviteEnabled,
                 'audience_capacity_enabled' => $data->audienceCapacityEnabled,

@@ -1,5 +1,6 @@
 import { formatDateTime, formatLongDate, formatTime } from '../formatters/date.js'
 import { formatCurrency } from '../formatters/number.js'
+import { languageName } from '../i18n/contentLanguages.js'
 
 export function normalizeDisplayString(value) {
   if (value === null || value === undefined) {
@@ -356,11 +357,12 @@ export function buildEventDetailSections({ event, locale, t }) {
       items: [
         { label: t('events.detail_page.sections.useful.event_type'), value: event.category_name },
         { label: t('events.detail_page.sections.useful.subtitle'), value: event.subtitle },
-        { label: t('events.detail_page.sections.useful.language'), value: event.language },
+        { label: t('events.detail_page.sections.useful.language'), value: event.language ? languageName(event.language, locale) : null },
         { label: t('events.detail_page.sections.useful.requirements'), value: event.requirements },
         { label: t('events.detail_page.sections.useful.organizer_notes'), value: event.availability_instructions },
         { label: t('events.detail_page.sections.useful.organizer'), value: event.organizer_name },
         { label: t('events.detail_page.sections.useful.festival'), value: event.festival_title },
+        { label: t('events.detail_page.sections.useful.external_link'), value: event.external_link_url },
         { label: t('events.detail_page.sections.useful.promo_video'), value: event.promo_video_url },
         { label: t('events.detail_page.sections.useful.schedule_mode'), value: translateScheduleMode(event.schedule_mode, t) },
         { label: t('events.detail_page.sections.useful.visibility'), value: typeof event.is_public === 'boolean' ? (event.is_public ? t('events.create_page.visibility.public') : t('events.create_page.visibility.private')) : null },

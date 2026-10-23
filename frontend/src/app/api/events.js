@@ -211,20 +211,36 @@ function appendIfDefined(formData, key, value) {
   formData.append(key, String(value))
 }
 
+function isFile(value) {
+  return typeof File !== 'undefined' && value instanceof File
+}
+
+function galleryFiles(eventData) {
+  return Array.isArray(eventData?.gallery_images)
+    ? eventData.gallery_images.filter((file) => isFile(file))
+    : []
+}
+
 function buildEventPayload(eventData) {
-  const hasFile = typeof File !== 'undefined' && eventData?.cover_image instanceof File
+  const files = galleryFiles(eventData)
+  const hasFile = isFile(eventData?.cover_image) || files.length > 0
   if (!hasFile) return eventData
 
   const fd = new FormData()
   Object.entries(eventData || {}).forEach(([key, value]) => {
-    if (key === 'cover_image') return
+    if (key === 'cover_image' || key === 'gallery_images' || key === 'existing_gallery') return
     if (Array.isArray(value) || (value && typeof value === 'object')) {
       fd.append(key, JSON.stringify(value))
       return
     }
     appendIfDefined(fd, key, value)
   })
-  fd.append('cover_image', eventData.cover_image)
+  if (isFile(eventData.cover_image)) {
+    fd.append('cover_image', eventData.cover_image)
+  }
+  files.forEach((file) => {
+    fd.append('gallery_images[]', file)
+  })
   return fd
 }
 

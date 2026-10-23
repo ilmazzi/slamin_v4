@@ -79,6 +79,44 @@
   align-self: start;
   min-height: 0;
   background: transparent;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.promoVideoLink {
+  display: inline-flex;
+  align-self: flex-start;
+  padding: 8px 14px;
+  border: 1px solid #000;
+  border-radius: 999px;
+  color: #000;
+  text-decoration: none;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+.promoVideoLink:hover {
+  background: #84dab4;
+}
+
+.gallery {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.galleryItem {
+  display: block;
+  min-width: 0;
+}
+
+.galleryImage {
+  width: 100%;
+  height: auto;
+  display: block;
+  object-fit: cover;
 }
 
 .poster {

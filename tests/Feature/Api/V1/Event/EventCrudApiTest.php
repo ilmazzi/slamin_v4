@@ -398,3 +398,77 @@ it('rejects audience users and the owner as event collaborators', function () {
         ->assertUnprocessable()
         ->assertJsonPath('errors.fields.collaborator_user_ids.0', __('event.validation.collaborator_cannot_be_owner'));
 });
+
+it('stores additional images, external link and external video', function () {
+    Storage::fake('public');
+
+    $user = eventCrudAuthor();
+    Sanctum::actingAs($user);
+    $category = eventCrudCategory();
+
+    $response = $this->post('/api/v1/events', [
+        ...eventCrudPayload($category->id),
+        'external_link_url' => 'https://example.com/evento',
+        'promo_video_url' => 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
+        'gallery_images' => [
+            UploadedFile::fake()->image('extra-one.jpg'),
+            UploadedFile::fake()->image('extra-two.png'),
+        ],
+    ]);
+
+    $response
+        ->assertOk()
+        ->assertJsonPath('data.event.external_link_url', 'https://example.com/evento')
+        ->assertJsonPath('data.event.promo_video_url', 'https://www.youtube.com/watch?v=dQw4w9WgXcQ')
+        ->assertJsonCount(2, 'data.event.gallery_images');
+
+    $event = Event::query()->where('title', 'Evento Test')->firstOrFail();
+    expect($event->gallery_image_paths)->toHaveCount(2);
+    foreach ($event->gallery_image_paths as $path) {
+        Storage::disk('public')->assertExists($path);
+    }
+});
+
+it('removes selected gallery images on update', function () {
+    Storage::fake('public');
+
+    $user = eventCrudAuthor();
+    Sanctum::actingAs($user);
+    $category = eventCrudCategory();
+
+    $keepPath = UploadedFile::fake()->image('keep.jpg')->store('events/gallery', 'public');
+    $removePath = UploadedFile::fake()->image('remove.jpg')->store('events/gallery', 'public');
+
+    /** @var Event $event */
+    $event = Event::query()->create([
+        'user_id' => $user->id,
+        'event_category_id' => $category->id,
+        'title' => 'Evento con gallery',
+        'slug' => 'evento-con-gallery',
+        'description' => 'Descrizione evento con gallery',
+        'schedule_mode' => 'fixed',
+        'delivery_mode' => 'online',
+        'gallery_image_paths' => [$keepPath, $removePath],
+        'external_link_url' => 'https://old.example.com',
+        'status' => 'draft',
+        'is_public' => true,
+    ]);
+
+    $response = $this->patch("/api/v1/events/{$event->id}", [
+        ...eventCrudPayload($category->id),
+        'title' => 'Evento gallery aggiornata',
+        'remove_gallery_paths' => [$removePath],
+        'external_link_url' => 'https://new.example.com',
+    ]);
+
+    $response
+        ->assertOk()
+        ->assertJsonPath('data.event.external_link_url', 'https://new.example.com')
+        ->assertJsonCount(1, 'data.event.gallery_images')
+        ->assertJsonPath('data.event.gallery_images.0.path', $keepPath);
+
+    $fresh = $event->fresh();
+    expect($fresh->gallery_image_paths)->toBe([$keepPath]);
+    Storage::disk('public')->assertExists($keepPath);
+    Storage::disk('public')->assertMissing($removePath);
+});

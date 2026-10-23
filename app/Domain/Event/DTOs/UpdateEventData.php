@@ -44,8 +44,11 @@ class UpdateEventData extends StoreEventData
         ?array $venue,
         ?array $online,
         array $collaboratorUserIds,
+        ?string $externalLinkUrl,
+        array $galleryImages,
         public readonly bool $removeCoverImage,
         public readonly bool $syncGroupLinks,
+        public readonly array $removeGalleryPaths = [],
     ) {
         parent::__construct(
             $userId,
@@ -81,6 +84,8 @@ class UpdateEventData extends StoreEventData
             $venue,
             $online,
             $collaboratorUserIds,
+            $externalLinkUrl,
+            $galleryImages,
         );
     }
 
@@ -123,8 +128,14 @@ class UpdateEventData extends StoreEventData
             $base->venue,
             $base->online,
             $base->collaboratorUserIds,
+            $base->externalLinkUrl,
+            $base->galleryImages,
             (bool) $request->validated('remove_cover_image', false),
             $request->exists('group_ids'),
+            collect($request->validated('remove_gallery_paths', []))
+                ->filter(fn ($path): bool => is_string($path) && $path !== '')
+                ->values()
+                ->all(),
         );
     }
 }
