@@ -50,6 +50,7 @@ export default function Header({
       { id: 'poems', label: t('common.poems'), href: '/poems', tone: 'poems' },
       { id: 'articles', label: t('common.articles'), href: '/articles', tone: 'articles' },
       { id: 'media', label: t('common.media'), href: '/media', tone: 'media' },
+      { id: 'forum', label: t('common.forum'), href: '/forum', tone: 'forum' },
     ]
 
     if (isAuthenticated) {

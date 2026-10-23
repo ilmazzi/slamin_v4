@@ -388,6 +388,10 @@ overflow: hidden;
   color: var(--color-black);
 }
 
+.authMenuLink[data-tone='forum']:hover {
+  color: #c9a24a;
+}
+
 .authMenuLink[data-tone='red']:hover,
 .authMenuButton[data-tone='red']:hover {
   color: var(--color-red);
@@ -550,6 +554,10 @@ overflow: hidden;
 
 .menuArrowLinkDiscover[data-tone='media']:hover {
   color: var(--color-black);
+}
+
+.menuArrowLinkDiscover[data-tone='forum']:hover {
+  color: #c9a24a;
 }
 
 .menuArrowLinkRed:hover,
