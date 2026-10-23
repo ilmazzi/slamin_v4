@@ -39,3 +39,11 @@ export async function createGroupReport(group, payload, { token, signal } = {}) 
     fallbackMessage: 'Unable to submit group report',
   })
 }
+
+export async function createForumPostReport(postPublicId, payload, { token, signal } = {}) {
+  return authApiPost(`/api/v1/forum/posts/${encodeURIComponent(postPublicId)}/reports`, payload, {
+    token,
+    signal,
+    fallbackMessage: 'Unable to submit forum post report',
+  })
+}

@@ -69,6 +69,13 @@ export default function AdminHomePage() {
       ready: true,
     } : null,
     canManageSettings ? {
+      id: 'forum-categories',
+      href: '/admin/forum-categories',
+      title: t('admin.hub.forum_categories_title'),
+      description: t('admin.hub.forum_categories_description'),
+      ready: true,
+    } : null,
+    canManageSettings ? {
       id: 'email-tests',
       href: '/admin/email-tests',
       title: t('admin.hub.email_tests_title'),

@@ -5,6 +5,7 @@ namespace Domain\Report\Actions;
 use Domain\Article\Models\Article;
 use Domain\Comment\Models\Comment;
 use Domain\Event\Models\Event;
+use Domain\Forum\Models\ForumPost;
 use Domain\Group\Models\Group;
 use Domain\Media\Models\MediaItem;
 use Domain\Poetry\Models\Poem;
@@ -28,6 +29,7 @@ class ListReportsAction
                         Event::class => [],
                         Group::class => [],
                         MediaItem::class => [],
+                        ForumPost::class => [],
                     ]);
                 },
             ])
@@ -49,6 +51,7 @@ class ListReportsAction
                 'event' => (new Event)->getMorphClass(),
                 'group' => (new Group)->getMorphClass(),
                 'media' => (new MediaItem)->getMorphClass(),
+                'forum_post' => (new ForumPost)->getMorphClass(),
             };
 
             $query->where('reportable_type', $morphClass);

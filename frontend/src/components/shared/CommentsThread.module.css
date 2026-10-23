@@ -120,6 +120,24 @@
   padding: 20px 0;
 }
 
+.itemForum {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 12px;
+  align-items: start;
+}
+
+.itemBody {
+  min-width: 0;
+}
+
+.replyRow {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 8px;
+  align-items: start;
+}
+
 .itemHeader {
   display: flex;
   align-items: baseline;

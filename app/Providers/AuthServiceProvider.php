@@ -5,6 +5,8 @@ namespace App\Providers;
 use Domain\Comment\Policies\CommentPolicy;
 use Domain\Chat\Policies\ChatThreadPolicy;
 use Domain\Event\Policies\EventPolicy;
+use Domain\Forum\Models\ForumPost;
+use Domain\Forum\Policies\ForumPostPolicy;
 use Domain\Group\Policies\GroupAnnouncementPolicy;
 use Domain\Group\Policies\GroupPolicy;
 use Domain\Media\Policies\MediaItemPolicy;
@@ -30,6 +32,7 @@ class AuthServiceProvider extends ServiceProvider
         Comment::class => CommentPolicy::class,
         ChatThread::class => ChatThreadPolicy::class,
         Event::class => EventPolicy::class,
+        ForumPost::class => ForumPostPolicy::class,
         Group::class => GroupPolicy::class,
         GroupAnnouncement::class => GroupAnnouncementPolicy::class,
         MediaItem::class => MediaItemPolicy::class,

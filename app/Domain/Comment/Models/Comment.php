@@ -2,6 +2,7 @@
 
 namespace Domain\Comment\Models;
 
+use Domain\Engagement\Models\Vote;
 use Domain\Report\Models\Report;
 use Domain\User\Models\User;
 use Illuminate\Database\Eloquent\Model;
@@ -21,6 +22,11 @@ class Comment extends Model
         'commentable_id',
         'parent_id',
         'content',
+        'score',
+    ];
+
+    protected $casts = [
+        'score' => 'integer',
     ];
 
     public function user(): BelongsTo
@@ -46,5 +52,10 @@ class Comment extends Model
     public function reports(): MorphMany
     {
         return $this->morphMany(Report::class, 'reportable');
+    }
+
+    public function votes(): MorphMany
+    {
+        return $this->morphMany(Vote::class, 'votable');
     }
 }

@@ -20,6 +20,7 @@ class DatabaseSeeder extends Seeder
             EventCategorySeeder::class,
             EventSeeder::class,
             GroupCategorySeeder::class,
+            ForumCategorySeeder::class,
             HelpSeeder::class,
         ]);
     }

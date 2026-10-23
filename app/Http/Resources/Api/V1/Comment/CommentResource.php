@@ -14,6 +14,10 @@ class CommentResource extends JsonResource
             'id' => $this->id,
             'parent_id' => $this->parent_id,
             'content' => $this->content,
+            'score' => (int) ($this->score ?? 0),
+            'my_vote' => $this->relationLoaded('votes')
+                ? $this->votes->first()?->value
+                : null,
             'replies_count' => (int) ($this->replies_count ?? 0),
             'created_at' => $this->created_at?->toISOString(),
             'updated_at' => $this->updated_at?->toISOString(),

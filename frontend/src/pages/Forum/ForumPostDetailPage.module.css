@@ -1,0 +1,85 @@
+.page {
+  --page-hero-accent: var(--color-forum);
+  max-width: 860px;
+  margin: 0 auto;
+  padding: 48px 20px 80px;
+}
+
+.back {
+  margin: 0 0 16px;
+}
+
+.back a {
+  color: var(--color-text-muted);
+  text-decoration: none;
+}
+
+.hero {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 16px;
+  margin-bottom: 32px;
+}
+
+.meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 12px;
+  margin: 0 0 10px;
+  color: var(--color-text-muted);
+  font-size: 14px;
+}
+
+.meta a {
+  color: inherit;
+  font-weight: 600;
+}
+
+.body {
+  white-space: pre-wrap;
+  line-height: 1.55;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 16px;
+}
+
+.actions button {
+  padding: 8px 12px;
+  border: 1px solid #000;
+  border-radius: 999px;
+  background: #fff;
+  font: inherit;
+  cursor: pointer;
+}
+
+.edit {
+  display: grid;
+  gap: 10px;
+}
+
+.edit input,
+.edit textarea {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 10px 12px;
+  border: 1px solid #000;
+  border-radius: 14px;
+  font: inherit;
+}
+
+.edit textarea {
+  min-height: 180px;
+}
+
+.state,
+.error {
+  margin: 0 0 16px;
+}
+
+.error {
+  color: #8f1f1f;
+}

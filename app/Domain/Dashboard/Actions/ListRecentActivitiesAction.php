@@ -7,6 +7,7 @@ use Domain\Audit\Models\AuditLog;
 use Domain\Comment\Models\Comment;
 use Domain\Engagement\Models\Follow;
 use Domain\Event\Models\Event;
+use Domain\Forum\Models\ForumPost;
 use Domain\Gig\Models\Gig;
 use Domain\Gig\Models\GigApplication;
 use Domain\Group\Models\Group;
@@ -282,6 +283,14 @@ class ListRecentActivitiesAction
 
         foreach ($this->load(MediaItem::class, $refs->get(MediaItem::class, [])) as $media) {
             $targets[MediaItem::class.':'.$media->id] = $this->target($media->title, $media->trashed() ? null : "/media/{$media->id}");
+        }
+
+        foreach ($this->load(ForumPost::class, $refs->get(ForumPost::class, []), ['category']) as $post) {
+            $categorySlug = $post->category?->slug;
+            $url = ($post->trashed() || ! $categorySlug)
+                ? null
+                : "/forum/{$categorySlug}/{$post->slug}";
+            $targets[ForumPost::class.':'.$post->id] = $this->target($post->title, $url);
         }
 
         foreach ($aliases as $alias => $key) {

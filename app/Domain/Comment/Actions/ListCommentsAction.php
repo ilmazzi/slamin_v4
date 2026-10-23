@@ -7,7 +7,10 @@ use Domain\Article\Models\Article;
 use Domain\Comment\Models\Comment;
 use Domain\Event\Enums\EventStatus;
 use Domain\Event\Models\Event;
+use Domain\Forum\Models\ForumPost;
+use Domain\Forum\Policies\ForumPostPolicy;
 use Domain\Group\Models\Group;
+use Domain\User\Models\User;
 use Domain\Media\Enums\MediaStatus;
 use Domain\Media\Enums\MediaVisibility;
 use Domain\Media\Models\MediaItem;
@@ -19,11 +22,11 @@ use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 class ListCommentsAction
 {
-    public function execute(Model $commentable, int $perPage = 10): LengthAwarePaginator
+    public function execute(Model $commentable, int $perPage = 10, ?int $viewerId = null): LengthAwarePaginator
     {
-        $this->ensureCommentableIsVisible($commentable);
+        $this->ensureCommentableIsVisible($commentable, $viewerId);
 
-        return Comment::query()
+        $query = Comment::query()
             ->with([
                 'user.profile',
                 'replies.user.profile',
@@ -31,12 +34,25 @@ class ListCommentsAction
             ->withCount('replies')
             ->where('commentable_type', $commentable->getMorphClass())
             ->where('commentable_id', $commentable->getKey())
-            ->whereNull('parent_id')
-            ->orderByDesc('created_at')
-            ->paginate($perPage);
+            ->whereNull('parent_id');
+
+        if ($commentable instanceof ForumPost) {
+            if ($viewerId) {
+                $query->with([
+                    'votes' => fn ($votes) => $votes->where('user_id', $viewerId),
+                    'replies.votes' => fn ($votes) => $votes->where('user_id', $viewerId),
+                ]);
+            }
+
+            $query->orderByDesc('score')->orderByDesc('created_at');
+        } else {
+            $query->orderByDesc('created_at');
+        }
+
+        return $query->paginate($perPage);
     }
 
-    private function ensureCommentableIsVisible(Model $commentable): void
+    private function ensureCommentableIsVisible(Model $commentable, ?int $viewerId = null): void
     {
         if ($commentable instanceof Poem) {
             if ($commentable->status === PoemStatus::Published && $commentable->is_public === true) {
@@ -64,6 +80,15 @@ class ListCommentsAction
 
         if ($commentable instanceof MediaItem) {
             if ($commentable->status === MediaStatus::Ready && $commentable->visibility === MediaVisibility::Public) {
+                return;
+            }
+        }
+
+        if ($commentable instanceof ForumPost) {
+            $commentable->loadMissing('category');
+            $viewer = $viewerId ? User::query()->find($viewerId) : null;
+
+            if ((new ForumPostPolicy)->view($viewer, $commentable)) {
                 return;
             }
         }

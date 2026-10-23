@@ -80,6 +80,9 @@ export function notificationLink(notification) {
   if (commentablePath && data.commentable_slug) {
     return `${commentablePath}/${encodeURIComponent(data.commentable_slug)}`
   }
+  if (data.commentable_type === 'forum_post' && data.category_slug && data.commentable_slug) {
+    return `/forum/${encodeURIComponent(data.category_slug)}/${encodeURIComponent(data.commentable_slug)}`
+  }
   if (data.commentable_type === 'media' && data.commentable_id) {
     return `/media/${data.commentable_id}`
   }

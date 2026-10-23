@@ -7,6 +7,8 @@ use Domain\Article\Models\Article;
 use Domain\Comment\Models\Comment;
 use Domain\Event\Enums\EventStatus;
 use Domain\Event\Models\Event;
+use Domain\Forum\Enums\ForumPostStatus;
+use Domain\Forum\Models\ForumPost;
 use Domain\Group\Models\Group;
 use Domain\Media\Enums\MediaStatus;
 use Domain\Media\Enums\MediaVisibility;
@@ -76,6 +78,7 @@ class StoreReportAction
             $reportable instanceof MediaItem => 'media',
             $reportable instanceof Event => 'event',
             $reportable instanceof Group => 'group',
+            $reportable instanceof ForumPost => 'forum_post',
             default => 'content',
         };
 
@@ -161,6 +164,13 @@ class StoreReportAction
             if ($commentable instanceof MediaItem && $commentable->status === MediaStatus::Ready && $commentable->visibility === MediaVisibility::Public) {
                 return;
             }
+
+            if ($commentable instanceof ForumPost) {
+                $commentable->loadMissing('category');
+                if ($commentable->status === ForumPostStatus::Published && $commentable->category?->is_active === true) {
+                    return;
+                }
+            }
         }
 
         if ($reportable instanceof Event) {
@@ -177,6 +187,13 @@ class StoreReportAction
 
         if ($reportable instanceof MediaItem) {
             if ($reportable->status === MediaStatus::Ready && $reportable->visibility === MediaVisibility::Public) {
+                return;
+            }
+        }
+
+        if ($reportable instanceof ForumPost) {
+            $reportable->loadMissing('category');
+            if ($reportable->status === ForumPostStatus::Published && $reportable->category?->is_active === true) {
                 return;
             }
         }

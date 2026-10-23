@@ -3,6 +3,7 @@
 namespace Domain\Comment\Actions;
 
 use Domain\Comment\Models\Comment;
+use Domain\Forum\Models\ForumPost;
 
 class DeleteCommentAction
 {
@@ -15,7 +16,12 @@ class DeleteCommentAction
             'content' => $comment->content,
         ];
 
+        $commentable = $comment->commentable;
         $comment->delete();
+
+        if ($commentable instanceof ForumPost && $commentable->comments_count > 0) {
+            $commentable->decrement('comments_count');
+        }
 
         audit()->log(
             event: 'comment.deleted',

@@ -50,6 +50,10 @@ const PoemDetailPage = lazy(() => import('./pages/Poems/PoemDetailPage.jsx'))
 const PoemCreate = lazy(() => import('./pages/Poems/PoemCreate.jsx'))
 const ChatPage = lazy(() => import('./pages/Chat/ChatPage.jsx'))
 const PlaceholderPage = lazy(() => import('./pages/shared/PlaceholderPage.jsx'))
+const ForumPage = lazy(() => import('./pages/Forum/ForumPage.jsx'))
+const ForumPostCreatePage = lazy(() => import('./pages/Forum/ForumPostCreatePage.jsx'))
+const ForumPostDetailPage = lazy(() => import('./pages/Forum/ForumPostDetailPage.jsx'))
+const ForumCategoriesAdminPage = lazy(() => import('./pages/Admin/ForumCategoriesAdminPage.jsx'))
 const TranslationsAdminPage = lazy(() => import('./pages/Admin/TranslationsAdminPage.jsx'))
 const AdminSettingsPage = lazy(() => import('./pages/Admin/AdminSettingsPage.jsx'))
 const AdminHomePage = lazy(() => import('./pages/Admin/AdminHomePage.jsx'))
@@ -345,15 +349,17 @@ export default function App() {
               </ProtectedRoute>
             }
           />
+          <Route path="/forum" element={<ForumPage />} />
           <Route
-            path="/forum"
+            path="/forum/:categorySlug/new"
             element={
-              <PlaceholderPage
-                titleKey="common.coming_soon.forum_title"
-                descriptionKey="common.coming_soon.forum_description"
-              />
+              <ProtectedRoute>
+                <ForumPostCreatePage />
+              </ProtectedRoute>
             }
           />
+          <Route path="/forum/:categorySlug/:postSlug" element={<ForumPostDetailPage />} />
+          <Route path="/forum/:categorySlug" element={<ForumPage />} />
           <Route path="/faq" element={<HelpPage section="faq" />} />
           <Route path="/help" element={<HelpPage />} />
           <Route path="/support" element={<SupportPage />} />
@@ -477,6 +483,14 @@ export default function App() {
             element={
               <ProtectedRoute roles={['admin']}>
                 <GroupCategoriesAdminPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/forum-categories"
+            element={
+              <ProtectedRoute roles={['admin']}>
+                <ForumCategoriesAdminPage />
               </ProtectedRoute>
             }
           />

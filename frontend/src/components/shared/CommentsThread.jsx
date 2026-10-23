@@ -7,14 +7,18 @@ import {
   createPoemComment,
   createEventComment,
   createGroupComment,
+  createForumComment,
   deleteComment,
   listMediaComments,
   listArticleComments,
   listPoemComments,
   listEventComments,
   listGroupComments,
+  listForumComments,
   updateComment,
 } from '../../app/api/comments.js'
+import { voteForumComment } from '../../app/api/forum.js'
+import VoteControl from '../forum/VoteControl.jsx'
 import { formatShortPublishedDate } from '../../app/formatters/date.js'
 import styles from './CommentsThread.module.css'
 
@@ -24,7 +28,7 @@ function authorLabel(comment, fallback) {
   return comment?.author?.display_name || comment?.author?.nickname || fallback
 }
 
-function canManage(comment, user) {
+function canEdit(comment, user) {
   const me = String(user?.public_id || '')
   const author = String(comment?.author?.public_id || '')
   return Boolean(me && author && me === author)
@@ -34,9 +38,10 @@ export default function CommentsThread({
   contentType,
   contentId,
   title,
+  locked = false,
 }) {
   const { t, locale } = useI18n()
-  const { isAuthenticated, token, user } = useAuth()
+  const { isAuthenticated, token, user, hasAnyRole } = useAuth()
   const [comments, setComments] = useState([])
   const [meta, setMeta] = useState({ current_page: 1, last_page: 1 })
   const [page, setPage] = useState(1)
@@ -53,6 +58,7 @@ export default function CommentsThread({
   const isMedia = contentType === 'media'
   const isEvent = contentType === 'event'
   const isGroup = contentType === 'group'
+  const isForum = contentType === 'forum'
   const resolvedTitle = title ?? t(
     isPoem
       ? 'comment.ui.title_poem'
@@ -62,9 +68,11 @@ export default function CommentsThread({
           ? 'comment.ui.title_event'
           : isGroup
             ? 'comment.ui.title_group'
-            : contentType === 'article'
-              ? 'comment.ui.title_article'
-              : 'comment.ui.title',
+            : isForum
+              ? 'comment.ui.title_forum'
+              : contentType === 'article'
+                ? 'comment.ui.title_article'
+                : 'comment.ui.title',
   )
   const unknownUserLabel = t('common.unknown_user')
   const listFn = useMemo(
@@ -76,8 +84,10 @@ export default function CommentsThread({
           ? listEventComments
           : isGroup
             ? listGroupComments
-            : listArticleComments),
-    [isEvent, isGroup, isMedia, isPoem],
+            : isForum
+              ? listForumComments
+              : listArticleComments),
+    [isEvent, isForum, isGroup, isMedia, isPoem],
   )
   const createFn = useMemo(
     () => (isPoem
@@ -88,8 +98,13 @@ export default function CommentsThread({
           ? createEventComment
           : isGroup
             ? createGroupComment
-            : createArticleComment),
-    [isEvent, isGroup, isMedia, isPoem],
+            : isForum
+              ? createForumComment
+              : createArticleComment),
+    [isEvent, isForum, isGroup, isMedia, isPoem],
+  )
+  const canDeleteComment = (comment) => (
+    canEdit(comment, user) || (isForum && hasAnyRole(['admin', 'moderator']))
   )
 
   async function loadComments() {
@@ -192,7 +207,9 @@ export default function CommentsThread({
     <section className={styles.section}>
       <h3 className={styles.title}>{resolvedTitle}</h3>
 
-      {isAuthenticated ? (
+      {locked ? (
+        <p className={styles.muted}>{t('forum.ui.locked')}</p>
+      ) : isAuthenticated ? (
         <form className={styles.form} onSubmit={handleCreate}>
           <textarea
             className={styles.textarea}
@@ -221,7 +238,21 @@ export default function CommentsThread({
 
       <div className={styles.list}>
         {comments.map((comment) => (
-          <article key={comment.id} className={styles.item}>
+          <article key={comment.id} className={`${styles.item} ${isForum ? styles.itemForum : ''}`}>
+            {isForum ? (
+              <VoteControl
+                score={comment.score}
+                myVote={comment.my_vote}
+                disabled={!token}
+                upvoteLabel={t('forum.ui.upvote')}
+                downvoteLabel={t('forum.ui.downvote')}
+                onVote={async (value) => {
+                  await voteForumComment(comment.id, value, { token })
+                  await loadComments()
+                }}
+              />
+            ) : null}
+            <div className={isForum ? styles.itemBody : undefined}>
             <div className={styles.itemHeader}>
               <div className={styles.authorRow}>
                 <span className={styles.authorDot} aria-hidden="true" />
@@ -260,7 +291,7 @@ export default function CommentsThread({
             )}
 
             <div className={styles.inlineActions}>
-              {isAuthenticated ? (
+              {isAuthenticated && !locked ? (
                 <button
                   type="button"
                   className={styles.btn}
@@ -273,32 +304,32 @@ export default function CommentsThread({
                   {t('comment.ui.reply')}
                 </button>
               ) : null}
-              {canManage(comment, user) ? (
-                <>
-                  <button
-                    type="button"
-                    className={styles.btn}
-                    disabled={isSubmitting}
-                    onClick={() => {
-                      setEditingId(comment.id)
-                      setEditDraft(comment.content || '')
-                    }}
-                  >
-                    {t('comment.ui.edit')}
-                  </button>
-                  <button
-                    type="button"
-                    className={styles.btn}
-                    disabled={isSubmitting}
-                    onClick={() => handleDelete(comment.id)}
-                  >
-                    {t('comment.ui.delete')}
-                  </button>
-                </>
+              {canEdit(comment, user) ? (
+                <button
+                  type="button"
+                  className={styles.btn}
+                  disabled={isSubmitting}
+                  onClick={() => {
+                    setEditingId(comment.id)
+                    setEditDraft(comment.content || '')
+                  }}
+                >
+                  {t('comment.ui.edit')}
+                </button>
+              ) : null}
+              {canDeleteComment(comment) ? (
+                <button
+                  type="button"
+                  className={styles.btn}
+                  disabled={isSubmitting}
+                  onClick={() => handleDelete(comment.id)}
+                >
+                  {t('comment.ui.delete')}
+                </button>
               ) : null}
             </div>
 
-            {replyParentId === comment.id && isAuthenticated ? (
+            {replyParentId === comment.id && isAuthenticated && !locked ? (
               <form className={styles.replyForm} onSubmit={handleCreateReply}>
                 <textarea
                   className={styles.textarea}
@@ -330,7 +361,21 @@ export default function CommentsThread({
             {Array.isArray(comment.replies) && comment.replies.length > 0 ? (
               <div className={styles.replies}>
                 {comment.replies.map((reply) => (
-                  <div key={reply.id}>
+                  <div key={reply.id} className={isForum ? styles.replyRow : undefined}>
+                    {isForum ? (
+                      <VoteControl
+                        score={reply.score}
+                        myVote={reply.my_vote}
+                        disabled={!token}
+                        upvoteLabel={t('forum.ui.upvote')}
+                        downvoteLabel={t('forum.ui.downvote')}
+                        onVote={async (value) => {
+                          await voteForumComment(reply.id, value, { token })
+                          await loadComments()
+                        }}
+                      />
+                    ) : null}
+                    <div>
                     <div className={styles.itemHeader}>
                       <div className={styles.authorRow}>
                         <span className={styles.authorDot} aria-hidden="true" />
@@ -341,10 +386,12 @@ export default function CommentsThread({
                       </span>
                     </div>
                     <p className={styles.content}>{reply.content}</p>
+                    </div>
                   </div>
                 ))}
               </div>
             ) : null}
+            </div>
           </article>
         ))}
       </div>

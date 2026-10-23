@@ -19,6 +19,7 @@ return [
         'media' => 'media',
         'event' => 'evento',
         'group' => 'gruppo',
+        'forum_post' => 'post del forum',
         'content' => 'contenuto',
     ],
     'ui' => [

@@ -118,6 +118,30 @@ export async function createGroupComment(group, payload, { token, signal } = {})
   })
 }
 
+export async function listForumComments(
+  postPublicId,
+  { page = 1, perPage = DEFAULT_PER_PAGE, token, signal } = {},
+) {
+  const params = new URLSearchParams()
+  params.set('page', String(page))
+  params.set('per_page', String(perPage))
+  const { data, meta } = await apiGet(`/api/v1/forum/posts/${encodeURIComponent(postPublicId)}/comments?${params.toString()}`, {
+    token,
+    signal,
+    fallbackMessage: 'Unable to load forum comments',
+  })
+
+  return { data, meta }
+}
+
+export async function createForumComment(postPublicId, payload, { token, signal } = {}) {
+  return authApiPost(`/api/v1/forum/posts/${encodeURIComponent(postPublicId)}/comments`, payload, {
+    token,
+    signal,
+    fallbackMessage: 'Unable to post forum comment',
+  })
+}
+
 export async function updateComment(commentId, payload, { token, signal } = {}) {
   return authApiRequest(`/api/v1/comments/${encodeURIComponent(commentId)}`, {
     token,

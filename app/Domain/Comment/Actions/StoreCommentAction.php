@@ -7,6 +7,8 @@ use Domain\Article\Models\Article;
 use Domain\Comment\Models\Comment;
 use Domain\Event\Enums\EventStatus;
 use Domain\Event\Models\Event;
+use Domain\Forum\Enums\ForumPostStatus;
+use Domain\Forum\Models\ForumPost;
 use Domain\Group\Enums\GroupMemberRole;
 use Domain\Group\Enums\GroupMemberStatus;
 use Domain\Group\Models\Group;
@@ -59,7 +61,12 @@ class StoreCommentAction
                 'commentable_id' => $commentable->getKey(),
                 'parent_id' => $parent?->id,
                 'content' => $content,
+                'score' => 0,
             ]);
+
+            if ($commentable instanceof ForumPost) {
+                $commentable->increment('comments_count');
+            }
 
             audit()->log(
                 event: 'comment.created',
@@ -114,6 +121,20 @@ class StoreCommentAction
             }
         }
 
+        if ($commentable instanceof ForumPost) {
+            $commentable->loadMissing('category');
+
+            if ($commentable->is_locked) {
+                throw ValidationException::withMessages([
+                    'content' => [__('forum.errors.locked')],
+                ]);
+            }
+
+            if ($commentable->status === ForumPostStatus::Published && $commentable->category?->is_active === true) {
+                return;
+            }
+        }
+
         throw new NotFoundHttpException;
     }
 
@@ -129,9 +150,11 @@ class StoreCommentAction
             $commentable instanceof Poem => 'poem',
             $commentable instanceof Article => 'article',
             $commentable instanceof Event => 'event',
+            $commentable instanceof ForumPost => 'forum_post',
             default => 'media',
         };
         $slug = $commentable->slug ?? null;
+        $categorySlug = $commentable instanceof ForumPost ? $commentable->category?->slug : null;
 
         if ($commentable->user_id !== $comment->user_id) {
             $this->createNotificationAction->execute(
@@ -141,12 +164,14 @@ class StoreCommentAction
                     'poem' => __('comment.notifications.poem_commented_title'),
                     'article' => __('comment.notifications.article_commented_title'),
                     'event' => __('comment.notifications.event_commented_title'),
+                    'forum_post' => __('comment.notifications.forum_post_commented_title'),
                     default => __('comment.notifications.media_commented_title'),
                 },
                 message: fn () => match ($commentableType) {
                     'poem' => __('comment.notifications.poem_commented_message', ['title' => $commentable->title]),
                     'article' => __('comment.notifications.article_commented_message', ['title' => $commentable->title]),
                     'event' => __('comment.notifications.event_commented_message', ['title' => $commentable->title]),
+                    'forum_post' => __('comment.notifications.forum_post_commented_message', ['title' => $commentable->title]),
                     default => __('comment.notifications.media_commented_message', ['title' => $commentable->title]),
                 },
                 data: [
@@ -154,6 +179,7 @@ class StoreCommentAction
                     'commentable_type' => $commentableType,
                     'commentable_id' => $commentable->id,
                     'commentable_slug' => $slug,
+                    'category_slug' => $categorySlug,
                     'parent_id' => $comment->parent_id,
                 ],
             );
@@ -171,6 +197,7 @@ class StoreCommentAction
                     'commentable_type' => $commentableType,
                     'commentable_id' => $commentable->id,
                     'commentable_slug' => $slug,
+                    'category_slug' => $categorySlug,
                 ],
             );
         }
