@@ -3,6 +3,7 @@ import PillButton from './shared/PillButton.jsx'
 
 export default function PageHero({
   title,
+  lead,
   leadPrefix,
   leadEmphasis,
   leadSuffix,
@@ -13,6 +14,16 @@ export default function PageHero({
   ctaOnClick,
   ctaVariant = 'dark',
 }) {
+  const leadBody = lead ?? (
+    <>
+      {leadPrefix}
+      <span>{leadEmphasis}</span>
+      {leadSuffix}
+    </>
+  )
+  const leadClassName = lead ? `${styles.lead} ${styles.leadRich}` : styles.lead
+  const mobileLeadClassName = lead ? `${styles.mobileLead} ${styles.leadRich}` : styles.mobileLead
+
   return (
     <section className={styles.hero}>
       <div className={styles.topBand}>
@@ -21,11 +32,7 @@ export default function PageHero({
 
       <div className={styles.mobileHero}>
         <h1 className={styles.mobileTitle}>{title}</h1>
-        <p className={styles.mobileLead}>
-          {leadPrefix}
-          <span>{leadEmphasis}</span>
-          {leadSuffix}
-        </p>
+        <p className={mobileLeadClassName}>{leadBody}</p>
         {!hideCta ? (
           <PillButton
             label={ctaLabel}
@@ -39,11 +46,7 @@ export default function PageHero({
 
       <div className={styles.bottomSection}>
         <div className={styles.bottomFrame}>
-          <p className={styles.lead}>
-            {leadPrefix}
-            <span>{leadEmphasis}</span>
-            {leadSuffix}
-          </p>
+          <p className={leadClassName}>{leadBody}</p>
         </div>
         <div className={styles.desktopPolygon} aria-hidden="true" />
       </div>

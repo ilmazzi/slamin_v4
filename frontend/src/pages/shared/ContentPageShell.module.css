@@ -3,7 +3,8 @@
 .groupsPage,
 .articlesPage,
 .poemsPage,
-.mediaPage {
+.mediaPage,
+.forumPage {
   --color-header-fg: var(--color-black);
   --color-header-border: var(--color-black);
   --page-inline-padding: 110px;
@@ -34,6 +35,11 @@
   --color-header-bg: var(--page-hero-accent);
 }
 
+.forumPage {
+  --page-hero-accent: var(--color-forum);
+  --color-header-bg: var(--page-hero-accent);
+}
+
 .mediaPage {
   --page-hero-accent: var(--color-media);
   --color-header-bg: var(--page-hero-accent);
@@ -48,7 +54,8 @@
   .groupsPage,
   .articlesPage,
   .poemsPage,
-  .mediaPage {
+  .mediaPage,
+  .forumPage {
     --page-inline-padding: 48px;
   }
 }
@@ -59,7 +66,8 @@
   .groupsPage,
   .articlesPage,
   .poemsPage,
-  .mediaPage {
+  .mediaPage,
+  .forumPage {
     --page-inline-padding: 24px;
   }
 }

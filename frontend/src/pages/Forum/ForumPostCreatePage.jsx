@@ -54,7 +54,7 @@ export default function ForumPostCreatePage() {
   }
 
   return (
-    <MainLayout>
+    <MainLayout themeTone="forum">
       <section className={styles.page}>
         <p className={styles.back}>
           <Link to={categorySlug ? `/forum/${encodeURIComponent(categorySlug)}` : '/forum'}>

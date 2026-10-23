@@ -77,6 +77,11 @@
   font-weight: 800;
 }
 
+.leadRich span {
+  display: inline;
+  margin-top: 0;
+}
+
 .desktopPolygon {
   position: relative;
   top: -1px;
@@ -199,6 +204,11 @@
     display: block;
     font-style: italic;
     font-weight: 800;
+  }
+
+  .leadRich span {
+    display: inline;
+    margin-top: 0;
   }
 
   .mobileCtaButton {

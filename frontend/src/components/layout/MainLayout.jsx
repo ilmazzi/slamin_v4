@@ -22,6 +22,7 @@ export default function MainLayout({
     red: 'var(--color-red)',
     black: 'var(--color-black)',
     media: 'var(--color-media)',
+    forum: 'var(--color-forum)',
   }
   const accentColor = toneToCssVar[themeTone] || ''
   const auth = useAuth()

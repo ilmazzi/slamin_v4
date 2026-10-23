@@ -135,6 +135,30 @@ it('lets staff hide a post', function () {
         ->assertJsonPath('data.post.status', 'hidden');
 });
 
+it('lists public categories with post and comment counts', function () {
+    $category = makeForumCategory();
+    $author = forumVerifiedUser();
+    $post = ForumPost::query()->create([
+        'user_id' => $author->id,
+        'forum_category_id' => $category->id,
+        'title' => 'Counted',
+        'slug' => 'counted',
+        'body' => 'Body',
+        'status' => 'published',
+    ]);
+
+    Sanctum::actingAs($author);
+    $this->postJson("/api/v1/forum/posts/{$post->public_id}/comments", [
+        'content' => 'A reply',
+    ])->assertOk();
+
+    $this->getJson('/api/v1/forum/categories')
+        ->assertOk()
+        ->assertJsonPath('data.categories.0.slug', 'poesia')
+        ->assertJsonPath('data.categories.0.posts_count', 1)
+        ->assertJsonPath('data.categories.0.comments_count', 1);
+});
+
 it('lets a verified user report a forum post', function () {
     $category = makeForumCategory();
     $post = ForumPost::query()->create([

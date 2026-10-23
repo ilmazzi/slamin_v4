@@ -91,7 +91,7 @@ export default function ForumPostDetailPage() {
   }
 
   return (
-    <MainLayout>
+    <MainLayout themeTone="forum">
       <article className={styles.page}>
         <p className={styles.back}>
           <Link to={`/forum/${encodeURIComponent(categorySlug)}`}>{t('forum.ui.back_to_forum')}</Link>

@@ -17,6 +17,7 @@ class ForumCategoryResource extends JsonResource
             'description' => $this->translatedDescription(),
             'sort_order' => $this->sort_order,
             'posts_count' => (int) ($this->posts_count ?? 0),
+            'comments_count' => (int) ($this->comments_count ?? 0),
         ];
     }
 }

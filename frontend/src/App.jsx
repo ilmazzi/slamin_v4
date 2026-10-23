@@ -351,6 +351,14 @@ export default function App() {
           />
           <Route path="/forum" element={<ForumPage />} />
           <Route
+            path="/forum/new"
+            element={
+              <ProtectedRoute>
+                <ForumPostCreatePage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
             path="/forum/:categorySlug/new"
             element={
               <ProtectedRoute>
