@@ -1,7 +1,9 @@
 import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import L from 'leaflet'
 import { MapContainer, Marker, useMapEvents } from 'react-leaflet'
+import MapAutoCenter from '../../app/maps/MapAutoCenter.jsx'
 import OsmTileLayer from '../../app/maps/OsmTileLayer.jsx'
+import { geocodeAddress } from '../../app/maps/geocodeAddress.js'
 import { useLocation, useParams } from 'react-router-dom'
 import { formatLocaleNumber } from '../../app/formatters/number.js'
 import { useDashboardWidgets } from '../../app/hooks/useDashboardWidgets.js'
@@ -304,12 +306,64 @@ function EventDetailContent({ t, locale, token, user, isAuthenticated }) {
     return buildEventLocationLines(event)
   }, [event])
 
-  const hasMapCoordinates = useMemo(() => {
+  const storedMapCoordinates = useMemo(() => {
     return hasEventCoordinates(event)
   }, [event])
 
+  const [geocodedCenter, setGeocodedCenter] = useState(null)
+
+  useEffect(() => {
+    if (!event || event.is_online || storedMapCoordinates) {
+      setGeocodedCenter(null)
+      return undefined
+    }
+
+    const placeName = String(event.venue_name ?? event.venue?.place_name ?? '').trim()
+    const addressLine = String(event.venue_address ?? event.venue?.address_line ?? '').trim()
+    const postalCode = String(event.postal_code ?? event.venue?.postal_code ?? '').trim()
+    const city = String(event.city ?? event.venue?.city ?? '').trim()
+    const country = String(event.country_code ?? event.venue?.country_code ?? '').trim()
+
+    if (!city || !(addressLine || placeName || postalCode)) {
+      setGeocodedCenter(null)
+      return undefined
+    }
+
+    const controller = new AbortController()
+    let cancelled = false
+
+    geocodeAddress({
+      placeName,
+      addressLine,
+      postalCode,
+      city,
+      country,
+      signal: controller.signal,
+    })
+      .then((result) => {
+        if (!cancelled && result) {
+          setGeocodedCenter({ lat: result.lat, lng: result.lon })
+        }
+      })
+      .catch((error) => {
+        if (error?.name === 'AbortError') {
+          return
+        }
+        if (!cancelled) {
+          setGeocodedCenter(null)
+        }
+      })
+
+    return () => {
+      cancelled = true
+      controller.abort()
+    }
+  }, [event, storedMapCoordinates])
+
+  const hasMapCoordinates = storedMapCoordinates || Boolean(geocodedCenter)
+
   const mapCenter = useMemo(() => {
-    if (hasMapCoordinates) {
+    if (storedMapCoordinates) {
       const latValue = event?.latitude ?? event?.venue?.latitude
       const lngValue = event?.longitude ?? event?.venue?.longitude
       return {
@@ -318,8 +372,12 @@ function EventDetailContent({ t, locale, token, user, isAuthenticated }) {
       }
     }
 
+    if (geocodedCenter) {
+      return geocodedCenter
+    }
+
     return DEFAULT_CENTER
-  }, [event, hasMapCoordinates])
+  }, [event, storedMapCoordinates, geocodedCenter])
 
   const eventMarkerIcon = useMemo(() => {
     return L.divIcon({
@@ -457,6 +515,9 @@ function EventDetailContent({ t, locale, token, user, isAuthenticated }) {
                 >
                   <OsmTileLayer />
                   <MapWheelZoomGuard />
+                  {hasMapCoordinates ? (
+                    <MapAutoCenter lat={mapCenter.lat} lng={mapCenter.lng} zoom={11} />
+                  ) : null}
                   {hasMapCoordinates ? (
                     <Marker position={[mapCenter.lat, mapCenter.lng]} icon={eventMarkerIcon} />
                   ) : null}

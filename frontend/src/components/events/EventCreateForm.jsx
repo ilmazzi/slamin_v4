@@ -1,8 +1,10 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import L from 'leaflet'
-import { MapContainer, Marker, useMap } from 'react-leaflet'
+import { MapContainer, Marker } from 'react-leaflet'
+import MapAutoCenter from '../../app/maps/MapAutoCenter.jsx'
 import OsmTileLayer from '../../app/maps/OsmTileLayer.jsx'
+import { geocodeAddress, resolveCountryCode } from '../../app/maps/geocodeAddress.js'
 import { createEvent, getEventDetail, listEventCategories, listRecentEventPlaces, searchEventInviteUsers, updateEvent } from '../../app/api/events.js'
 import { searchProposeableGroups } from '../../app/api/groups.js'
 import { useAuth } from '../../app/hooks/useAuth.js'
@@ -21,17 +23,6 @@ const createMarkerSvg = (fill) => `
   <path d="M0 0V40.589H17.1945L37.9553 54V40.589V13.4055V0H0Z" fill="${fill}"/>
 </svg>
 `
-
-function MapAutoCenter({ lat, lng, zoom = 14 }) {
-  const map = useMap()
-
-  useEffect(() => {
-    if (!Number.isFinite(lat) || !Number.isFinite(lng)) return
-    map.flyTo([lat, lng], zoom, { animate: true, duration: 0.6 })
-  }, [lat, lng, map, zoom])
-
-  return null
-}
 
 function splitDateTimeParts(value) {
   if (!value) {
@@ -533,15 +524,7 @@ export default function EventCreateForm({ eventSlug = null }) {
     const addressLine = String(v.venue.address_line ?? '').trim()
     const postalCode = String(v.venue.postal_code ?? '').trim()
     const city = String(v.venue.city ?? '').trim()
-    const rawCountry = String(v.venue.country_code ?? '').trim()
-    const normalizedCountry = (() => {
-      if (!rawCountry) return 'IT'
-      const upper = rawCountry.toUpperCase()
-      if (upper.length === 2) return upper
-      if (rawCountry.toLowerCase() === 'italia') return 'IT'
-      if (rawCountry.toLowerCase() === 'italy') return 'IT'
-      return 'IT'
-    })()
+    const normalizedCountry = resolveCountryCode(v.venue.country_code, 'IT')
 
     const hasEnoughLocationInfo = Boolean(city && (addressLine || placeName || postalCode))
     if (!hasEnoughLocationInfo) {
@@ -570,44 +553,30 @@ export default function EventCreateForm({ eventSlug = null }) {
       setGeoStatus({ loading: true, error: '' })
 
       try {
-        const url = new URL('https://nominatim.openstreetmap.org/search')
-        url.searchParams.set('format', 'jsonv2')
-        url.searchParams.set('limit', '1')
-        url.searchParams.set('addressdetails', '0')
-        url.searchParams.set('countrycodes', normalizedCountry.toLowerCase())
-        // Prefer structured fields for higher hit rate.
-        if (addressLine) url.searchParams.set('street', addressLine)
-        if (city) url.searchParams.set('city', city)
-        if (postalCode) url.searchParams.set('postalcode', postalCode)
-        // If the user provides a venue name, keep it as a fallback hint.
-        if (placeName && !addressLine) url.searchParams.set('q', `${placeName}, ${city}`)
-
-        const resp = await fetch(url.toString(), {
+        const result = await geocodeAddress({
+          placeName,
+          addressLine,
+          postalCode,
+          city,
+          country: normalizedCountry,
           signal: controller.signal,
-          headers: {
-            Accept: 'application/json',
-          },
         })
 
-        if (!resp.ok) {
-          throw new Error('Geocoding failed')
-        }
-
-        const results = await resp.json()
-        const first = Array.isArray(results) ? results[0] : null
-        const nextLat = first?.lat ? Number(first.lat) : NaN
-        const nextLon = first?.lon ? Number(first.lon) : NaN
-        if (!Number.isFinite(nextLat) || !Number.isFinite(nextLon)) {
+        if (!result) {
           setGeoStatus({ loading: false, error: t('events.create_page.ui.geocoding_not_found') })
           return
         }
+
+        const nextCountry = result.countryCode || normalizedCountry
+        lastGeocodeKeyRef.current = [placeName, addressLine, postalCode, city, nextCountry].join('|')
 
         setV((prev) => ({
           ...prev,
           venue: {
             ...prev.venue,
-            latitude: String(nextLat),
-            longitude: String(nextLon),
+            latitude: String(result.lat),
+            longitude: String(result.lon),
+            country_code: nextCountry,
           },
         }))
         setGeoStatus({ loading: false, error: '' })
@@ -786,13 +755,7 @@ export default function EventCreateForm({ eventSlug = null }) {
   }
 
   function normalizeCountryCode(raw) {
-    const value = String(raw ?? '').trim()
-    if (!value) return 'IT'
-    const upper = value.toUpperCase()
-    if (upper.length === 2) return upper
-    if (value.toLowerCase() === 'italia') return 'IT'
-    if (value.toLowerCase() === 'italy') return 'IT'
-    return 'IT'
+    return resolveCountryCode(raw, 'IT')
   }
 
   function selectCollaborator(selectedUser) {
