@@ -96,6 +96,10 @@
   }
 
   @media (max-width: 639px) {
+    .section {
+      padding: 24px 0 28px;
+    }
+
     .slide {
       flex-basis: 100%;
       padding: 0 4px;

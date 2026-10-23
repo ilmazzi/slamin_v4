@@ -11,6 +11,7 @@
 @media (max-width: 768px) {
   .section {
     --page-inline-padding: var(--home-section-pad-mobile, 30px);
+    padding-bottom: 8px;
   }
 
   .headingWrap {

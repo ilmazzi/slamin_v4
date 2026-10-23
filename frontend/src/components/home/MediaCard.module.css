@@ -351,18 +351,17 @@
 
 @media (max-width: 768px) {
   .card {
-    width: 188px;
-    flex: 0 0 188px;
-    border-bottom-left-radius: 20px;
-    border-bottom-right-radius: 20px;
-    background: #fff;
-    border: 1px solid #000;
+    width: min(300px, calc(100vw - 72px));
+    flex: 0 0 min(300px, calc(100vw - 72px));
+    border-bottom-left-radius: 28px;
+    background: #000;
+    border: 0;
     box-sizing: border-box;
   }
 
   .fluid {
     width: 100%;
-    max-width: none;
+    max-width: 473px;
     flex: 1 1 auto;
   }
 
@@ -371,56 +370,51 @@
   }
 
   .mobileHeader {
-    display: flex;
-    gap: 12px;
-    padding: 16px 9px;
-    align-items: center;
-    min-height: 79px;
-    box-sizing: border-box;
+    display: none;
   }
 
   .desktopCopy {
-    display: none;
+    display: flex;
+    min-height: 0;
+    height: auto;
+    padding: 12px 16px 14px;
+    gap: 2px;
   }
 
   .desktopPlayButton {
-    display: none;
+    display: inline-flex;
+    width: 68px;
+    height: 68px;
   }
 
-  .playButton {
-    width: 47px;
-    height: 47px;
-  }
-
-  .playTriangle {
-    margin-left: 3px;
-    border-top-width: 7px;
-    border-bottom-width: 7px;
-    border-left-width: 11px;
+  .desktopPlayAsset {
+    width: 100%;
+    height: 100%;
   }
 
   .title {
-    font-size: 15px;
-    line-height: 24px;
+    font-size: 22px;
+    line-height: 1.2;
     white-space: nowrap;
   }
 
   .subtitle {
-    font-size: 10px;
-    line-height: 17px;
+    font-size: 14px;
+    line-height: 1.25;
     white-space: nowrap;
   }
 
   .previewImage {
-    height: 121px;
+    height: auto;
+    aspect-ratio: 473 / 512;
   }
 
   .desktopPreviewAsset {
-    display: none;
+    display: block;
   }
 
   .mobilePreviewAsset {
-    display: block;
+    display: none;
   }
 
   .desktopFooter {
@@ -431,9 +425,12 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    height: 45.663px;
-    padding: 7px 13px 11px;
+    min-height: 56px;
+    height: auto;
+    padding: 10px 16px 12px;
     background: #fff;
+    border: 1px solid #000;
+    border-bottom-left-radius: 28px;
     box-sizing: border-box;
     position: relative;
   }
@@ -452,22 +449,23 @@
   .mobileFooterIcons {
     display: flex;
     align-items: center;
-    gap: 4px;
-    width: 85.5px;
+    gap: 10px;
+    width: auto;
+    flex: 1 1 auto;
   }
 
   .mobileFooterActions {
     display: flex;
-    align-items: flex-end;
-    gap: 14px;
-    width: 76.5px;
-    height: 27.663px;
+    align-items: center;
+    gap: 16px;
+    width: auto;
+    height: auto;
     justify-content: flex-end;
   }
 
   .mobileSocial .mobileFooterActions button {
-    width: 21px;
-    height: 21px;
+    width: 24px;
+    height: 24px;
     overflow: hidden;
     flex-shrink: 0;
   }
@@ -475,27 +473,28 @@
   .mobileSocial .mobileFooterActions img {
     width: 100%;
     height: 100%;
-    max-width: 21px;
-    max-height: 21px;
+    max-width: 24px;
+    max-height: 24px;
     object-fit: contain;
   }
 
   .mobileSocial .mobileFooterIcons img {
     display: block;
     width: auto;
-    max-width: 16px;
-    height: 10.663px;
+    max-width: 20px;
+    height: 16px;
     object-fit: contain;
   }
 
   .statPill {
     gap: 4px;
-    font-size: 10px;
-    width: 16.756px;
+    font-size: 12px;
+    width: auto;
+    min-width: 22px;
   }
 
   .statValue {
-    line-height: 13px;
+    line-height: 16px;
   }
 
   .desktopStatIcon,
@@ -507,12 +506,12 @@
   .mobileStatIcon {
     display: block;
     width: auto;
-    height: 10.663px;
+    height: 16px;
   }
 
   .mobileActionIcon {
     display: block;
     width: auto;
-    height: 21px;
+    height: 24px;
   }
 }
