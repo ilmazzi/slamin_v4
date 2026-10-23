@@ -1,0 +1,8 @@
+{
+  "name": "slamin_v4",
+  "private": true,
+  "scripts": {
+    "build": "npm --prefix frontend install && npm --prefix frontend run build",
+    "lint": "npm --prefix frontend run lint"
+  }
+}
