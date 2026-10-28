@@ -4,10 +4,14 @@ const TONES = ['charcoal', 'sepia', 'graphite']
  * Maps a media item from the API to MediaCard props.
  */
 export function mediaCardProps(item, index, t) {
+  const authorName = item.author?.display_name || item.author?.nickname || ''
   return {
     item,
     title: item.title || t('media.ui.untitled'),
-    subtitle: item.description || item.author?.display_name || item.author?.nickname || t('common.unknown_user'),
+    subtitle: item.description || authorName || t('common.unknown_user'),
+    authorName,
+    authorNickname: item.author?.nickname || '',
+    profileLabel: authorName ? t('common.view_profile', { name: authorName }) : undefined,
     tone: TONES[index % TONES.length],
     type: item.type,
     href: `/media/${item.id}`,

@@ -2,6 +2,7 @@
 
 namespace Domain\Event\Models;
 
+use Domain\Event\Support\EventCategoryLocaleNames;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
@@ -37,12 +38,18 @@ class EventCategory extends Model
     public function translatedName(?string $locale = null): ?string
     {
         $locale ??= app()->getLocale();
-        $fallbackLocale = config('app.fallback_locale');
 
-        $translation = $this->translations->firstWhere('locale', $locale)
-            ?? $this->translations->firstWhere('locale', $fallbackLocale)
-            ?? $this->translations->first();
+        $fromDb = $this->translations->firstWhere('locale', $locale)?->name;
+        if (filled($fromDb)) {
+            return $fromDb;
+        }
 
-        return $translation?->name;
+        $fromLang = EventCategoryLocaleNames::nameFor((string) $this->slug, $locale);
+        if (filled($fromLang)) {
+            return $fromLang;
+        }
+
+        return $this->translations->firstWhere('locale', config('app.fallback_locale'))?->name
+            ?? $this->translations->first()?->name;
     }
 }

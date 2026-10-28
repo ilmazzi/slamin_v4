@@ -28,6 +28,7 @@ return [
     'like' => 'Mi piace',
     'comments' => 'Commenti',
     'unknown_user' => 'Utente',
+    'view_profile' => 'Vedi il profilo di :name',
     'month_select' => 'Selezione mese',
     'coming_soon' => [
         'default_title' => 'Pagina in preparazione',

@@ -88,9 +88,15 @@
   margin: 0;
 }
 
-.title a {
+.title a,
+.authorLink {
   color: inherit;
   text-decoration: none;
+}
+
+a.authorLink:hover,
+a.authorLink:focus-visible {
+  text-decoration: underline;
 }
 
 .title {

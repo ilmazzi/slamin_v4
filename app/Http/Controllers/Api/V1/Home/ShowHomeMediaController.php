@@ -62,6 +62,10 @@ class ShowHomeMediaController extends Controller
                     'tone' => ['charcoal', 'sepia', 'graphite'][$index % 3],
                     'title' => $title !== '' ? $title : __('home.community_media.no_title'),
                     'subtitle' => $description !== '' ? $description : __('home.community_media.no_description'),
+                    'author' => [
+                        'nickname' => $item->user?->profile?->nickname,
+                        'display_name' => $item->user?->profile?->display_name,
+                    ],
                     'href' => '/media/'.$item->id,
                     'media_url' => $resolvedUrl,
                     'cover_url' => $coverUrl,

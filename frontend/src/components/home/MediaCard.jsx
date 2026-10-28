@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom'
 import { useMemo } from 'react'
+import AuthorLink from '../shared/AuthorLink.jsx'
 import {
   mediaCommentsDesktopIcon,
   mediaCommentsMobileIcon,
@@ -37,6 +38,32 @@ function MediaTarget({ href, className, ariaLabel, children }) {
       {children}
     </a>
   )
+}
+
+function MediaSubtitle({ authorName, authorNickname, subtitle, profileLabel, className, linkClassName }) {
+  if (authorName && authorNickname) {
+    return (
+      <p className={className}>
+        <AuthorLink
+          author={{ nickname: authorNickname }}
+          className={linkClassName}
+          ariaLabel={profileLabel}
+        >
+          {authorName}
+        </AuthorLink>
+      </p>
+    )
+  }
+
+  if (authorName) {
+    return <p className={className}>{authorName}</p>
+  }
+
+  if (!subtitle) {
+    return null
+  }
+
+  return <p className={className}>{subtitle}</p>
 }
 
 function StatPill({ value, desktopIcon, mobileIcon, alt }) {
@@ -94,6 +121,9 @@ function MediaSocialFooter({
 export default function MediaCard({
   title,
   subtitle,
+  authorName = '',
+  authorNickname = '',
+  profileLabel,
   tone,
   type,
   href,
@@ -137,7 +167,14 @@ export default function MediaCard({
             <h3 className={styles.title}>
               {isInternalHref(openHref) ? <Link to={openHref}>{title}</Link> : title}
             </h3>
-            <p className={styles.subtitle}>{subtitle}</p>
+            <MediaSubtitle
+              authorName={authorName}
+              authorNickname={authorNickname}
+              subtitle={subtitle}
+              profileLabel={profileLabel}
+              className={styles.subtitle}
+              linkClassName={styles.authorLink}
+            />
           </div>
         </div>
 
@@ -193,7 +230,14 @@ export default function MediaCard({
         <h3 className={styles.title}>
           {isInternalHref(openHref) ? <Link to={openHref}>{title}</Link> : title}
         </h3>
-        <p className={styles.subtitle}>{subtitle}</p>
+        <MediaSubtitle
+          authorName={authorName}
+          authorNickname={authorNickname}
+          subtitle={subtitle}
+          profileLabel={profileLabel}
+          className={styles.subtitle}
+          linkClassName={styles.authorLink}
+        />
       </div>
 
       <div className={styles.desktopFooter}>

@@ -18,7 +18,7 @@ import { normalizeEventsForUi } from '../../app/normalizers/event.js'
 const UpcomingEventSlider = lazy(() => import('../../components/events/UpcomingEventSlider.jsx'))
 
 export default function EventPage() {
-  const { t } = useI18n()
+  const { t, locale } = useI18n()
   const { token, user } = useAuth()
   const canCreateEvent = user?.account_type === 'poet_organizer'
   const [publicEvents, setPublicEvents] = useState([])
@@ -70,7 +70,7 @@ export default function EventPage() {
 
     loadEvents()
     return () => controller.abort()
-  }, [t, token])
+  }, [locale, t, token])
 
   const calendarEvents = useMemo(
     () => publicEvents.map((event) => ({

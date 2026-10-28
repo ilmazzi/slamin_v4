@@ -113,6 +113,26 @@ it('lists only active event categories', function () {
         ->assertJsonPath('data.categories.0.slug', 'festival');
 });
 
+it('returns system event category names in the request locale', function () {
+    $category = EventCategory::query()->create([
+        'slug' => 'concerto-musica',
+        'is_active' => true,
+        'sort_order' => 1,
+    ]);
+    $category->translations()->create([
+        'locale' => 'it',
+        'name' => 'Concerto (musica)',
+    ]);
+    $category->translations()->create([
+        'locale' => 'en',
+        'name' => 'Concert (music)',
+    ]);
+
+    expect($category->load('translations')->translatedName('de'))->toBe('Konzert (Musik)')
+        ->and($category->translatedName('fr'))->toBe('Concert (musique)')
+        ->and($category->translatedName('it'))->toBe('Concerto (musica)');
+});
+
 it('lists only published public events and supports owner-only draft view on show', function () {
     $owner = eventWorkflowOrganizer();
     $other = eventWorkflowOrganizer();

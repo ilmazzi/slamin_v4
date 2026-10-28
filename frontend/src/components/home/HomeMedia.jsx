@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import { useI18n } from '../../app/hooks/useI18n.js'
 import MediaCard from './MediaCard.jsx'
 import SectionHeading from './SectionHeading.jsx'
 import styles from './HomeMedia.module.css'
@@ -19,6 +20,7 @@ export default function HomeMedia({
   prevAria,
   nextAria,
 }) {
+  const { t } = useI18n()
   const trackRef = useRef(null)
   const autoplayTimeoutRef = useRef(null)
   const isPausedRef = useRef(false)
@@ -209,6 +211,13 @@ export default function HomeMedia({
               key={item.id}
               title={item.title || title}
               subtitle={item.subtitle || subtitle}
+              authorName={item.author?.display_name || item.author?.nickname || ''}
+              authorNickname={item.author?.nickname || ''}
+              profileLabel={
+                item.author?.display_name || item.author?.nickname
+                  ? t('common.view_profile', { name: item.author?.display_name || item.author?.nickname })
+                  : undefined
+              }
               tone={item.tone}
               type={item.type}
               href={item.href}

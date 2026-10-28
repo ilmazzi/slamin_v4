@@ -1,4 +1,5 @@
 import { resolvePublicUrl } from '../../app/api/url.js'
+import AuthorLink from '../shared/AuthorLink.jsx'
 import { richTextToPlainText } from '../../app/content/richText.js'
 import { formatShortPublishedDate } from '../../app/formatters/date.js'
 import PillButton from '../shared/PillButton.jsx'
@@ -25,14 +26,18 @@ export default function PoemCatalogCard({ poem, locale, t }) {
   return (
     <article className={styles.card}>
       <div className={styles.top}>
-        <div className={styles.authorRow}>
+        <AuthorLink
+          author={poem?.author}
+          className={styles.authorRow}
+          ariaLabel={t('common.view_profile', { name: authorName })}
+        >
           {authorAvatar ? (
             <img src={authorAvatar} alt="" className={styles.authorDot} />
           ) : (
             <span className={styles.authorDot} aria-hidden="true" />
           )}
           <span className={styles.authorName}>{authorName}</span>
-        </div>
+        </AuthorLink>
         <span className={styles.date}>{publishedDate}</span>
       </div>
 

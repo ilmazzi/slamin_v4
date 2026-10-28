@@ -28,6 +28,7 @@ return [
     'like' => 'Me gusta',
     'comments' => 'Comentarios',
     'unknown_user' => 'Usuario',
+    'view_profile' => 'Ver el perfil de :name',
     'month_select' => 'Selección de mes',
     'coming_soon' => [
         'default_title' => 'Página disponible pronto',

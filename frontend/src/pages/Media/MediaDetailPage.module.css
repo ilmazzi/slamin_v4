@@ -22,6 +22,16 @@
   color: #666;
 }
 
+.authorLink {
+  color: inherit;
+  text-decoration: none;
+}
+
+a.authorLink:hover,
+a.authorLink:focus-visible {
+  text-decoration: underline;
+}
+
 .description {
   margin: 8px 0 14px;
   color: #111;

@@ -18,7 +18,8 @@ import RichTextContent from '../shared/RichTextContent.jsx'
 import OwnerContentActions from '../shared/OwnerContentActions.jsx'
 import { deletePoem } from '../../app/api/poems.js'
 import { useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
+import AuthorLink from '../shared/AuthorLink.jsx'
 
 export default function PoemCard({ slug, onComments, onLoaded }) {
   const { t, locale } = useI18n()

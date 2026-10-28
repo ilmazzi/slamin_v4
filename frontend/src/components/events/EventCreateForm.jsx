@@ -303,8 +303,12 @@ export default function EventCreateForm({ eventSlug = null }) {
   }
 
   useEffect(() => {
-    listEventCategories().then((r) => setCategories(r.categories)).catch(() => {})
-  }, [])
+    const controller = new AbortController()
+    listEventCategories({ signal: controller.signal })
+      .then((r) => setCategories(r.categories))
+      .catch(() => {})
+    return () => controller.abort()
+  }, [locale])
 
   useEffect(() => {
     if (!token) {

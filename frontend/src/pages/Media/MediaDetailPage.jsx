@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { useLocation, useParams } from 'react-router-dom'
+import AuthorLink from '../../components/shared/AuthorLink.jsx'
 import MainLayout from '../../components/layout/MainLayout.jsx'
 import { getMediaById, syncMediaVideoStatus } from '../../app/api/media.js'
 import { useAuth } from '../../app/hooks/useAuth.js'
@@ -135,7 +136,17 @@ export default function MediaDetailPage() {
           <>
             <article className={styles.card}>
               <h1 className={styles.title}>{media?.title || t('media.ui.untitled')}</h1>
-              <p className={styles.author}>{media?.author?.display_name || media?.author?.nickname || t('common.unknown_user')}</p>
+              <p className={styles.author}>
+                <AuthorLink
+                  author={media?.author}
+                  className={styles.authorLink}
+                  ariaLabel={t('common.view_profile', {
+                    name: media?.author?.display_name || media?.author?.nickname || t('common.unknown_user'),
+                  })}
+                >
+                  {media?.author?.display_name || media?.author?.nickname || t('common.unknown_user')}
+                </AuthorLink>
+              </p>
               {media?.description ? <p className={styles.description}>{media.description}</p> : null}
 
               <div className={styles.player}>

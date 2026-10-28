@@ -25,6 +25,7 @@ const staticFallbacks = {
       loading: 'Caricamento...',
       no_results: 'Nessun risultato',
       groups: 'Gruppi',
+      view_profile: 'Vedi il profilo di :name',
     },
     report: {
       ui: {
@@ -341,6 +342,7 @@ const staticFallbacks = {
       loading: 'Loading...',
       no_results: 'No results',
       groups: 'Groups',
+      view_profile: "View :name's profile",
     },
     report: {
       ui: {
