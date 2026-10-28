@@ -71,6 +71,10 @@ return [
         'gallery' => 'Galerie',
         'empty_video' => 'Noch keine Videos.',
         'empty_gallery' => 'Noch keine Fotos.',
+        'other_by_author' => 'Weitere Videos von :name',
+        'other_community' => 'Weitere Videos aus der Community',
+        'empty_by_author' => 'Es gibt keine weiteren Videos dieser Person.',
+        'empty_community' => 'Es gibt keine weiteren Videos aus der Community.',
     ],
     'upload' => [
         'title' => 'Medien hochladen',

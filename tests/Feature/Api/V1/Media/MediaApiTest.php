@@ -754,6 +754,50 @@ it('filters public media by type search and sort', function () {
         ->assertJsonPath('data.1.title', 'Street gallery');
 });
 
+it('excludes the current video and an author from related video lists', function () {
+    $author = mediaPoetOrganizer();
+    $communityAuthor = mediaPoetOrganizer();
+    $author->profile()->update(['nickname' => 'video_author']);
+
+    $current = MediaItem::query()->create([
+        'user_id' => $author->id,
+        'type' => 'video',
+        'title' => 'Current video',
+        'visibility' => 'public',
+        'status' => 'ready',
+        'published_at' => now(),
+        'uploaded_at' => now(),
+    ]);
+    $otherByAuthor = MediaItem::query()->create([
+        'user_id' => $author->id,
+        'type' => 'video',
+        'title' => 'Other by author',
+        'visibility' => 'public',
+        'status' => 'ready',
+        'published_at' => now()->subMinute(),
+        'uploaded_at' => now()->subMinute(),
+    ]);
+    $communityVideo = MediaItem::query()->create([
+        'user_id' => $communityAuthor->id,
+        'type' => 'video',
+        'title' => 'Community video',
+        'visibility' => 'public',
+        'status' => 'ready',
+        'published_at' => now()->subMinutes(2),
+        'uploaded_at' => now()->subMinutes(2),
+    ]);
+
+    $this->getJson("/api/v1/media?type=video&nickname=video_author&exclude_id={$current->id}")
+        ->assertOk()
+        ->assertJsonCount(1, 'data')
+        ->assertJsonPath('data.0.id', $otherByAuthor->id);
+
+    $this->getJson("/api/v1/media?type=video&exclude_id={$current->id}&exclude_user_id={$author->id}")
+        ->assertOk()
+        ->assertJsonCount(1, 'data')
+        ->assertJsonPath('data.0.id', $communityVideo->id);
+});
+
 it('allows media owner to clear description with null on update', function () {
     $owner = mediaPoetOrganizer();
     Sanctum::actingAs($owner);

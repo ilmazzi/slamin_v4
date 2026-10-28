@@ -70,3 +70,11 @@ a.authorLink:focus-visible {
   color: #8f1f1f;
   border-radius: 12px;
 }
+
+.relatedVideos {
+  display: flex;
+  flex-direction: column;
+  gap: clamp(24px, 4vw, 56px);
+  width: 100%;
+  padding-top: clamp(32px, 5vw, 72px);
+}

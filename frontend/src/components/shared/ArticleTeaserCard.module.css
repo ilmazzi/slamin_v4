@@ -69,6 +69,8 @@
   gap: clamp(8px, 0.78vw, 15px);
   width: 100%;
   padding: clamp(4px, 0.42vw, 8px) 0;
+  color: inherit;
+  text-decoration: none;
 }
 
 .authorDot {
@@ -384,6 +386,7 @@
     font-family: 'Switzer', sans-serif;
     font-weight: 300;
     font-size: 10px;
+    text-decoration: none;
     line-height: 13px;
     color: #000;
   }

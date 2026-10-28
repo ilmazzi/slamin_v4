@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom'
 import { resolvePublicUrl } from '../../app/api/url.js'
 import { useI18n } from '../../app/hooks/useI18n.js'
+import AuthorLink from './AuthorLink.jsx'
 import SocialActions from './SocialActions.jsx'
 import styles from './SlideCard.module.css'
 
@@ -15,6 +16,7 @@ export default function SlideCard({
   imageAlt,
   badge = '',
   organizerName = '',
+  organizerNickname = '',
   organizerAvatarUrl = '',
   href,
   openAriaLabel,
@@ -38,14 +40,18 @@ export default function SlideCard({
         )}
         {badge ? <span className={styles.badge}>{badge}</span> : null}
         {organizerName ? (
-          <span className={styles.organizer}>
+          <AuthorLink
+            author={{ nickname: organizerNickname }}
+            className={styles.organizer}
+            ariaLabel={t('common.view_profile', { name: organizerName })}
+          >
             {resolvedOrganizerAvatar ? (
               <img src={resolvedOrganizerAvatar} alt="" className={styles.organizerAvatar} />
             ) : (
               <span className={styles.organizerAvatar} aria-hidden="true" />
             )}
             <span className={styles.organizerName}>{organizerName}</span>
-          </span>
+          </AuthorLink>
         ) : null}
       </div>
 

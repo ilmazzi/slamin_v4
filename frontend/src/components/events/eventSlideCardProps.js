@@ -12,6 +12,7 @@ export function eventSlideCardProps(event, { t, locale }) {
     imageUrl: event.image_url,
     badge: event.category || '',
     organizerName: event.organizer_name || '',
+    organizerNickname: event.organizer_nickname || '',
     organizerAvatarUrl: event.organizer_avatar_url,
     href: event.slug ? `/events/${encodeURIComponent(event.slug)}` : '/events',
     openAriaLabel: t('events.ui.open'),

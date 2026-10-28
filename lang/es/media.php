@@ -71,6 +71,10 @@ return [
         'gallery' => 'Galería',
         'empty_video' => 'Todavía no hay vídeos.',
         'empty_gallery' => 'Todavía no hay fotos.',
+        'other_by_author' => 'Más vídeos de :name',
+        'other_community' => 'Más vídeos de la comunidad',
+        'empty_by_author' => 'No hay más vídeos de esta persona.',
+        'empty_community' => 'No hay más vídeos de la comunidad.',
     ],
     'upload' => [
         'title' => 'Subir media',

@@ -71,6 +71,10 @@ return [
         'gallery' => 'Gallery',
         'empty_video' => 'Nessun video disponibile.',
         'empty_gallery' => 'Nessuna foto disponibile.',
+        'other_by_author' => 'Altri video da :name',
+        'other_community' => 'Altri video dalla comunità',
+        'empty_by_author' => 'Non ci sono altri video di questa persona.',
+        'empty_community' => 'Non ci sono altri video dalla comunità.',
     ],
     'upload' => [
         'title' => 'Carica media',

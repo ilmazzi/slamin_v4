@@ -1,4 +1,5 @@
 import SocialActions from '../shared/SocialActions.jsx'
+import AuthorLink from '../shared/AuthorLink.jsx'
 import PillButton from '../shared/PillButton.jsx'
 import { formatShortPublishedDate } from '../../app/formatters/date.js'
 import {
@@ -44,7 +45,9 @@ export default function FeaturedDesktopArticle({ article, locale, t }) {
     return null
   }
 
-  const authorName = t('articles.featured.author_name')
+  const authorName = article?.author?.display_name
+    || article?.author?.nickname
+    || t('articles.featured.author_name')
   const readingMinutes = estimateReadingMinutes(article)
   const publishedDate = formatShortPublishedDate(article?.published_at, locale, '-')
   const metrics = buildArticleMetrics(article)
@@ -75,10 +78,14 @@ export default function FeaturedDesktopArticle({ article, locale, t }) {
 
           <div className={styles.content}>
             <div className={styles.contentTop}>
-              <div className={styles.authorRow}>
+              <AuthorLink
+                author={article?.author}
+                className={styles.authorRow}
+                ariaLabel={t('common.view_profile', { name: authorName })}
+              >
                 <span className={styles.avatar}>{initialsFromName(authorName)}</span>
                 <span className={styles.authorName}>{authorName}</span>
-              </div>
+              </AuthorLink>
 
               <div className={styles.textRow}>
                 <h2 className={styles.title}>{article?.title ?? t('articles.featured.no_title')}</h2>

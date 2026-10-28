@@ -38,6 +38,14 @@ class ListMediaAction
             $query->where('type', $data->type);
         }
 
+        if ($data->excludeId !== null) {
+            $query->whereKeyNot($data->excludeId);
+        }
+
+        if ($data->excludeUserId !== null) {
+            $query->where('user_id', '!=', $data->excludeUserId);
+        }
+
         if (filled($data->search)) {
             $term = '%'.addcslashes(mb_strtolower($data->search), '%_\\').'%';
             $query->where(function ($builder) use ($term): void {

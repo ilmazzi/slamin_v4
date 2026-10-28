@@ -2,11 +2,14 @@ import { useEffect, useRef, useState } from 'react'
 import { useLocation, useParams } from 'react-router-dom'
 import AuthorLink from '../../components/shared/AuthorLink.jsx'
 import MainLayout from '../../components/layout/MainLayout.jsx'
-import { getMediaById, syncMediaVideoStatus } from '../../app/api/media.js'
+import { getMediaById, listMedia, syncMediaVideoStatus } from '../../app/api/media.js'
 import { useAuth } from '../../app/hooks/useAuth.js'
 import { useI18n } from '../../app/hooks/useI18n.js'
+import { useMediaQuery } from '../../app/hooks/useMediaQuery.js'
+import { usePaginatedApiList } from '../../app/hooks/usePaginatedApiList.js'
 import SocialActions from '../../components/shared/SocialActions.jsx'
 import CommentsThread from '../../components/shared/CommentsThread.jsx'
+import MediaCarouselSection from '../../components/media/MediaCarouselSection.jsx'
 import ContentReportModal from '../../components/shared/ContentReportModal.jsx'
 import AppToast from '../../components/shared/AppToast.jsx'
 import { useContentFeedbackUi } from '../../app/hooks/useContentFeedbackUi.js'
@@ -20,10 +23,45 @@ export default function MediaDetailPage() {
   const location = useLocation()
   const { token } = useAuth()
   const { t } = useI18n()
+  const isDesktop = useMediaQuery('(min-width: 1025px)')
+  const cardsPerPage = isDesktop ? 3 : 1
   const [media, setMedia] = useState(null)
+  const [authorPage, setAuthorPage] = useState(1)
+  const [communityPage, setCommunityPage] = useState(1)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState('')
   const commentsRef = useRef(null)
+  const isVideo = media?.type === 'video'
+  const authorNickname = media?.author?.nickname || ''
+  const authorName = media?.author?.display_name || authorNickname || t('common.unknown_user')
+
+  const authorVideos = usePaginatedApiList({
+    fetcher: listMedia,
+    params: {
+      page: authorPage,
+      perPage: cardsPerPage,
+      type: 'video',
+      nickname: authorNickname,
+      excludeId: media?.id,
+      token,
+    },
+    enabled: isVideo && Boolean(authorNickname && media?.id),
+    deps: [authorPage, authorNickname, cardsPerPage, isVideo, media?.id, token],
+  })
+
+  const communityVideos = usePaginatedApiList({
+    fetcher: listMedia,
+    params: {
+      page: communityPage,
+      perPage: cardsPerPage,
+      type: 'video',
+      excludeId: media?.id,
+      excludeUserId: media?.author?.id,
+      token,
+    },
+    enabled: isVideo && Boolean(media?.id),
+    deps: [communityPage, cardsPerPage, isVideo, media?.author?.id, media?.id, token],
+  })
 
   useEffect(() => {
     if (location.hash !== '#comments' && !location.state?.focusComments) {
@@ -178,12 +216,44 @@ export default function MediaDetailPage() {
               />
             </article>
 
-            <div ref={commentsRef} id="comments" style={{ scrollMarginTop: 104 }}>
-              <CommentsThread contentType="media" contentId={media.id} />
-            </div>
           </>
         ) : null}
       </div>
+      {isVideo ? (
+        <div className={styles.relatedVideos}>
+          {authorNickname ? (
+            <MediaCarouselSection
+              title={t('media.sections.other_by_author', { name: authorName })}
+              items={authorVideos.items}
+              isLoading={authorVideos.isLoading}
+              error={authorVideos.error}
+              emptyLabel={t('media.sections.empty_by_author')}
+              page={authorPage}
+              lastPage={authorVideos.meta.last_page}
+              onPageChange={setAuthorPage}
+              t={t}
+            />
+          ) : null}
+          <MediaCarouselSection
+            title={t('media.sections.other_community')}
+            items={communityVideos.items}
+            isLoading={communityVideos.isLoading}
+            error={communityVideos.error}
+            emptyLabel={t('media.sections.empty_community')}
+            page={communityPage}
+            lastPage={communityVideos.meta.last_page}
+            onPageChange={setCommunityPage}
+            t={t}
+          />
+        </div>
+      ) : null}
+      {!isLoading && media ? (
+        <div className={styles.page}>
+          <div ref={commentsRef} id="comments" style={{ scrollMarginTop: 104 }}>
+            <CommentsThread contentType="media" contentId={media.id} />
+          </div>
+        </div>
+      ) : null}
       </div>
 
       <ContentReportModal

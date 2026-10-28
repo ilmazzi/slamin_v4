@@ -10,6 +10,8 @@ export async function listMedia({
   type = '',
   sort = 'newest',
   nickname = '',
+  excludeId = null,
+  excludeUserId = null,
   token: paramsToken,
 } = {}, { token: optionToken, signal } = {}) {
   const token = optionToken ?? paramsToken
@@ -18,6 +20,12 @@ export async function listMedia({
   params.set('per_page', String(perPage))
   if (nickname) {
     params.set('nickname', String(nickname))
+  }
+  if (excludeId) {
+    params.set('exclude_id', String(excludeId))
+  }
+  if (excludeUserId) {
+    params.set('exclude_user_id', String(excludeUserId))
   }
 
   const query = String(q ?? '').trim()

@@ -71,6 +71,10 @@ return [
         'gallery' => 'Galerie',
         'empty_video' => 'Pas encore de vidéos.',
         'empty_gallery' => 'Pas encore de photos.',
+        'other_by_author' => 'Autres vidéos de :name',
+        'other_community' => 'Autres vidéos de la communauté',
+        'empty_by_author' => 'Il n’y a pas d’autres vidéos de cette personne.',
+        'empty_community' => 'Il n’y a pas d’autres vidéos de la communauté.',
     ],
     'upload' => [
         'title' => 'Mettre en ligne un média',

@@ -1,4 +1,5 @@
 import styles from './ArticleTeaserCard.module.css'
+import AuthorLink from './AuthorLink.jsx'
 import PillButton from './PillButton.jsx'
 import SocialActions from './SocialActions.jsx'
 import { formatShortPublishedDate } from '../../app/formatters/date.js'
@@ -63,10 +64,14 @@ export default function ArticleTeaserCard({ article, locale, t, compact = false,
 
         <div className={styles.content}>
           <div className={styles.top}>
-            <div className={styles.authorRow}>
+            <AuthorLink
+              author={article?.author}
+              className={styles.authorRow}
+              ariaLabel={t('common.view_profile', { name: authorName })}
+            >
               <span className={styles.authorDot} aria-hidden="true" />
               <span className={styles.authorName}>{authorName}</span>
-            </div>
+            </AuthorLink>
 
             <div className={styles.textRow}>
               <h3 className={styles.cardTitle}>{article?.title ?? t('articles.all.no_title')}</h3>
@@ -135,7 +140,13 @@ export default function ArticleTeaserCard({ article, locale, t, compact = false,
           <div className={styles.mobileTop}>
             <div className={styles.mobileAuthorRow}>
               <span className={styles.mobileAuthorDot} aria-hidden="true" />
-              <span className={styles.mobileAuthorName}>{authorName}</span>
+              <AuthorLink
+                author={article?.author}
+                className={styles.mobileAuthorName}
+                ariaLabel={t('common.view_profile', { name: authorName })}
+              >
+                {authorName}
+              </AuthorLink>
               <div className={styles.mobileMeta}>
                 <span>{publishedDate}</span>
                 <span>{t('articles.featured.reading_time').replace(':minutes', String(readingMinutes))}</span>

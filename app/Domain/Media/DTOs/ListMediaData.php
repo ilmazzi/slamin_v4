@@ -13,6 +13,8 @@ class ListMediaData
         public readonly ?MediaType $type,
         public readonly string $sort,
         public readonly ?string $nickname,
+        public readonly ?int $excludeId = null,
+        public readonly ?int $excludeUserId = null,
     ) {}
 
     public static function fromRequest(ListMediaRequest $request): self
@@ -25,6 +27,8 @@ class ListMediaData
             type: is_string($type) && $type !== '' ? MediaType::from($type) : null,
             sort: $request->validated('sort') ?: 'newest',
             nickname: $request->validated('nickname'),
+            excludeId: $request->validated('exclude_id'),
+            excludeUserId: $request->validated('exclude_user_id'),
         );
     }
 }

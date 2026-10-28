@@ -71,6 +71,10 @@ return [
         'gallery' => 'Gallery',
         'empty_video' => 'No videos yet.',
         'empty_gallery' => 'No photos yet.',
+        'other_by_author' => 'More videos by :name',
+        'other_community' => 'More videos from the community',
+        'empty_by_author' => 'There are no other videos by this person.',
+        'empty_community' => 'There are no other community videos.',
     ],
     'upload' => [
         'title' => 'Upload media',

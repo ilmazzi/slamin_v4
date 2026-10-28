@@ -2,6 +2,7 @@ import { resolvePublicUrl } from '../../app/api/url.js'
 import { formatShortPublishedDate } from '../../app/formatters/date.js'
 import { useArticleDetail } from '../../app/hooks/useArticleDetail.js'
 import { useI18n } from '../../app/hooks/useI18n.js'
+import AuthorLink from '../shared/AuthorLink.jsx'
 import SocialActions from '../shared/SocialActions.jsx'
 import { useAuth } from '../../app/hooks/useAuth.js'
 import {
@@ -66,14 +67,18 @@ export default function ArticleCard({ slug, onComments, onLoaded }) {
     <>
     <article className={styles.card}>
       <header className={styles.topBar}>
-        <div className={styles.author}>
+        <AuthorLink
+          author={article?.author}
+          className={styles.author}
+          ariaLabel={t('common.view_profile', { name: authorLabel })}
+        >
           {authorAvatar ? (
             <img src={authorAvatar} alt="" className={styles.avatar} />
           ) : (
             <span className={styles.avatar} aria-hidden="true" />
           )}
           <span className={styles.authorName}>{authorLabel}</span>
-        </div>
+        </AuthorLink>
 
         <div className={styles.meta}>
           {publishedDate ? <span className={styles.date}>{publishedDate}</span> : null}
