@@ -45,6 +45,7 @@ export function normalizeEventForUi(apiEvent, occurrenceOverride = null) {
     category: categoryLabel,
     image_url: apiEvent.cover_image_url || null,
     organizer_name: apiEvent.author?.display_name || apiEvent.author?.nickname || '',
+    organizer_nickname: apiEvent.author?.nickname || '',
     organizer_avatar_url: apiEvent.author?.avatar_url || null,
     has_cost: hasCost,
     entry_fee: hasCost && price != null && !Number.isNaN(price) ? price : null,

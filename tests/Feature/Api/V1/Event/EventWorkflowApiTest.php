@@ -143,10 +143,17 @@ it('lists only published public events and supports owner-only draft view on sho
         'is_public' => false,
     ]);
 
+    $owner->profile()->update([
+        'nickname' => 'nova_host',
+        'display_name' => 'Nova Host',
+    ]);
+
     $this->getJson('/api/v1/events')
         ->assertOk()
         ->assertJsonCount(1, 'data')
-        ->assertJsonPath('data.0.slug', 'evento-pubblico');
+        ->assertJsonPath('data.0.slug', 'evento-pubblico')
+        ->assertJsonPath('data.0.author.nickname', 'nova_host')
+        ->assertJsonPath('data.0.author.display_name', 'Nova Host');
 
     // Non-owner cannot read draft/private event by slug.
     Sanctum::actingAs($other);
@@ -195,7 +202,7 @@ it('uses a bounded query count and does not expose invitations in the public eve
     $events = app(ListEventQuery::class)->execute(new ListEventData(10, null, null, null));
     EventSummaryResource::collection($events->items())->resolve();
 
-    expect($queryCount)->toBeLessThanOrEqual(6);
+    expect($queryCount)->toBeLessThanOrEqual(8);
 
     $this->getJson('/api/v1/events')
         ->assertOk()

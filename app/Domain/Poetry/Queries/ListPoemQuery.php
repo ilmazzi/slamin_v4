@@ -6,6 +6,7 @@ use Domain\Poetry\DTOs\ListPoemData;
 use Domain\Poetry\Enums\PoemStatus;
 use Domain\Poetry\Models\Poem;
 use Domain\Shared\Support\AuthorNicknameFilter;
+use Domain\Shared\Support\PublisherTextSearch;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 
 class ListPoemQuery
@@ -33,12 +34,13 @@ class ListPoemQuery
         }
 
         if (filled($data->search)) {
-            $term = '%'.addcslashes($data->search, '%_\\').'%';
+            $term = '%'.addcslashes(mb_strtolower($data->search), '%_\\').'%';
             $query->where(function ($builder) use ($term): void {
                 $builder
-                    ->where('title', 'like', $term)
-                    ->orWhere('description', 'like', $term)
-                    ->orWhere('content', 'like', $term);
+                    ->whereRaw('LOWER(title) LIKE ?', [$term])
+                    ->orWhereRaw('LOWER(description) LIKE ?', [$term])
+                    ->orWhereRaw('LOWER(content) LIKE ?', [$term]);
+                PublisherTextSearch::constrain($builder, $term);
             });
         }
 

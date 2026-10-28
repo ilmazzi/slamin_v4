@@ -47,6 +47,15 @@ class EventSummaryResource extends JsonResource
                 'latitude' => $this->venueDetail->latitude,
                 'longitude' => $this->venueDetail->longitude,
             ] : null,
+            'author' => $this->when($this->relationLoaded('user'), fn () => [
+                'id' => $this->user?->id,
+                'public_id' => $this->user?->public_id,
+                'nickname' => $this->user?->profile?->nickname,
+                'display_name' => $this->user?->profile?->display_name,
+                'avatar_url' => $this->user?->profile?->avatar_path
+                    ? $disk->url($this->user->profile->avatar_path)
+                    : null,
+            ]),
             'is_owner' => $authUserId !== null
                 && (int) $authUserId === (int) $this->user_id,
             'likes_count' => (int) ($this->likes_count ?? 0),

@@ -31,7 +31,16 @@ export function matchesClientFilters(event, { searchQuery, cityQuery, freeOnly }
 
   const normalizedSearch = searchQuery.trim().toLowerCase()
   if (normalizedSearch) {
-    const text = `${event.title || ''} ${event.description || ''}`.toLowerCase()
+    const text = [
+      event.title,
+      event.subtitle,
+      event.description,
+      event.organizer_name,
+      event.organizer_nickname,
+    ]
+      .filter(Boolean)
+      .join(' ')
+      .toLowerCase()
     if (!text.includes(normalizedSearch)) {
       return false
     }

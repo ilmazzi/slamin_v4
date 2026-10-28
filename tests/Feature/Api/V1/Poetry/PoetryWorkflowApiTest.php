@@ -294,6 +294,45 @@ it('filters published poems by search, language, category and sort', function ()
         ->assertJsonPath('data.0.slug', 'silent-garden');
 });
 
+it('finds published poems by author display name or nickname', function () {
+    $author = poetryWorkflowOrganizer();
+    $other = poetryWorkflowOrganizer();
+    $category = poetryWorkflowCategory('autore');
+    $type = poetryWorkflowType('testo');
+
+    $author->profile()->update([
+        'nickname' => 'giulianeri',
+        'display_name' => 'Giulia Neri',
+    ]);
+    $other->profile()->update([
+        'nickname' => 'marco_blu',
+        'display_name' => 'Marco Blu',
+    ]);
+
+    poetryWorkflowPoem($author, $category, $type, [
+        'title' => 'Verso silenzioso',
+        'slug' => 'verso-silenzioso',
+        'content' => 'Una stanza',
+        'description' => 'Senza il nome',
+    ]);
+    poetryWorkflowPoem($other, $category, $type, [
+        'title' => 'Altra voce',
+        'slug' => 'altra-voce',
+        'content' => 'Altro testo',
+        'description' => 'Altro',
+    ]);
+
+    $this->getJson('/api/v1/poems?q=Giulia')
+        ->assertOk()
+        ->assertJsonCount(1, 'data')
+        ->assertJsonPath('data.0.slug', 'verso-silenzioso');
+
+    $this->getJson('/api/v1/poems?q=giulianeri')
+        ->assertOk()
+        ->assertJsonCount(1, 'data')
+        ->assertJsonPath('data.0.slug', 'verso-silenzioso');
+});
+
 it('validates per_page bounds in my poems endpoint', function () {
     $author = poetryWorkflowOrganizer();
     $category = poetryWorkflowCategory('mine');

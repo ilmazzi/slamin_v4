@@ -194,3 +194,78 @@ it('includes listed groups in the catalog only for verified users', function () 
 it('rejects catalog searches shorter than two characters', function () {
     $this->getJson('/api/v1/search?q=N')->assertUnprocessable();
 });
+
+it('finds catalog poems by publisher name even when the title does not match', function () {
+    $author = User::factory()->poetOrganizer()->create();
+    Profile::query()->where('user_id', $author->id)->update([
+        'nickname' => 'livia_search',
+        'display_name' => 'Livia Search',
+        'is_public' => true,
+    ]);
+
+    $poemCategory = PoemCategory::query()->create([
+        'slug' => 'author-search-cat',
+        'is_active' => true,
+        'sort_order' => 1,
+    ]);
+    $poemCategory->translations()->create(['locale' => 'it', 'name' => 'Author search']);
+    $poemType = PoemType::query()->create([
+        'slug' => 'author-search-type',
+        'is_active' => true,
+        'sort_order' => 1,
+    ]);
+    $poemType->translations()->create(['locale' => 'it', 'name' => 'Author search type']);
+
+    Poem::query()->create([
+        'user_id' => $author->id,
+        'poem_category_id' => $poemCategory->id,
+        'poem_type_id' => $poemType->id,
+        'title' => 'Alba sul porto',
+        'slug' => 'alba-sul-porto',
+        'content' => 'Verso',
+        'description' => 'Senza il nome nel testo',
+        'language' => 'it',
+        'status' => 'published',
+        'is_public' => true,
+        'published_at' => now(),
+    ]);
+
+    $eventCategory = EventCategory::query()->create([
+        'slug' => 'author-search-events',
+        'is_active' => true,
+        'sort_order' => 1,
+    ]);
+    Event::query()->create([
+        'user_id' => $author->id,
+        'event_category_id' => $eventCategory->id,
+        'title' => 'Serata al porto',
+        'slug' => 'serata-al-porto',
+        'description' => 'Senza il nome',
+        'schedule_mode' => 'fixed',
+        'delivery_mode' => 'in_person',
+        'status' => 'published',
+        'is_public' => true,
+        'published_at' => now(),
+    ]);
+
+    Article::query()->create([
+        'user_id' => $author->id,
+        'title' => 'Cronaca del porto',
+        'slug' => 'cronaca-del-porto',
+        'content' => 'Articolo',
+        'excerpt' => 'Senza il nome',
+        'language' => 'it',
+        'status' => 'published',
+        'is_public' => true,
+        'published_at' => now(),
+    ]);
+
+    $groups = collect($this->getJson('/api/v1/search?q=Livia')->assertOk()->json('data.groups'))->keyBy('type');
+
+    expect($groups['poems']['items'])->toHaveCount(1)
+        ->and($groups['poems']['items'][0]['href'])->toBe('/poems/alba-sul-porto')
+        ->and($groups['events']['items'])->toHaveCount(1)
+        ->and($groups['events']['items'][0]['href'])->toBe('/events/serata-al-porto')
+        ->and($groups['articles']['items'])->toHaveCount(1)
+        ->and($groups['articles']['items'][0]['href'])->toBe('/articles/cronaca-del-porto');
+});

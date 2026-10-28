@@ -130,6 +130,15 @@ it('filters, searches and paginates open gigs', function () {
         ->assertJsonCount(1, 'data.gigs')
         ->assertJsonPath('data.gigs.0.type', 'mc_host');
 
+    $owner->profile()->update([
+        'nickname' => 'livia_host',
+        'display_name' => 'Livia Host',
+    ]);
+
+    $this->getJson(route('api.v1.gigs.open', ['q' => 'Livia']))
+        ->assertOk()
+        ->assertJsonCount(4, 'data.gigs');
+
     $this->getJson(route('api.v1.gigs.open', ['sort' => 'random']))
         ->assertStatus(422);
 });

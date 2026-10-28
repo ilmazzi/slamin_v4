@@ -7,6 +7,7 @@ use Domain\Gig\DTOs\ListOpenGigsData;
 use Domain\Gig\Enums\GigStatus;
 use Domain\Gig\Queries\GigCatalogQuery;
 use Domain\Poetry\Models\Poem;
+use Domain\Shared\Support\PublisherTextSearch;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Builder;
 
@@ -40,6 +41,7 @@ class ListOpenGigsAction
                     ->whereRaw('LOWER(gigs.description) LIKE ?', [$term])
                     ->orWhereHasMorph('giggable', [Event::class, Poem::class], function (Builder $parent) use ($term): void {
                         $parent->whereRaw('LOWER(title) LIKE ?', [$term]);
+                        PublisherTextSearch::constrain($parent, $term);
                     });
             });
         }

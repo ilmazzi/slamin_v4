@@ -739,6 +739,15 @@ it('filters public media by type search and sort', function () {
         ->assertJsonCount(1, 'data')
         ->assertJsonPath('data.0.title', 'Street gallery');
 
+    $owner->profile()->update([
+        'nickname' => 'street_poet',
+        'display_name' => 'Livia Media',
+    ]);
+
+    $this->getJson('/api/v1/media?q=Livia')
+        ->assertOk()
+        ->assertJsonCount(2, 'data');
+
     $this->getJson('/api/v1/media?sort=oldest')
         ->assertOk()
         ->assertJsonPath('data.0.title', 'Night slam')

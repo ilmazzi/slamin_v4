@@ -14,6 +14,7 @@ class ListEventQuery
     {
         $query = Event::query()
             ->with([
+                'user.profile',
                 'category.translations',
                 'occurrences',
                 'venueDetail',

@@ -9,6 +9,7 @@ use Domain\Media\Enums\MediaVisibility;
 use Domain\Media\Models\MediaItem;
 use Domain\Media\Services\PeerTubeService;
 use Domain\Shared\Support\AuthorNicknameFilter;
+use Domain\Shared\Support\PublisherTextSearch;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 
 class ListMediaAction
@@ -38,11 +39,12 @@ class ListMediaAction
         }
 
         if (filled($data->search)) {
-            $term = '%'.addcslashes($data->search, '%_\\').'%';
+            $term = '%'.addcslashes(mb_strtolower($data->search), '%_\\').'%';
             $query->where(function ($builder) use ($term): void {
                 $builder
-                    ->where('title', 'like', $term)
-                    ->orWhere('description', 'like', $term);
+                    ->whereRaw('LOWER(title) LIKE ?', [$term])
+                    ->orWhereRaw('LOWER(description) LIKE ?', [$term]);
+                PublisherTextSearch::constrain($builder, $term);
             });
         }
 

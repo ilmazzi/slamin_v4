@@ -14,6 +14,7 @@ use Domain\Media\Enums\MediaVisibility;
 use Domain\Media\Models\MediaItem;
 use Domain\Poetry\Enums\PoemStatus;
 use Domain\Poetry\Models\Poem;
+use Domain\Shared\Support\PublisherTextSearch;
 use Domain\User\Models\User;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
@@ -70,6 +71,7 @@ class SearchCatalogAction
                     ->whereRaw('LOWER(gigs.description) LIKE ?', [$term])
                     ->orWhereHasMorph('giggable', [Event::class, Poem::class], function (Builder $parent) use ($term): void {
                         $parent->whereRaw('LOWER(title) LIKE ?', [$term]);
+                        PublisherTextSearch::constrain($parent, $term);
                     });
             })
             ->orderByDesc('opened_at')
@@ -159,6 +161,7 @@ class SearchCatalogAction
                     ->whereRaw('LOWER(title) LIKE ?', [$term])
                     ->orWhereRaw('LOWER(subtitle) LIKE ?', [$term])
                     ->orWhereRaw('LOWER(description) LIKE ?', [$term]);
+                PublisherTextSearch::constrain($builder, $term);
             })
             ->orderByDesc('published_at')
             ->orderByDesc('id')
@@ -192,6 +195,7 @@ class SearchCatalogAction
                 $builder
                     ->whereRaw('LOWER(title) LIKE ?', [$term])
                     ->orWhereRaw('LOWER(description) LIKE ?', [$term]);
+                PublisherTextSearch::constrain($builder, $term);
             })
             ->orderByDesc('published_at')
             ->orderByDesc('id')
@@ -225,6 +229,7 @@ class SearchCatalogAction
                 $builder
                     ->whereRaw('LOWER(title) LIKE ?', [$term])
                     ->orWhereRaw('LOWER(excerpt) LIKE ?', [$term]);
+                PublisherTextSearch::constrain($builder, $term);
             })
             ->orderByDesc('published_at')
             ->orderByDesc('id')
@@ -281,6 +286,7 @@ class SearchCatalogAction
                 $builder
                     ->whereRaw('LOWER(title) LIKE ?', [$term])
                     ->orWhereRaw('LOWER(description) LIKE ?', [$term]);
+                PublisherTextSearch::constrain($builder, $term);
             })
             ->orderByDesc('published_at')
             ->orderByDesc('id')
