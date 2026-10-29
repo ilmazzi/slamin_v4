@@ -21,7 +21,7 @@ import {
   UnderlineIcon,
   Undo2,
 } from 'lucide-react'
-import { useEffect } from 'react'
+import { useEffect, useRef } from 'react'
 import { sanitizeRichText, toEditorDocument } from '../../app/content/richText.js'
 import { useI18n } from '../../app/hooks/useI18n.js'
 import styles from './RichTextEditor.module.css'
@@ -50,6 +50,7 @@ export default function RichTextEditor({
   compactParagraphs = false,
 }) {
   const { t } = useI18n()
+  const lastEmittedValue = useRef()
   const editor = useEditor({
     extensions: [
       StarterKit.configure({
@@ -81,15 +82,20 @@ export default function RichTextEditor({
       },
     },
     onUpdate: ({ editor: currentEditor }) => {
-      onChange(currentEditor.isEmpty ? '' : sanitizeRichText(currentEditor.getHTML()))
+      const nextValue = currentEditor.isEmpty ? '' : sanitizeRichText(currentEditor.getHTML())
+      lastEmittedValue.current = nextValue
+      onChange(nextValue)
     },
   })
 
   useEffect(() => {
-    if (!editor) {
+    // A parent echo of our own update must not replace the live document:
+    // sanitization changes HTML serialization and reparsing also collapses spaces.
+    if (!editor || value === lastEmittedValue.current) {
       return
     }
 
+    lastEmittedValue.current = undefined
     const nextContent = toEditorDocument(value)
     if (editor.getHTML() !== nextContent) {
       editor.commands.setContent(nextContent, { emitUpdate: false })
